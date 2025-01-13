@@ -1,0 +1,26 @@
+"use server";
+import { headers } from "next/headers";
+
+export async function getProtocol(): Promise<string> {
+  "use server";
+  // For the protocol, we will check based on env HTTP_PROTOCOL, if not check by x-forwarded-proto, if not check by NODE_ENV (production or not), if not default to http
+  let protocol = process.env.HTTP_PROTOCOL;
+
+  if (!protocol) {
+    const h = await headers();
+    protocol =
+      h.get("x-forwarded-proto") ||
+      (process.env.NODE_ENV === "production" ? "https" : "http");
+  }
+
+  return protocol;
+}
+
+export async function getBaseUrl(): Promise<string> {
+  "use server";
+
+  const h = await headers();
+  const protocol = await getProtocol();
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  return `${protocol}://${host}` || "";
+}
