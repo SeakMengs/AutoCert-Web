@@ -1,38 +1,24 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { validateAccessToken, JwtTokenValidationResult } from "@/utils/auth";
+import { useAuth } from "@/hooks/useAuth";
+import { Button, Spin } from "antd";
 
 export default function Dashboard() {
-  const [validationResult, setValidationResult] =
-    useState<JwtTokenValidationResult | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const validateToken = async () => {
-      try {
-        const result = await validateAccessToken();
-        console.log(result);
-        setValidationResult(result);
-      } catch (error) {
-        console.error("Error validating access token:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    validateToken();
-  }, []);
+  const { user, exp, iat, isAuthenticated, revalidate, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
   }
 
-  if (!validationResult || !validationResult.user) {
+  if (!isAuthenticated) {
     return (
       <div>
         <h1>Access Denied</h1>
         <p>You are not authorized to view this page. Please log in again.</p>
+        <Button onClick={revalidate}>Revalidate</Button>
       </div>
     );
   }
@@ -41,19 +27,18 @@ export default function Dashboard() {
     <div>
       <h1>Welcome to the Dashboard</h1>
       <p>
-        <strong>User ID:</strong> {validationResult.user.id}
+        <strong>User ID:</strong> {user.id}
       </p>
       <p>
-        <strong>User Name:</strong> {validationResult.user.email}
+        <strong>User Name:</strong> {user.email}
       </p>
       <p>
-        <strong>Issued At:</strong>{" "}
-        {new Date(validationResult.iat * 1000).toLocaleString()}
+        <strong>Issued At:</strong> {new Date(iat * 1000).toLocaleString()}
       </p>
       <p>
-        <strong>Expires At:</strong>{" "}
-        {new Date(validationResult.exp * 1000).toLocaleString()}
+        <strong>Expires At:</strong> {new Date(exp * 1000).toLocaleString()}
       </p>
+      <Button onClick={revalidate}>Revalidate</Button>
     </div>
   );
 }
