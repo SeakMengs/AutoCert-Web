@@ -2,9 +2,7 @@
 import { useEffect, useState } from "react";
 import { Spin, Alert, Button } from "antd";
 import { useRouter } from "next/navigation";
-import { deleteJwtTokenCookie, setJwtTokenCookie } from "@/utils/cookie";
-import { DAY, MINUTE } from "@/utils/time";
-import { JWT_COOKIE_TYPE } from "@/types/cookie";
+import { clearRefreshAndAccessTokenCookie, setRefreshAndAccessTokenToCookie } from "@/utils";
 
 type AuthenticationStatusProps = {
   isOk: boolean;
@@ -29,23 +27,12 @@ export default function AuthenticationStatus({
       // Simulate a short delay to show the loading state
       setTimeout(async () => {
         if (!token || !token.accessToken || !token.refreshToken) {
-          await deleteJwtTokenCookie(JWT_COOKIE_TYPE.ACCESS);
-          await deleteJwtTokenCookie(JWT_COOKIE_TYPE.REFRESH);
+          await clearRefreshAndAccessTokenCookie();
           setError("Failed to authenticate.");
           return;
         }
 
-        await setJwtTokenCookie(
-          token.accessToken,
-          new Date(Date.now() + MINUTE * 5),
-          JWT_COOKIE_TYPE.ACCESS,
-        );
-
-        await setJwtTokenCookie(
-          token.refreshToken,
-          new Date(Date.now() + DAY * 7),
-          JWT_COOKIE_TYPE.REFRESH,
-        );
+        await setRefreshAndAccessTokenToCookie(token.refreshToken, token.accessToken);
 
         setLoading(false);
         router.push("/dashboard");

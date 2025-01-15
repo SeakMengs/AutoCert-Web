@@ -10,6 +10,7 @@ const initialAuthState = {
   user: null,
   accessToken: null,
   loading: true,
+  error: null,
   exp: null,
   iat: null,
 } satisfies AuthState;
@@ -32,8 +33,12 @@ export function useAuth(): UseAuthReturn {
         ...result,
         loading: false,
       });
-    } catch (error) {
-      setAuthState(initialAuthState);
+    } catch (error: any) {
+      setAuthState({
+        ...initialAuthState,
+        loading: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 
