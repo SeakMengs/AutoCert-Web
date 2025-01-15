@@ -1,53 +1,10 @@
-import { useState, useEffect } from "react";
-import { validateAccessToken, JwtTokenValidationResult } from "@/utils/auth";
+import { AuthContext, AuthContextValue } from "@/app/auth_provider";
+import { useContext } from "react";
 
-type AuthState = JwtTokenValidationResult & {
-  loading: boolean;
+export const useAuth = (): AuthContextValue => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuthContext must be used within an AuthProvider");
+  }
+  return context;
 };
-
-const initialAuthState = {
-  isAuthenticated: false,
-  user: null,
-  accessToken: null,
-  loading: true,
-  error: null,
-  exp: null,
-  iat: null,
-} satisfies AuthState;
-
-type UseAuthReturn = AuthState & {
-  revalidate: () => Promise<void>;
-};
-
-/*
- * Use this function in client side for loading state.
- * For server side, use validateAccessToken
- */
-export function useAuth(): UseAuthReturn {
-  const [authState, setAuthState] = useState<AuthState>(initialAuthState);
-
-  const fetchAuthState = async () => {
-    try {
-      const result: JwtTokenValidationResult = await validateAccessToken();
-      setAuthState({
-        ...result,
-        loading: false,
-      });
-    } catch (error: any) {
-      setAuthState({
-        ...initialAuthState,
-        loading: false,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchAuthState();
-  }, []);
-
-  return {
-    ...authState,
-    revalidate: fetchAuthState,
-  };
-}

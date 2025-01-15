@@ -1,5 +1,9 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { AccessTokenCookie, getApiBaseUrl} from ".";
+import axios, {
+    AxiosError,
+    AxiosResponse,
+    InternalAxiosRequestConfig,
+} from "axios";
+import { AccessTokenCookie, getApiBaseUrl } from ".";
 import { ResponseJson } from "@/types/response";
 import { HttpStatusCode } from "@/types/http";
 import { getCookie, refreshAccessToken } from "./server_cookie";
@@ -35,13 +39,19 @@ apiWithAuth.interceptors.response.use(
         const originalRequest = error.config as InternalAxiosRequestConfig & {
             // Extend the _retry such that we can track if the request has already been retried
             _retry?: boolean;
-        }
+        };
         const status = error.response?.status;
         const isClientSide = typeof window !== "undefined";
 
         // If the error is 401 and the request has not been retried, try to refresh the token and retry the request
         // It only perform on client side call, because server side call will not have access to the cookie
-        if (originalRequest && status === HttpStatusCode.UNAUTHORIZED_401 && !originalRequest._retry && isClientSide) {
+        if (
+            originalRequest &&
+            status === HttpStatusCode.UNAUTHORIZED_401 &&
+            !originalRequest._retry &&
+            isClientSide
+        ) {
+
             originalRequest._retry = true;
             const isRefreshed = await refreshAccessToken();
             if (isRefreshed) {
