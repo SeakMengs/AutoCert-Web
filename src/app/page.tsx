@@ -15,6 +15,9 @@ export default async function Home() {
             <Link href="/dashboard">
                 <Button variant="filled">To dashboard</Button>
             </Link>
+            <Link href="/api/oauth/google">
+                <Button variant="filled">Login with google</Button>
+            </Link>
             {result && (
                 <div>
                     <p>

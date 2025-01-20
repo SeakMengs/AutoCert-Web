@@ -1,27 +1,89 @@
-import { getApiBaseUrl } from "@/utils";
-import AuthenticationStatus from "./status";
-import { api } from "@/utils/axios";
-import { ResponseJson } from "@/types/response";
+"use client";
+import { useEffect, useState } from "react";
+import { Spin, Alert, Button } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+    clearRefreshAndAccessTokenCookie,
+    setRefreshAndAccessTokenToCookie,
+} from "@/utils";
+import { fetchGoogleOAuthCallBack, GoogleOAuthCallBackData } from "./action";
+import { useAuth } from "@/hooks/useAuth";
 
-type AuthenticatingProps = {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-};
+export default function AuthenticationStatus() {
+    const {revalidate}= useAuth();
+    const [token, setToken] = useState<GoogleOAuthCallBackData>();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string>();
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-export type GoogleOAuthCallBackData = {
-  token: {
-    accessToken: string;
-    refreshToken: string;
-} | undefined;
-};
+    useEffect(() => {
+        setLoading(true);
+        fetchGoogleOAuthCallBack(searchParams.toString()).then((t) => {
+            setToken(t);
+        });
+    }, []);
 
-export default async function Authenticating({
-    searchParams,
-}: AuthenticatingProps) {
-    const sp = await searchParams;
-    const urlSp = new URLSearchParams(sp as any);
-    const response = await api.get<ResponseJson<GoogleOAuthCallBackData>>(
-        `/api/v1/oauth/google/callback?${urlSp.toString()}`
-    );
+    useEffect(() => {
+        const handleAuthentication = async () => {
+            if (token && token.accessToken && token.refreshToken) {
+                await setRefreshAndAccessTokenToCookie(
+                    token.refreshToken,
+                    token.accessToken
+                );
 
-    return <AuthenticationStatus isOk={response.status === 200} token={response.data.data.token} />;
+                // Update user state in the user auth context
+                await revalidate();
+
+                router.push("/dashboard");
+                return;
+            }
+
+            await clearRefreshAndAccessTokenCookie();
+            setError("Failed to authenticate.");
+            setLoading(false);
+        };
+
+        if (token !== undefined) {
+            handleAuthentication();
+        }
+
+        return () => {
+            setLoading(false);
+            setError(undefined);
+        };
+    }, [token]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Spin size="large" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-screen flex-col">
+                <Alert
+                    message="Authentication Error"
+                    description={error}
+                    type="error"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                />
+                <Button type="primary" onClick={() => router.push("/")}>
+                    Return to Home
+                </Button>
+                <Button
+                    type="primary"
+                    onClick={() => router.push("/api/oauth/google")}
+                >
+                    Retry
+                </Button>
+            </div>
+        );
+    }
+
+    return null;
 }
