@@ -6,7 +6,8 @@ import axios, {
 import { AccessTokenCookie, getApiBaseUrl } from ".";
 import { ResponseJson } from "@/types/response";
 import { HttpStatusCode } from "@/types/http";
-import { getCookie, refreshAccessToken } from "./server_cookie";
+import { getCookie } from "./server_cookie";
+import { refreshAccessToken } from "./auth";
 
 const apiBaseUrl = getApiBaseUrl();
 

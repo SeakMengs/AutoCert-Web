@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Spin, Alert, Button } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -9,8 +9,17 @@ import {
 import { fetchGoogleOAuthCallBack, GoogleOAuthCallBackData } from "./action";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function AuthenticationStatus() {
-    const {revalidate}= useAuth();
+// https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+export default function Authenticating() {
+    return (
+        <Suspense fallback={<Spin size="large" />}>
+            <AuthenticationStatus />
+        </Suspense>
+    );
+}
+
+function AuthenticationStatus() {
+    const { revalidate } = useAuth();
     const [token, setToken] = useState<GoogleOAuthCallBackData>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>();
@@ -39,7 +48,7 @@ export default function AuthenticationStatus() {
                 return;
             }
 
-            await clearRefreshAndAccessTokenCookie();
+            // await clearRefreshAndAccessTokenCookie();
             setError("Failed to authenticate.");
             setLoading(false);
         };

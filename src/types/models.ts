@@ -7,3 +7,11 @@ export type User = {
   lastName: string;
   profileUrl: string;
 };
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profileUrl: string;
+};

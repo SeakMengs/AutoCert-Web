@@ -1,4 +1,5 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 export async function getProtocol(): Promise<string> {
@@ -20,4 +21,8 @@ export async function getBaseUrl(): Promise<string> {
   const protocol = await getProtocol();
   const host = h.get("x-forwarded-host") || h.get("host") || "";
   return `${protocol}://${host}` || "";
+}
+
+export async function clientRevalidatePath(path: string): Promise<void> {
+  return revalidatePath(path);
 }

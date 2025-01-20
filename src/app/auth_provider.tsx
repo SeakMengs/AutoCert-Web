@@ -1,8 +1,10 @@
 "use client";
 import { AccessTokenCookie } from "@/utils";
-import { JwtTokenValidationResult, validateAccessToken } from "@/utils/auth";
-import { getCookie, refreshAccessToken } from "@/utils/server_cookie";
+import { JwtTokenValidationResult, refreshAccessToken, validateAccessToken } from "@/utils/auth";
+import { clientRevalidatePath } from "@/utils/server";
+import { getCookie } from "@/utils/server_cookie";
 import { SECOND } from "@/utils/time";
+import { usePathname } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
 type AuthState = JwtTokenValidationResult & {
@@ -33,6 +35,7 @@ type AuthProviderProps = {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [authState, setAuthState] = useState<AuthState>(initialAuthState);
+    const pathname = usePathname();
 
     const fetchAuthState = async () => {
         try {
@@ -49,6 +52,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 error: error instanceof Error ? error.message : String(error),
             });
         }
+
+        clientRevalidatePath(pathname);
     };
 
     // Access token rotation

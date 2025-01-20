@@ -1,17 +1,19 @@
 "use server";
-import { JwtToken, User } from "@/types/models";
-import { getJwtCookieName, JWT_COOKIE_NAME } from ".";
+import { AuthUser, JwtToken } from "@/types/models";
+import { clearRefreshAndAccessTokenCookie, getJwtCookieName, JWT_COOKIE_NAME, RefreshTokenCookie, setRefreshAndAccessTokenToCookie } from ".";
 import { JWT_COOKIE_TYPE } from "@/types/cookie";
 import { cookies } from "next/headers";
 import { api } from "./axios";
 import { ResponseJson } from "@/types/response";
+import { getCookie } from "./server_cookie";
+import { HttpStatusCode } from "@/types/http";
 
 export type JwtTokenValidationResult = ValidJwtToken | InvalidJwtToken;
 
 type ValidJwtToken = {
   isAuthenticated: true;
   accessToken: JwtToken;
-  user: User;
+  user: AuthUser;
   iat: number;
   exp: number;
   error: null;
@@ -35,6 +37,7 @@ const invalidJwtToken = {
   error: null,
 } satisfies InvalidJwtToken;
 
+// If use in client side, use the useAuth hook instead as it handle loading state and refresh token rotation
 export async function validateAccessToken(): Promise<JwtTokenValidationResult> {
   try {
     const cookieStore = await cookies();
@@ -76,4 +79,46 @@ export async function validateAccessToken(): Promise<JwtTokenValidationResult> {
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+export async function refreshAccessToken(): Promise<boolean> {
+    console.log("utils.refreshAccessToken: Refreshing access token");
+    const refreshToken = await getCookie(RefreshTokenCookie);
+    if (refreshToken) {
+        type Data = {
+            refreshToken: string;
+            accessToken: string;
+        }
+
+        try {
+            const res = await api.post<ResponseJson<Data>>(
+                "/api/v1/auth/jwt/refresh",
+                {},
+                {
+                    headers: {
+                        Authorization: `Refresh ${refreshToken}`,
+                    },
+                }
+            );
+
+            if (res.status === HttpStatusCode.OK_200) {
+                const { refreshToken, accessToken } = res.data.data;
+                if (!refreshToken || !accessToken) {
+                    await clearRefreshAndAccessTokenCookie();
+                    console.log("utils.refreshAccessToken: Refresh token or access token is missing");
+                    return false;
+                }
+
+                await setRefreshAndAccessTokenToCookie(refreshToken, accessToken);
+                return true;
+            }
+        } catch (error) {
+            // Intentionally not clearing the cookies here because the refresh token might be valid however the server might be down or change the route which is causing the error
+            console.error("utils.refreshAccessToken: Error refreshing access token", error);
+        }
+    }
+
+    console.log("utils.refreshAccessToken: Refresh token is missing from the cookie");
+    await clearRefreshAndAccessTokenCookie();
+    return false;
 }
