@@ -1,6 +1,8 @@
 import { JWT_COOKIE_TYPE } from "@/types/cookie";
 import { deleteJwtTokenCookie, setJwtTokenCookie } from "./server_cookie";
 import { DAY, MINUTE } from "./time";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export const APP_NAME = "AutoCert";
 
@@ -15,6 +17,11 @@ export function getJwtCookieName(name: string, type: JWT_COOKIE_TYPE): string {
   return process.env.NODE_ENV === "production"
   ? `__Secure-${name}-${type}`
   : `${name}-${type}`;
+}
+
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
 export const AccessTokenCookie = getJwtCookieName(

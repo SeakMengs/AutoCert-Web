@@ -48,7 +48,7 @@ export default function DashboardLayoutClient({
                 <Header
                     style={{
                         padding: 0,
-                        background: colorBgLayout,
+                        background: colorBgContainer,
                         height: BarSize,
                     }}
                 >
@@ -86,7 +86,7 @@ export default function DashboardLayoutClient({
                     </Flex>
                 </Header>
                 <Content
-                    className="mr-4 mb-4 p-4 drop-shadow-sm"
+                    className="my-6 mx-6 p-4 drop-shadow-sm"
                     style={{
                         background: colorBgContainer,
                         borderRadius: borderRadiusLG,
@@ -119,7 +119,7 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
     ] satisfies Array<Required<MenuProps>["items"][number] & { route: string }>;
 
     const {
-        token: { colorBgLayout },
+        token: { colorBgContainer },
     } = theme.useToken();
 
     const onMenuClick = ({ key }: { key: string }) => {
@@ -135,7 +135,7 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
             collapsible
             collapsed={collapsed}
             collapsedWidth={BarSize}
-            style={{ background: colorBgLayout }}
+            style={{ background: colorBgContainer }}
         >
             <Logo collapsed={collapsed} />
             <Menu
@@ -143,7 +143,7 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
                 defaultSelectedKeys={["1"]}
                 items={menuItems}
                 style={{
-                    background: colorBgLayout,
+                    background: colorBgContainer,
                     borderRight: "none",
                 }}
                 onClick={onMenuClick}

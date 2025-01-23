@@ -1,14 +1,14 @@
 import React from "react";
 import { Row, Col } from "antd";
-import ProjectCard, { ProjectCardProps, ProjectSignatory, ProjectStatus } from "@/components/card/ProjectCard";
+import ProjectCard, { ProjectCardProps, ProjectSignatory  } from "@/components/card/ProjectCard";
+import moment from "moment";
 
-export default async function DashboardProject() {
+export default function DashboardProject() {
   const mockProject = {
     title: "Environmental Protection Initiative",
-    createdAt: new Date(),
-    description: "A project aimed at reducing carbon emissions globally.",
-    cover: "https://static.vecteezy.com/system/resources/previews/002/349/754/non_2x/modern-elegant-certificate-template-free-vector.jpg",
-    status: ProjectStatus.Completed,
+    createdAt: moment().subtract(1, "day").toDate(),
+    cover: "https://marketplace.canva.com/EAFy42rCTA0/1/0/1600w/canva-blue-minimalist-certificate-of-achievement-_asVJz8YgJE.jpg",
+    status: "Completed",
     signatories: [
       {
         id: 1,
@@ -39,11 +39,10 @@ export default async function DashboardProject() {
 
   return (
     <div style={{ padding: "24px" }}>
-      <Row gutter={[16, 16]} justify="center">
+      <Row gutter={[16, 16]} justify="start">
         <Col xs={24} sm={12} md={8} lg={6}>
           <ProjectCard
             {...mockProject}
-            status={ProjectStatus.Preparing}
           />
         </Col>
       </Row>
