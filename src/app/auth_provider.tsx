@@ -4,6 +4,7 @@ import { JwtTokenValidationResult, refreshAccessToken, validateAccessToken } fro
 import { clientRevalidatePath } from "@/utils/server";
 import { getCookie } from "@/utils/server_cookie";
 import { SECOND } from "@/utils/time";
+import moment from "moment";
 import { usePathname } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
@@ -73,20 +74,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // If user isn't authenticated or we don't have an expiration time, skip scheduling.
         if (!authState.isAuthenticated || !authState.exp) return;
 
-        const now = Date.now();
-        // `exp` is in seconds, convert to ms.
-        const expMs = authState.exp * SECOND;
+        const now = moment();
+        // `exp` is in seconds
+        const expMs = moment.unix(authState.exp);
         // Refresh token 30 seconds before it expires.
-        const refreshMsBeforeExp = 30 * SECOND;
-        const timeUntilRefresh = expMs - now - refreshMsBeforeExp;
+        const refreshMsBeforeExp = moment.duration(30, 'seconds');
+        const timeUntilRefresh = expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
         const tokenExpired = timeUntilRefresh <= 0;
 
         // TODO: create scoped log
-        console.log(
-            "timeUntilRefresh in minutes",
-            timeUntilRefresh / 1000 / 60
-        );
-        console.log("Refresh exactly at", new Date(now + timeUntilRefresh));
+        console.log(`Time until refresh ${moment.duration(timeUntilRefresh).asMinutes()} minutes, \n 
+        refresh at ${now.add(timeUntilRefresh, 'milliseconds').toDate()} \n
+        token expire date ${expMs.toDate()} \n
+        token expired: ${tokenExpired} \n
+        `);
 
         if (tokenExpired) {
             refreshAccessToken()

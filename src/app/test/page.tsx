@@ -39,9 +39,10 @@ export default function Dashboard() {
                         try {
                             const res = await apiWithAuth.get("/");
                             console.log(res.data);
+                            await revalidate();
                         } catch (error) {
                             console.error(error);
-                        }                    
+                        }
                     }}
                 >
                     apiWithAuth
@@ -68,6 +69,19 @@ export default function Dashboard() {
                 {new Date(exp * 1000).toLocaleString()}
             </p>
             <Button onClick={revalidate}>Revalidate</Button>
+            <Button
+                onClick={async () => {
+                    try {
+                        const res = await apiWithAuth.get("/");
+                        console.log(res.data);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                    await revalidate();
+                }}
+            >
+                apiWithAuth
+            </Button>
         </div>
     );
 }

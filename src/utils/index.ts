@@ -1,8 +1,8 @@
 import { JWT_COOKIE_TYPE } from "@/types/cookie";
 import { deleteJwtTokenCookie, setJwtTokenCookie } from "./server_cookie";
-import { DAY, MINUTE } from "./time";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import moment from "moment";
 
 export const APP_NAME = "AutoCert";
 
@@ -40,13 +40,13 @@ export async function setRefreshAndAccessTokenToCookie(
 ): Promise<void> {
     await setJwtTokenCookie(
         accessToken,
-        new Date(Date.now() + MINUTE * 5),
+        moment().add(5, "minutes").toDate(),
         JWT_COOKIE_TYPE.ACCESS
     );
 
     await setJwtTokenCookie(
         refreshToken,
-        new Date(Date.now() + DAY * 7),
+        moment().add(1, "week").toDate(),
         JWT_COOKIE_TYPE.REFRESH
     );
 }

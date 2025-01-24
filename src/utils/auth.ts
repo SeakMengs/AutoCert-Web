@@ -7,6 +7,7 @@ import { api } from "./axios";
 import { ResponseJson } from "@/types/response";
 import { getCookie } from "./server_cookie";
 import { HttpStatusCode } from "@/types/http";
+import { AxiosResponse } from "axios";
 
 export type JwtTokenValidationResult = ValidJwtToken | InvalidJwtToken;
 
@@ -61,7 +62,15 @@ export async function validateAccessToken(): Promise<JwtTokenValidationResult> {
 
     type DataError = Omit<Data, "payload">
 
-    const res = await api.get<ResponseJson<Data, DataError>>(`/api/v1/auth/jwt/access/verify/${accessToken.value}`);
+    type FormBody = {
+      token: string;
+    }
+
+    type ResponseData = ResponseJson<Data, DataError>
+
+    const res = await api.postForm<ResponseData, AxiosResponse<ResponseData>, FormBody>(`/api/v1/auth/jwt/access/verify`, {
+      token: accessToken.value,
+    });
     const data = res.data.data
 
     if (!res.data.success || !data.tokenValid) {
@@ -91,7 +100,7 @@ export async function refreshAccessToken(): Promise<boolean> {
         }
 
         try {
-            const res = await api.post<ResponseJson<Data>>(
+            const res = await api.postForm<ResponseJson<Data>>(
                 "/api/v1/auth/jwt/refresh",
                 {},
                 {
@@ -104,7 +113,7 @@ export async function refreshAccessToken(): Promise<boolean> {
             if (res.status === HttpStatusCode.OK_200) {
                 const { refreshToken, accessToken } = res.data.data;
                 if (!refreshToken || !accessToken) {
-                    await clearRefreshAndAccessTokenCookie();
+                    // await clearRefreshAndAccessTokenCookie();
                     console.log("utils.refreshAccessToken: Refresh token or access token is missing");
                     return false;
                 }
@@ -112,13 +121,15 @@ export async function refreshAccessToken(): Promise<boolean> {
                 await setRefreshAndAccessTokenToCookie(refreshToken, accessToken);
                 return true;
             }
-        } catch (error) {
+        } catch (error: any) {
             // Intentionally not clearing the cookies here because the refresh token might be valid however the server might be down or change the route which is causing the error
-            console.error("utils.refreshAccessToken: Error refreshing access token", error);
+            console.error("utils.refreshAccessToken: Error refreshing access token.", error);
+            console.log("Response", error.response.data);
+            return false;
         }
     }
 
     console.log("utils.refreshAccessToken: Refresh token is missing from the cookie");
-    await clearRefreshAndAccessTokenCookie();
+    // await clearRefreshAndAccessTokenCookie();
     return false;
 }

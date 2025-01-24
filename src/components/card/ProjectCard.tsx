@@ -10,12 +10,13 @@ import {
     Tag,
     Tooltip,
 } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     CheckCircleFilled,
     CloseCircleFilled,
     DeleteOutlined,
     MoreOutlined,
+    SignatureOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import moment from "moment";
@@ -63,6 +64,7 @@ export default function ProjectCard({
     createdAt,
     signatories,
 }: ProjectCardProps) {
+    const [loading, setLoading] = useState<boolean>(true);
     const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
     const menuItems = [
         {
@@ -73,7 +75,18 @@ export default function ProjectCard({
     ] satisfies Required<MenuProps>["items"];
 
     const handleMenuClick: MenuProps["onClick"] = (e) => {
-        console.log("click", e);
+        console.log("menu click", e);
+        switch (e.key) {
+            case menuItems[0].key:
+                onMenuDeleteClick();
+                break;
+            default:
+                break;
+        }
+    };
+
+    const onMenuDeleteClick = () => {
+        console.log("delete");
     };
 
     const menuProps = {
@@ -81,10 +94,18 @@ export default function ProjectCard({
         onClick: handleMenuClick,
     };
 
+    useEffect(() => {
+        // delay loading state for 1 second
+        const timeout = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, []);
+
     return (
         <Card
-            className="shadow-sm relative group"
-            hoverable
+            loading={loading}
+            className="border hover:shadow-sm relative group"
             style={{ width: 280 }}
             cover={
                 <Image

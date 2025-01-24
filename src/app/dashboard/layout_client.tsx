@@ -28,6 +28,14 @@ const { Title, Text } = Typography;
 
 const BarSize = 56;
 
+const headerStyle: React.CSSProperties = {
+    position: "sticky",
+    top: 0,
+    zIndex: 1,
+    width: "100%",
+    alignItems: "center",
+};
+
 export default function DashboardLayoutClient({
     user,
     children,
@@ -37,7 +45,7 @@ export default function DashboardLayoutClient({
 }) {
     const [collapsed, setCollapsed] = useState(false);
     const {
-        token: { colorBgContainer, colorBgLayout, borderRadiusLG },
+        token: { colorBgContainer },
     } = theme.useToken();
 
     return (
@@ -46,7 +54,9 @@ export default function DashboardLayoutClient({
 
             <Layout>
                 <Header
+                    className="border-b"
                     style={{
+                        ...headerStyle,
                         padding: 0,
                         background: colorBgContainer,
                         height: BarSize,
@@ -74,9 +84,10 @@ export default function DashboardLayoutClient({
                                 marginRight: 24,
                             }}
                         >
-                            <Space>
-                                {/* TODO: change */}
-                                <Text>{user.lastName}</Text>
+                            <Space className="motion-preset-confetti">
+                                <Text>
+                                    <strong>{user.lastName}</strong>
+                                </Text>
                                 <Avatar
                                     src={user.profileUrl}
                                     icon={<UserOutlined />}
@@ -86,10 +97,9 @@ export default function DashboardLayoutClient({
                     </Flex>
                 </Header>
                 <Content
-                    className="my-6 mx-6 p-4 drop-shadow-sm"
+                    className="p-4 drop-shadow-sm"
                     style={{
                         background: colorBgContainer,
-                        borderRadius: borderRadiusLG,
                     }}
                 >
                     {children}
@@ -98,6 +108,17 @@ export default function DashboardLayoutClient({
         </Layout>
     );
 }
+
+const siderStyle: React.CSSProperties = {
+    overflow: "auto",
+    height: "100vh",
+    position: "sticky",
+    insetInlineStart: 0,
+    top: 0,
+    bottom: 0,
+    scrollbarWidth: "thin",
+    scrollbarGutter: "stable",
+};
 
 function LeftSideBar({ collapsed }: { collapsed: boolean }) {
     const searchParams = useSearchParams();
@@ -135,7 +156,11 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
             collapsible
             collapsed={collapsed}
             collapsedWidth={BarSize}
-            style={{ background: colorBgContainer }}
+            className="border-r"
+            style={{
+                ...siderStyle,
+                background: colorBgContainer,
+            }}
         >
             <Logo collapsed={collapsed} />
             <Menu
@@ -155,6 +180,7 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
 function Logo({ collapsed }: { collapsed: boolean }) {
     return (
         <Flex
+            className="border-b"
             justify="center"
             align="center"
             style={{ height: BarSize }}
@@ -162,6 +188,7 @@ function Logo({ collapsed }: { collapsed: boolean }) {
         >
             <Image src="/logo.png" alt="logo" width={32} height={32} />
             <Title
+                className="motion-preset-blur-right"
                 level={4}
                 style={{ margin: 0, display: collapsed ? "none" : "block" }}
             >
