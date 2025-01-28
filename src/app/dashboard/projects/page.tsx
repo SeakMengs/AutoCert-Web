@@ -1,10 +1,17 @@
-import React from "react";
+"use client";
+// TODO: separate server and client
+import React, { useState } from "react";
 import ProjectCard, {
     ProjectCardProps,
     ProjectSignatory,
+    ProjectStatus,
+    StatusColorMap,
 } from "@/components/card/ProjectCard";
 import moment from "moment";
-import { Flex, Space } from "antd";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import { Col, Flex, Input, Row, Select, SelectProps, Space, Tag } from "antd";
+
+const { Search } = Input;
 
 export default function DashboardProject() {
     const mockProject = {
@@ -40,13 +47,84 @@ export default function DashboardProject() {
         ] satisfies ProjectSignatory[],
     } satisfies ProjectCardProps;
 
-    const mockProjects = Array(20).fill(mockProject);
+    // Copy but random date and name
+    const mockProjects = Array.from({ length: 20 }, (_, index) => ({
+        ...mockProject,
+        title: `Project ${index + 1}`,
+        createdAt: moment().subtract(index, "days").toDate(),
+        status: Object.values(ProjectStatus)[index % 4],
+    }));
+
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [selectedFilters, setSelectedFilters] = useState<string[]>(
+        Object.values(ProjectStatus).map((status) => status)
+    );
+
+    const statusOptions = Object.values(ProjectStatus).map((status) => ({
+        value: status,
+        label: status,
+    })) satisfies SelectProps["options"];
+
+    const filteredProjects = mockProjects.filter((project) => {
+        const matchesSearch = project.title
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        const matchesStatus =
+            Array.isArray(selectedFilters) &&
+            selectedFilters.includes(project.status);
+        return matchesSearch && matchesStatus;
+    });
 
     return (
-        <Space size={"large"} wrap>
-            {mockProjects.map((project, index) => (
-                <ProjectCard key={index} {...project} />
-            ))}
+        <Space direction="vertical" size={"middle"}>
+            <Flex vertical gap={16} style={{ width: "100%" }}>
+                <Search
+                    placeholder="Search by project title"
+                    allowClear
+                    enterButton={<SearchOutlined />}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full max-w-[450px]"
+                />
+                <Select
+                    defaultValue={selectedFilters}
+                    mode="multiple"
+                    placeholder="Filter by status"
+                    options={statusOptions}
+                    onChange={(value) => setSelectedFilters(value as string[])}
+                    allowClear
+                    suffixIcon={<FilterOutlined />}
+                    className="w-full max-w-[450px]"
+                    tagRender={TagRender}
+                />
+            </Flex>
+
+            <Row gutter={[16, 16]}>
+                {filteredProjects.map((project, index) => (
+                    <Col key={index} xs={24} sm={12} md={8} lg={4}>
+                        <ProjectCard {...project} />
+                    </Col>
+                ))}
+            </Row>
         </Space>
     );
 }
+
+const TagRender: SelectProps["tagRender"] = (props) => {
+    const { label, value, closable, onClose } = props;
+    const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    return (
+        <Tag
+            color={StatusColorMap[value as keyof typeof StatusColorMap]}
+            onMouseDown={onPreventMouseDown}
+            closable={closable}
+            onClose={onClose}
+            style={{ marginInlineEnd: 4 }}
+        >
+            {label}
+        </Tag>
+    );
+};

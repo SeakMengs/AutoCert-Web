@@ -16,7 +16,6 @@ import {
     CloseCircleFilled,
     DeleteOutlined,
     MoreOutlined,
-    SignatureOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import moment from "moment";
@@ -51,7 +50,7 @@ export const ProjectStatus = {
     Completed: "Completed",
 } as const;
 
-const StatusColorMap = {
+export const StatusColorMap = {
     [ProjectStatus.Preparing]: "default",
     [ProjectStatus.Pending]: "processing",
     [ProjectStatus.Processing]: "warning",
@@ -109,15 +108,16 @@ export default function ProjectCard({
     return (
         <Card
             loading={loading}
-            className="border hover:shadow-sm relative group"
-            style={{ width: 280 }}
+            className="border hover:shadow-sm relative group w-full"
+            // style={{ width: 256 }}
             cover={
                 <Image
-                    className="object-cover"
+                    className="object-cover w-full h-auto"
                     alt="Certificate Template"
                     src={cover}
-                    height={140}
-                    width={280}
+                    width={256}
+                    height={144}
+                    unoptimized
                 />
             }
         >
@@ -167,7 +167,7 @@ export default function ProjectCard({
                 </div>
 
                 {/* Avatars (with check or close badges) */}
-                <Flex gap={8}>
+                <Flex gap={8} wrap>
                     {signatories.map((signatory) => (
                         <Tooltip title={signatory.name} key={signatory.id}>
                             <Badge
