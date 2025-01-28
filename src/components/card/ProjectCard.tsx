@@ -21,6 +21,9 @@ import {
 import Image from "next/image";
 import moment from "moment";
 import { cn } from "@/utils";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger("components:card:ProjectCard");
 
 export type ProjectSignatory = {
     id: number;
@@ -75,7 +78,9 @@ export default function ProjectCard({
     ] satisfies Required<MenuProps>["items"];
 
     const handleMenuClick: MenuProps["onClick"] = (e) => {
-        console.log("menu click", e);
+        const label = menuItems.find((item) => item.key === e.key)?.label ?? "Unkonwn menu item";
+        logger.debug(`Project card dropdown menu: ${label} clicked`);
+
         switch (e.key) {
             case menuItems[0].key:
                 onMenuDeleteClick();
@@ -86,13 +91,12 @@ export default function ProjectCard({
     };
 
     const onMenuDeleteClick = () => {
-        console.log("delete");
     };
 
     const menuProps = {
         items: menuItems,
         onClick: handleMenuClick,
-    };
+    } satisfies MenuProps;
 
     useEffect(() => {
         // delay loading state for 1 second

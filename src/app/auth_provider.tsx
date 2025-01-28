@@ -1,12 +1,14 @@
 "use client";
 import { AccessTokenCookie } from "@/utils";
 import { JwtTokenValidationResult, refreshAccessToken, validateAccessToken } from "@/utils/auth";
+import { createScopedLogger } from "@/utils/logger";
 import { clientRevalidatePath } from "@/utils/server";
 import { getCookie } from "@/utils/server_cookie";
-import { SECOND } from "@/utils/time";
 import moment from "moment";
 import { usePathname } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
+
+const logger = createScopedLogger("app:auth_provider");
 
 type AuthState = JwtTokenValidationResult & {
     loading: boolean;
@@ -82,8 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const timeUntilRefresh = expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
         const tokenExpired = timeUntilRefresh <= 0;
 
-        // TODO: create scoped log
-        console.log(`Time until refresh ${moment.duration(timeUntilRefresh).asMinutes()} minutes, \n 
+        logger.debug(`Time until refresh ${moment.duration(timeUntilRefresh).asMinutes()} minutes, \n 
         refresh at ${now.add(timeUntilRefresh, 'milliseconds').toDate()} \n
         token expire date ${expMs.toDate()} \n
         token expired: ${tokenExpired} \n
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             refreshAccessToken()
                 .then(fetchAuthState)
                 .catch((err) =>
-                    console.error("Immediate refresh failed:", err)
+                    logger.error("Immediate refresh failed:", err)
                 );
             return;
         }
@@ -103,7 +104,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 await refreshAccessToken();
                 await fetchAuthState();
             } catch (err) {
-                console.error("Scheduled refresh failed:", err);
+                logger.error("Scheduled refresh failed:", err);
             }
         }, timeUntilRefresh);
 

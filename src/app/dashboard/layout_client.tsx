@@ -6,6 +6,8 @@ import {
     HomeOutlined,
     SignatureOutlined,
     UserOutlined,
+    SettingOutlined,
+    LogoutOutlined,
 } from "@ant-design/icons";
 import {
     Button,
@@ -17,12 +19,15 @@ import {
     MenuProps,
     Flex,
     Avatar,
+    Dropdown,
 } from "antd";
 import Image from "next/image";
 import { APP_NAME } from "@/utils";
 import { AuthUser } from "@/types/models";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createScopedLogger } from "@/utils/logger";
 
+const logger = createScopedLogger("dashboard:layout_client");
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
@@ -84,15 +89,7 @@ export default function DashboardLayoutClient({
                                 marginRight: 24,
                             }}
                         >
-                            <Space className="motion-preset-confetti">
-                                <Text>
-                                    <strong>{user.lastName}</strong>
-                                </Text>
-                                <Avatar
-                                    src={user.profileUrl}
-                                    icon={<UserOutlined />}
-                                />
-                            </Space>
+                            <UserNameAndAvatar user={user} />
                         </Space>
                     </Flex>
                 </Header>
@@ -195,5 +192,60 @@ function Logo({ collapsed }: { collapsed: boolean }) {
                 {APP_NAME}
             </Title>
         </Flex>
+    );
+}
+
+function UserNameAndAvatar({ user }: { user: AuthUser }) {
+    const menuItems = [
+        {
+            key: "1",
+            icon: <SettingOutlined />,
+            label: "Settings",
+        },
+        {
+            key: "2",
+            icon: <LogoutOutlined />,
+            label: "Logout",
+            danger: true,
+        },
+    ] satisfies Required<MenuProps["items"]>;
+
+    const onMenuSettingsClick = () => {
+        // TODO: implement settings
+    };
+
+    const onMenuLogoutClick = () => {
+        // TODO: implement logout
+    }
+
+    const handleMenuClick: MenuProps["onClick"] = (e) => {
+        const label = menuItems.find((item) => item.key === e.key)?.label ?? "Unkonwn menu item";
+        logger.debug(`User avatar dropdown menu: ${label} clicked`);
+        switch (e.key) {
+            case menuItems[0].key:
+                onMenuSettingsClick();
+                break;
+            case menuItems[1].key:
+                onMenuLogoutClick();
+                break;
+            default:
+                break;
+        }
+    };
+
+    const menuProps = {
+        items: menuItems,
+        onClick: handleMenuClick,
+    } satisfies MenuProps;
+
+    return (
+        <Space className="motion-preset-confetti hover:cursor-pointer">
+            <Text>
+                <strong>{user.lastName}</strong>
+            </Text>
+            <Dropdown menu={menuProps} trigger={['click']}>
+                <Avatar src={user.profileUrl} icon={<UserOutlined />} />
+            </Dropdown>
+        </Space>
     );
 }
