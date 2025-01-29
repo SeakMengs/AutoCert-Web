@@ -1,11 +1,16 @@
 "use client";
-import { AccessTokenCookie } from "@/utils";
-import { JwtTokenValidationResult, refreshAccessToken, validateAccessToken } from "@/utils/auth";
+import { AccessTokenCookie, RefreshTokenCookie } from "@/utils";
+import {
+    JwtTokenValidationResult,
+    refreshAccessToken,
+    validateAccessToken,
+} from "@/utils/auth";
 import { createScopedLogger } from "@/utils/logger";
 import { clientRevalidatePath } from "@/utils/server";
 import { getCookie } from "@/utils/server_cookie";
+import { message } from "antd";
 import moment from "moment";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
 const logger = createScopedLogger("app:auth_provider");
@@ -25,7 +30,7 @@ const initialAuthState = {
 } satisfies AuthState;
 
 export type AuthContextValue = AuthState & {
-  revalidate: () => Promise<void>;
+    revalidate: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
@@ -36,11 +41,22 @@ type AuthProviderProps = {
     children: Readonly<ReactNode>;
 };
 
+const RefreshTokenType = {
+    TokenExpire: "TokenExpire",
+    Timer: "Timer",
+    MissingAccessToken: "MissingAccessToken",
+} as const;
+
+// Path that should not trigger refresh token
+const ExcludePath = ["/authenticating"];
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+    const [messageApi, contextHolder] = message.useMessage();
     const [authState, setAuthState] = useState<AuthState>(initialAuthState);
     const pathname = usePathname();
+    const router = useRouter();
 
-    const fetchAuthState = async () => {
+    const fetchAuthState = async (): Promise<void> => {
         try {
             const result: JwtTokenValidationResult =
                 await validateAccessToken();
@@ -59,53 +75,98 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         clientRevalidatePath(pathname);
     };
 
-    // Access token rotation
-    useEffect(() => {
-        // If access token is missing, try to refresh it. 
-        getCookie(AccessTokenCookie).then((token) => {
-            if (!token) {
-                refreshAccessToken()
-                    .then(fetchAuthState)
-                    .catch((err) =>
-                        console.error("Immediate refresh failed:", err)
+    async function clientRefreshAccessToken(
+        type: keyof typeof RefreshTokenType
+    ): Promise<void> {
+        if (ExcludePath.includes(pathname)) {
+            return;
+        }
+
+        try {
+            const refreshed = await refreshAccessToken();
+            await fetchAuthState();
+
+            if (!refreshed) {
+                logger.error("Failed to refresh access token");
+                router.push("/?error=Failed to reauthenticate");
+
+                if (pathname === "/") {
+                    const refreshToken = await getCookie(RefreshTokenCookie);
+
+                    const errorMsg = !refreshToken
+                        ? "Failed to authenticate"
+                        : "Failed to reauthenticate";
+
+                    messageApi.open({
+                        type: "error",
+                        content: errorMsg,
+                    });
+                }
+                return;
+            }
+        } catch (error: any) {
+            switch (type) {
+                case RefreshTokenType.MissingAccessToken:
+                    logger.error(
+                        "MissingAccessToken: Immediate refresh failed:",
+                        error
                     );
+                    break;
+                case RefreshTokenType.TokenExpire:
+                    logger.error(
+                        "TokenExpire: Immediate refresh failed:",
+                        error
+                    );
+                    break;
+                case RefreshTokenType.Timer:
+                    logger.error("Timer: Scheduled refresh failed:", error);
+                    break;
+            }
+        }
+    }
+
+    useEffect(() => {
+        getCookie(AccessTokenCookie).then(async (token) => {
+            if (!token) {
+                await clientRefreshAccessToken(
+                    RefreshTokenType.MissingAccessToken
+                );
                 return;
             }
         });
+    }, [pathname]);
 
+    // Access token rotation
+    useEffect(() => {
         // If user isn't authenticated or we don't have an expiration time, skip scheduling.
-        if (!authState.isAuthenticated || !authState.exp) return;
+        if (!authState.isAuthenticated || !authState.exp) {
+            return;
+        }
 
         const now = moment();
         // `exp` is in seconds
         const expMs = moment.unix(authState.exp);
         // Refresh token 30 seconds before it expires.
-        const refreshMsBeforeExp = moment.duration(30, 'seconds');
-        const timeUntilRefresh = expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
+        const refreshMsBeforeExp = moment.duration(30, "seconds");
+        const timeUntilRefresh =
+            expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
         const tokenExpired = timeUntilRefresh <= 0;
 
-        logger.debug(`Time until refresh ${moment.duration(timeUntilRefresh).asMinutes()} minutes, \n 
-        refresh at ${now.add(timeUntilRefresh, 'milliseconds').toDate()} \n
+        logger.debug(`Time until refresh ${moment
+            .duration(timeUntilRefresh)
+            .asMinutes()} minutes, \n 
+        refresh at ${now.add(timeUntilRefresh, "milliseconds").toDate()} \n
         token expire date ${expMs.toDate()} \n
         token expired: ${tokenExpired} \n
         `);
 
         if (tokenExpired) {
-            refreshAccessToken()
-                .then(fetchAuthState)
-                .catch((err) =>
-                    logger.error("Immediate refresh failed:", err)
-                );
+            clientRefreshAccessToken(RefreshTokenType.TokenExpire);
             return;
         }
 
         const refreshTimer = setTimeout(async () => {
-            try {
-                await refreshAccessToken();
-                await fetchAuthState();
-            } catch (err) {
-                logger.error("Scheduled refresh failed:", err);
-            }
+            await clientRefreshAccessToken(RefreshTokenType.Timer);
         }, timeUntilRefresh);
 
         return () => clearTimeout(refreshTimer);
@@ -119,6 +180,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         <AuthContext.Provider
             value={{ ...authState, revalidate: fetchAuthState }}
         >
+            {contextHolder}
             {children}
         </AuthContext.Provider>
     );

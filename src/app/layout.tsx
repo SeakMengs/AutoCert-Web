@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import 'antd/dist/reset.css';
+import "antd/dist/reset.css";
 import AntWrapper from "./ant";
 import { AuthProvider } from "./auth_provider";
+import Head from "next/head";
 
 // TODO: change font
 const geistSans = Geist({
@@ -20,6 +21,13 @@ export const metadata: Metadata = {
     title: "AutoCert",
     description:
         "A Bulk Certificate Creation, E-Signing, and Certificate Repository Platform",
+    icons: [
+        {
+            rel: "autocert-logo",
+            url: "/logo.png",
+            sizes: "192x192",
+        },
+    ],
 };
 
 export default function RootLayout({
@@ -29,6 +37,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
+            <Head>
+                <link rel="icon" href="/favicon.ico" />
+            </Head>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >

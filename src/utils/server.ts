@@ -16,11 +16,26 @@ export async function getProtocol(): Promise<string> {
   return protocol;
 }
 
-export async function getBaseUrl(): Promise<string> {
+// export async function getBaseUrl(): Promise<string> {
+//   const h = await headers();
+//   const protocol = await getProtocol();
+//   const host = h.get("x-forwarded-host") || h.get("host") || "";
+//   return `${protocol}://${host}` || "";
+// }
+
+export async function getPathname(): Promise<string> {
   const h = await headers();
-  const protocol = await getProtocol();
-  const host = h.get("x-forwarded-host") || h.get("host") || "";
-  return `${protocol}://${host}` || "";
+  return h.get("x-current-pathname") || "";
+}
+
+export async function getOrigin(): Promise<string> {
+  const h = await headers();
+  return h.get("origin") || "";
+}
+
+export async function getFullUrlPathname(): Promise<string> {
+  const h = await headers();
+  return h.get("x-full-url-pathname") || "";
 }
 
 export async function clientRevalidatePath(path: string): Promise<void> {

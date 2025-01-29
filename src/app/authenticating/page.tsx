@@ -3,11 +3,11 @@ import { Suspense, useEffect, useState } from "react";
 import { Spin, Alert, Button } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-    clearRefreshAndAccessTokenCookie,
     setRefreshAndAccessTokenToCookie,
 } from "@/utils";
 import { fetchGoogleOAuthCallBack, GoogleOAuthCallBackData } from "./action";
 import { useAuth } from "@/hooks/useAuth";
+import FullScreenSpin from "@/components/loading/FullScreenSpin";
 
 // https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
 export default function Authenticating() {
@@ -64,11 +64,7 @@ function AuthenticationStatus() {
     }, [token]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Spin size="large" />
-            </div>
-        );
+        return <FullScreenSpin />
     }
 
     if (error) {

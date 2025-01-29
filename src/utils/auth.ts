@@ -15,7 +15,7 @@ import { HttpStatusCode } from "@/types/http";
 import { AxiosResponse } from "axios";
 import { createScopedLogger } from "./logger";
 
-const logger = createScopedLogger("Utils.auth");
+const logger = createScopedLogger("utils:auth");
 
 export type JwtTokenValidationResult = ValidJwtToken | InvalidJwtToken;
 
@@ -140,6 +140,7 @@ export async function refreshAccessToken(): Promise<boolean> {
     } catch (error: any) {
       // Intentionally not clearing the cookies here because the refresh token might be valid however the server might be down or change the route which is causing the error
       logger.error("Error refreshing access token.", error);
+      logger.debug("Response", error.response?.data);
       return false;
     }
   }
