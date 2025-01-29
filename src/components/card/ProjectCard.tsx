@@ -7,6 +7,7 @@ import {
     Dropdown,
     Flex,
     MenuProps,
+    Skeleton,
     Tag,
     Tooltip,
 } from "antd";
@@ -15,6 +16,8 @@ import {
     CheckCircleFilled,
     CloseCircleFilled,
     DeleteOutlined,
+    EditOutlined,
+    EyeOutlined,
     MoreOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
@@ -67,35 +70,36 @@ export default function ProjectCard({
     signatories,
 }: ProjectCardProps) {
     const [loading, setLoading] = useState<boolean>(true);
-    const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
-    const menuItems = [
-        {
-            key: "1",
-            icon: <DeleteOutlined />,
-            label: "Delete",
-        },
-    ] satisfies Required<MenuProps>["items"];
+    // const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
+    // const menuItems = [
+    //     {
+    //         key: "1",
+    //         icon: <DeleteOutlined />,
+    //         label: "Delete",
+    //     },
+    // ] satisfies Required<MenuProps>["items"];
 
-    const handleMenuClick: MenuProps["onClick"] = (e) => {
-        const label = menuItems.find((item) => item.key === e.key)?.label ?? "Unkonwn menu item";
-        logger.debug(`Project card dropdown menu: ${label} clicked`);
+    // const handleMenuClick: MenuProps["onClick"] = (e) => {
+    //     const label =
+    //         menuItems.find((item) => item.key === e.key)?.label ??
+    //         "Unkonwn menu item";
+    //     logger.debug(`Project card dropdown menu: ${label} clicked`);
 
-        switch (e.key) {
-            case menuItems[0].key:
-                onMenuDeleteClick();
-                break;
-            default:
-                break;
-        }
-    };
+    //     switch (e.key) {
+    //         case menuItems[0].key:
+    //             onMenuDeleteClick();
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    // };
 
-    const onMenuDeleteClick = () => {
-    };
+    // const onMenuDeleteClick = () => {};
 
-    const menuProps = {
-        items: menuItems,
-        onClick: handleMenuClick,
-    } satisfies MenuProps;
+    // const menuProps = {
+    //     items: menuItems,
+    //     onClick: handleMenuClick,
+    // } satisfies MenuProps;
 
     useEffect(() => {
         // delay loading state for 1 second
@@ -109,19 +113,30 @@ export default function ProjectCard({
         <Card
             loading={loading}
             className="border hover:shadow-sm relative group w-full"
-            // style={{ width: 256 }}
             cover={
-                <Image
-                    className="object-cover w-full h-auto"
-                    alt="Certificate Template"
-                    src={cover}
-                    width={256}
-                    height={144}
-                    unoptimized
-                />
+                loading ? (
+                    <Skeleton.Image
+                        active
+                        className="w-full object-cover h-36"
+                    />
+                ) : (
+                    <Image
+                        className="object-cover w-full h-auto"
+                        alt="Certificate Template"
+                        src={cover}
+                        width={256}
+                        height={144}
+                        unoptimized
+                    />
+                )
             }
+            actions={[
+                <EyeOutlined key="view" disabled={status != ProjectStatus.Completed}/>,
+                <EditOutlined key={"edit"} />,
+                <DeleteOutlined key="delete" className="hover:text-red-500"/>,
+            ]}
         >
-            <Dropdown
+            {/* <Dropdown
                 className={cn({
                     ["invisible group-hover:visible group-hover:motion-preset-bounce"]:
                         !dropDownOpen,
@@ -143,7 +158,7 @@ export default function ProjectCard({
                         }}
                     />
                 </Tooltip>
-            </Dropdown>
+            </Dropdown> */}
 
             <Meta
                 title={

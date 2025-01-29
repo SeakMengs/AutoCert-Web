@@ -48,9 +48,9 @@ export default function DashboardLayoutClient({
     user: AuthUser;
     children: Readonly<ReactNode>;
 }) {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState<boolean>(true);
     const {
-        token: { colorBgContainer },
+        token: { colorBgContainer, colorSplit },
     } = theme.useToken();
 
     return (
@@ -59,12 +59,12 @@ export default function DashboardLayoutClient({
 
             <Layout>
                 <Header
-                    className="border-b"
                     style={{
                         ...headerStyle,
                         padding: 0,
                         background: colorBgContainer,
                         height: BarSize,
+                        borderBottom: `1px solid ${colorSplit}`,
                     }}
                 >
                     <Flex
@@ -137,7 +137,7 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
     ] satisfies Array<Required<MenuProps>["items"][number] & { route: string }>;
 
     const {
-        token: { colorBgContainer },
+        token: { colorBgContainer, colorSplit },
     } = theme.useToken();
 
     const onMenuClick = ({ key }: { key: string }) => {
@@ -153,10 +153,10 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
             collapsible
             collapsed={collapsed}
             collapsedWidth={BarSize}
-            className="border-r"
             style={{
                 ...siderStyle,
                 background: colorBgContainer,
+                borderRight: `1px solid ${colorSplit}`,
             }}
         >
             <Logo collapsed={collapsed} />
@@ -175,12 +175,15 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
 }
 
 function Logo({ collapsed }: { collapsed: boolean }) {
+    const {
+        token: { colorSplit },
+    } = theme.useToken();
+
     return (
         <Flex
-            className="border-b"
             justify="center"
             align="center"
-            style={{ height: BarSize }}
+            style={{ height: BarSize, borderBottom: `1px solid ${colorSplit}` }}
             gap={4}
         >
             <Image src="/logo.png" alt="logo" width={32} height={32} />
@@ -216,10 +219,12 @@ function UserNameAndAvatar({ user }: { user: AuthUser }) {
 
     const onMenuLogoutClick = () => {
         // TODO: implement logout
-    }
+    };
 
     const handleMenuClick: MenuProps["onClick"] = (e) => {
-        const label = menuItems.find((item) => item.key === e.key)?.label ?? "Unkonwn menu item";
+        const label =
+            menuItems.find((item) => item.key === e.key)?.label ??
+            "Unkonwn menu item";
         logger.debug(`User avatar dropdown menu: ${label} clicked`);
         switch (e.key) {
             case menuItems[0].key:
@@ -239,11 +244,11 @@ function UserNameAndAvatar({ user }: { user: AuthUser }) {
     } satisfies MenuProps;
 
     return (
-        <Space className="motion-preset-confetti hover:cursor-pointer">
+        <Space className="hover:cursor-pointer flex">
             <Text>
                 <strong>{user.lastName}</strong>
             </Text>
-            <Dropdown menu={menuProps} trigger={['click']}>
+            <Dropdown menu={menuProps} trigger={["click"]}>
                 <Avatar src={user.profileUrl} icon={<UserOutlined />} />
             </Dropdown>
         </Space>

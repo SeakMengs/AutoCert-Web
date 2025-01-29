@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import 'antd/dist/reset.css';
 import AntWrapper from "./ant";
 import { AuthProvider } from "./auth_provider";
 
