@@ -244,13 +244,15 @@ function UserNameAndAvatar({ user }: { user: AuthUser }) {
     } satisfies MenuProps;
 
     return (
-        <Space className="hover:cursor-pointer flex">
-            <Text>
-                <strong>{user.lastName}</strong>
-            </Text>
-            <Dropdown menu={menuProps} trigger={["click"]}>
-                <Avatar src={user.profileUrl} icon={<UserOutlined />} />
-            </Dropdown>
-        </Space>
+        <div className="motion-preset-confetti">
+            <Space className="hover:cursor-pointer flex">
+                <Text>
+                    <strong>{user.lastName}</strong>
+                </Text>
+                <Dropdown menu={menuProps} trigger={["click"]}>
+                    <Avatar src={user.profileUrl} icon={<UserOutlined />} />
+                </Dropdown>
+            </Space>
+        </div>
     );
 }

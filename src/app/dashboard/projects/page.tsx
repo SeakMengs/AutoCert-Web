@@ -21,6 +21,7 @@ import {
     Tag,
 } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
+import { nanoid } from "nanoid";
 
 const { Search } = Input;
 
@@ -29,6 +30,7 @@ export default function DashboardProject() {
     const router = useRouter();
 
     const mockProject = {
+        id: nanoid(),
         title: "Environmental Protection Initiative",
         createdAt: moment().subtract(1, "day").toDate(),
         cover: "https://marketplace.canva.com/EAFy42rCTA0/1/0/1600w/canva-blue-minimalist-certificate-of-achievement-_asVJz8YgJE.jpg",
@@ -64,6 +66,7 @@ export default function DashboardProject() {
     // Copy but random date and name
     const mockProjects = Array.from({ length: 20 }, (_, index) => ({
         ...mockProject,
+        id: nanoid(),
         title: `Project ${index + 1}`,
         createdAt: moment().subtract(index, "days").toDate(),
         status: Object.values(ProjectStatus)[index % 4],

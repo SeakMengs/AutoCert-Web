@@ -24,6 +24,7 @@ import Image from "next/image";
 import moment from "moment";
 import { cn } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
+import Link from "next/link";
 
 const logger = createScopedLogger("components:card:ProjectCard");
 
@@ -35,6 +36,7 @@ export type ProjectSignatory = {
 };
 
 export type ProjectCardProps = {
+    id: string;
     title: string;
     cover: string;
     status: (typeof ProjectStatus)[keyof typeof ProjectStatus];
@@ -63,6 +65,7 @@ export const StatusColorMap = {
 const { Meta } = Card;
 
 export default function ProjectCard({
+    id,
     title,
     cover,
     status,
@@ -131,35 +134,16 @@ export default function ProjectCard({
                 )
             }
             actions={[
-                <EyeOutlined key="view" disabled={status != ProjectStatus.Completed}/>,
-                <EditOutlined key={"edit"} />,
-                <DeleteOutlined key="delete" className="hover:text-red-500"/>,
+                <EyeOutlined
+                    key="view"
+                    disabled={status != ProjectStatus.Completed}
+                />,
+                <Link href={`/dashboard/projects/${id}/builder`}>
+                    <EditOutlined key={"edit"} />
+                </Link>,
+                <DeleteOutlined key="delete" className="hover:text-red-500" />,
             ]}
         >
-            {/* <Dropdown
-                className={cn({
-                    ["invisible group-hover:visible group-hover:motion-preset-bounce"]:
-                        !dropDownOpen,
-                })}
-                menu={menuProps}
-                trigger={["click"]}
-                placement="bottomLeft"
-                open={dropDownOpen}
-                onOpenChange={(open) => setDropDownOpen(open)}
-            >
-                <Tooltip title="More Options">
-                    <Button
-                        type="default"
-                        icon={<MoreOutlined />}
-                        style={{
-                            position: "absolute",
-                            right: 16,
-                            top: 16,
-                        }}
-                    />
-                </Tooltip>
-            </Dropdown> */}
-
             <Meta
                 title={
                     <Tooltip title={`Project title: ${title}`}>{title}</Tooltip>
