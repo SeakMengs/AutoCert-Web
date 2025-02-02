@@ -24,13 +24,13 @@ export type AutoCertSignatureAnnotate = BaseAutoCertAnnotate & {
 
 export type AutoCertAnnotate = AutoCertTextAnnotate | AutoCertSignatureAnnotate;
 
-// Each page has a list of annotations
-export type AutoCertAnnotations = Record<number, AutoCertAnnotate[]>;
+// Each page has a list of annotates
+export type AutoCertAnnotates = Record<number, AutoCertAnnotate[]>;
 
 export type AutoCertProps = AnnotateRendererProps & PdfRendererProps;
 
 export default function AutoCert({
-    annotations,
+    annotates,
     currentPage,
     pdfFile,
     onDocumentLoadSuccess,
@@ -47,7 +47,7 @@ export default function AutoCert({
                 onPageLoadSuccess={onPageLoadSuccess}
             />
             <AnnotateRenderer
-                annotations={annotations}
+                annotates={annotates}
                 currentPage={currentPage}
                 onDragStop={onDragStop}
                 onResizeStop={onResizeStop}

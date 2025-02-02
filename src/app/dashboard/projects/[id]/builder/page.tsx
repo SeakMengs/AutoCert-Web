@@ -8,7 +8,7 @@ import { Button } from "antd";
 export default function ProjectBuilderByID() {
     const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
     const {
-        annotations,
+        annotates,
         currentPdfPage,
         totalPdfPage,
         addSignatureField,
@@ -30,7 +30,7 @@ export default function ProjectBuilderByID() {
     return (
         <>
             <AutoCert
-                annotations={annotations}
+                annotates={annotates}
                 currentPage={currentPdfPage}
                 onDocumentLoadSuccess={onDocumentLoadSuccess}
                 onPageLoadSuccess={onPageLoadSuccess}

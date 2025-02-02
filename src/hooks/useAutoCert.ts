@@ -1,6 +1,6 @@
 import { WHSize, XYPosition } from "@/components/builder/annotate/BaseAnnotate";
 import {
-    AutoCertAnnotations,
+    AutoCertAnnotates,
     AutoCertSignatureAnnotate,
     AutoCertTextAnnotate,
 } from "@/components/builder/AutoCert";
@@ -26,7 +26,7 @@ const tempSignData = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53
 
 export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
-    const [annotations, setAnnotations] = useState<AutoCertAnnotations>({});
+    const [annotates, setAnnotates] = useState<AutoCertAnnotates>({});
     const [currentPdfPage, setCurrentPdfPage] = useState<number>(initialPdfPage);
 
     const onDocumentLoadSuccess = async (
@@ -64,7 +64,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             height: TextAnnotateHeight,
         } satisfies AutoCertTextAnnotate;
 
-        setAnnotations((prev) => ({
+        setAnnotates((prev) => ({
             ...prev,
             // Add the new text field to the current page
             [currentPdfPage]: [...(prev[currentPdfPage] || []), newTextField],
@@ -85,7 +85,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             height: SignatureAnnotateHeight,
         } satisfies AutoCertSignatureAnnotate;
 
-        setAnnotations((prev) => ({
+        setAnnotates((prev) => ({
             ...prev,
             // Add the new signature field to the current page
             [currentPdfPage]: [
@@ -104,7 +104,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y} dpi: ${window.devicePixelRatio}`
         );
 
-        setAnnotations((prev) => ({
+        setAnnotates((prev) => ({
             ...prev,
             [currentPdfPage]: (prev[currentPdfPage] || []).map((annotation) =>
                 annotation.id === id
@@ -123,7 +123,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             `Drag annotation, Position: x:${position.x}, y:${position.y}`
         );
 
-        setAnnotations((prev) => ({
+        setAnnotates((prev) => ({
             ...prev,
             [currentPdfPage]: (prev[currentPdfPage] || []).map((annotation) =>
                 annotation.id === id
@@ -134,14 +134,14 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     };
 
     return {
-        annotations,
+        annotates,
         currentPdfPage,
         totalPdfPage,
         onDocumentLoadSuccess,
         onPageLoadSuccess,
         setTotalPdfPage,
         setCurrentPdfPage,
-        setAnnotations,
+        setAnnotates,
         addTextField,
         addSignatureField,
         handleResizeStop,
