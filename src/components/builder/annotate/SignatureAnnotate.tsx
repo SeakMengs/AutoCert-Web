@@ -1,29 +1,32 @@
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 
-export interface SignatureAnnotateProps extends Omit<BaseAnnotateProps, "children"> {
+export type BaseSignatureAnnotate = {
     signatureData: string | null;
-}
+};
+
+export interface SignatureAnnotateProps
+    extends Omit<BaseAnnotateProps, "children">,
+        BaseSignatureAnnotate {}
 
 export default function SignatureAnnotate({
     id,
-    x,
-    y,
-    width,
-    height,
+    position,
+    size,
+    previewMode,
     signatureData,
-    bgColor,
+    resizable,
+    color,
     onDragStop,
     onResizeStop,
 }: SignatureAnnotateProps) {
     return (
         <BaseAnnotate
             id={id}
-            x={x}
-            y={y}
-            resizable={undefined}
-            width={width}
-            height={height}
-            bgColor={bgColor}
+            position={position}
+            size={size}
+            previewMode={previewMode}
+            resizable={resizable}
+            color={color}
             onDragStop={onDragStop}
             onResizeStop={onResizeStop}
         >
@@ -38,4 +41,4 @@ export default function SignatureAnnotate({
             )}
         </BaseAnnotate>
     );
-};
+}

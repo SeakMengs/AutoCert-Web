@@ -17,7 +17,6 @@ export default function PdfUploader({ setPdfFile }: PdfUploaderProps) {
         logger.debug("handleFileChange", info);
 
         const file = info.file.originFileObj;
-        console.log(file);
         if (file) {
             setPdfFile(URL.createObjectURL(file));
         }

@@ -1,55 +1,58 @@
 import { ResizeEnable } from "react-rnd";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 
-export interface TextAnnotateProps extends Omit<BaseAnnotateProps, "children"> {
+export type TextAnnotateFont = {
+    name: "Arial" | "Khmer OS Siemreap";
+    size: number;
+    weight: number;
+};
+
+export type BaseTextAnnotate = {
     value: string;
-}
+    font: TextAnnotateFont;
+};
 
-const TEXT_RESIZABLE = {
-    bottom: false,
-    bottomLeft: false,
-    bottomRight: false,
-    left: true,
-    right: true,
-    top: false,
-    topLeft: false,
-    topRight: false,
-} satisfies ResizeEnable;
+export interface TextAnnotateProps
+    extends Omit<BaseAnnotateProps, "children">,
+        BaseTextAnnotate {}
 
-export default function TextAnnotate ({
+export default function TextAnnotate({
     id,
-    x,
-    y,
-    width,
-    height,
+    position,
+    size,
     value,
-    bgColor,
-    resizable = TEXT_RESIZABLE,
+    color,
+    previewMode,
+    font,
+    resizable,
     onDragStop,
     onResizeStop,
 }: TextAnnotateProps) {
     return (
         <BaseAnnotate
             id={id}
-            x={x}
-            y={y}
+            position={position}
+            size={size}
             resizable={resizable}
-            width={width}
-            height={height}
-            bgColor={bgColor}
+            color={color}
+            previewMode={previewMode}
             onDragStop={onDragStop}
             onResizeStop={onResizeStop}
         >
             <span
-                contentEditable
+                contentEditable={!previewMode}
                 suppressContentEditableWarning
                 id={`textAnnotate-${id}`}
-                className="text-[24px] text-center border-none bg-transparent outline-none resize-none font-normal"
+                className={`text-center border-none bg-transparent outline-none resize-none`}
                 style={{
-                    fontFamily: "Khmer OS Siemreap",
+                    fontFamily: font.name,
+                    fontSize: `${font.size}px`,
+                    fontWeight: font.weight,
                     lineHeight: "1.2",
                 }}
-            >{value}</span>
+            >
+                {value}
+            </span>
         </BaseAnnotate>
     );
-};
+}

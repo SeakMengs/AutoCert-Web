@@ -10,7 +10,6 @@ export default function ProjectBuilderByID() {
     const {
         annotates,
         currentPdfPage,
-        totalPdfPage,
         addSignatureField,
         addTextField,
         handleDragStop,
@@ -22,16 +21,15 @@ export default function ProjectBuilderByID() {
     });
 
     if (!pdfFile) {
-        return (
-            <PdfUploader setPdfFile={setPdfFile} />
-        );
+        return <PdfUploader setPdfFile={setPdfFile} />;
     }
 
     return (
         <>
             <AutoCert
+                previewMode={false}
                 annotates={annotates}
-                currentPage={currentPdfPage}
+                currentPdfPage={currentPdfPage}
                 onDocumentLoadSuccess={onDocumentLoadSuccess}
                 onPageLoadSuccess={onPageLoadSuccess}
                 onDragStop={handleDragStop}
@@ -39,7 +37,9 @@ export default function ProjectBuilderByID() {
                 pdfFile={pdfFile}
             />
             <Button onClick={() => addTextField()}>Add Text Field</Button>
-            <Button onClick={() => addSignatureField()}>Add Signature Field</Button>
+            <Button onClick={() => addSignatureField()}>
+                Add Signature Field
+            </Button>
         </>
     );
 }

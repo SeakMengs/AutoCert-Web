@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
-    "antd": "^5.23.0",
+    "antd": "5.23.3",
     "axios": "^1.7.9",
     "chalk": "^5.4.1",
     "clsx": "^2.1.1",

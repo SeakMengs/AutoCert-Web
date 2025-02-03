@@ -11,39 +11,39 @@ export type WHSize = {
     height: number;
 };
 
-export type BaseAnnotateProps = {
+export interface BaseAnnotateProps {
     id: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+    position: XYPosition;
+    size: WHSize;
+    // When enable, annotate cannot be resized, dragged, or edited.
+    previewMode: boolean;
     resizable?: ResizeEnable | undefined;
     children: React.ReactNode;
-    bgColor: string;
+    // Background and border color of the annotate
+    color: string;
     onDragStop: (id: string, e: DraggableEvent, data: DraggableData) => void;
     onResizeStop: (
         id: string,
         numberSize: WHSize,
         position: XYPosition
     ) => void;
-};
+}
 
 export default function BaseAnnotate({
     id,
-    x,
-    y,
-    width,
-    height,
+    position,
+    size,
     children,
+    previewMode,
     resizable,
-    bgColor,
+    color,
     onDragStop,
     onResizeStop,
 }: BaseAnnotateProps) {
     return (
         <Rnd
-            size={{ width, height }}
-            position={{ x, y }}
+            size={size}
+            position={position}
             onDragStop={(_e, position) => onDragStop(id, _e, position)}
             onResizeStop={(_e, _direction, ref, _delta, position) => {
                 onResizeStop(
@@ -58,19 +58,20 @@ export default function BaseAnnotate({
                     }
                 );
             }}
-            enableResizing={resizable}
+            disableDragging={previewMode}
+            enableResizing={previewMode ? false : resizable}
             bounds="parent"
         >
             <div
                 className="relative rounded cursor-text w-full h-full"
                 style={{
-                    border: `1px solid ${bgColor}`,
+                    border: previewMode ? "" : `2px dashed ${color}`,
                 }}
             >
                 <div
-                    className="absolute inset-0 rounded z-0 opacity-[0.6]"
+                    className="absolute inset-0 rounded z-0 opacity-[0.4]"
                     style={{
-                        backgroundColor: bgColor,
+                        backgroundColor: previewMode ? "transparent" : color,
                     }}
                 ></div>
                 <div className="relative z-10 flex items-center justify-center w-full h-full">

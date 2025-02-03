@@ -1,5 +1,4 @@
 "use client";
-import { createScopedLogger } from "@/utils/logger";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -10,18 +9,16 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     import.meta.url
 ).toString();
 
-// const logger = createScopedLogger("components:builder:renderer:PdfRenderer");
-
-export type PdfRendererProps = {
+export interface PdfRendererProps {
     pdfFile: string;
-    currentPage: number;
+    currentPdfPage: number;
     onDocumentLoadSuccess?: (pdf: DocumentCallback) => void;
     onPageLoadSuccess?: (page: PageCallback) => void;
-};
+}
 
 export default function PdfRenderer({
     pdfFile,
-    currentPage,
+    currentPdfPage,
     onDocumentLoadSuccess,
     onPageLoadSuccess,
 }: PdfRendererProps) {
@@ -30,7 +27,7 @@ export default function PdfRenderer({
             <Page
                 scale={1}
                 onRenderSuccess={onPageLoadSuccess}
-                pageNumber={currentPage}
+                pageNumber={currentPdfPage}
                 className="pointer-events-none select-none"
             />
         </Document>
