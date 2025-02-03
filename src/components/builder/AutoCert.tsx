@@ -10,6 +10,8 @@ export default function AutoCert({
     currentPdfPage,
     pdfFile,
     previewMode,
+    imageScale,
+    setImageScale,
     onDocumentLoadSuccess,
     onPageLoadSuccess,
     onDragStop,
@@ -19,6 +21,8 @@ export default function AutoCert({
         <div className="flex">
             <div className="relative border border-gray-300">
                 <PdfRenderer
+                    imageScale={imageScale}
+                    setImageScale={setImageScale}
                     currentPdfPage={currentPdfPage}
                     pdfFile={pdfFile}
                     onDocumentLoadSuccess={onDocumentLoadSuccess}

@@ -4,6 +4,8 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import moment from "moment";
 
+export const IS_PRODUCTION_ENV = process.env.NODE_ENV === "production";
+
 export const APP_NAME = "AutoCert";
 
 export function getApiBaseUrl(): string {

@@ -94,7 +94,7 @@ export default function DashboardLayoutClient({
                     </Flex>
                 </Header>
                 <Content
-                    className="p-4 drop-shadow-sm"
+                    className="p-4 drop-shadow-sm overflow-auto"
                     style={{
                         background: colorBgContainer,
                     }}
