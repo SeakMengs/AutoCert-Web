@@ -88,6 +88,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
                 name: "Arial",
                 size: 24,
                 weight: 400,
+                color: "#000000",
             },
             color: AnnotateColor,
         } satisfies TextAnnotateState;

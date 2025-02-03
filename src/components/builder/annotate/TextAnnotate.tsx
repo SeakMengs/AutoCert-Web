@@ -5,6 +5,7 @@ export type TextAnnotateFont = {
     name: "Arial" | "Khmer OS Siemreap";
     size: number;
     weight: number;
+    color: string;
 };
 
 export type BaseTextAnnotate = {
@@ -48,6 +49,7 @@ export default function TextAnnotate({
                     fontFamily: font.name,
                     fontSize: `${font.size}px`,
                     fontWeight: font.weight,
+                    color: font.color,
                     lineHeight: "1.2",
                 }}
             >
