@@ -55,15 +55,15 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [annotates, setAnnotates] = useState<AnnotateStates>({});
     const [currentPdfPage, setCurrentPdfPage] =
         useState<number>(initialPdfPage);
-    const [imageScale, setImageScale] = useState<number>(1);
-    const previousScaleRef = useRef<number>(imageScale);
+    const [scale, setScale] = useState<number>(1);
+    const previousScaleRef = useRef<number>(scale);
 
     useEffect(() => {
-        logger.debug(`Image scale changed: ${imageScale}`);
+        logger.debug(`Image scale changed: ${scale}`);
 
         const previousScale = previousScaleRef.current;
         // Calculate relative change of scale such that it doesn't always go smaller
-        const scaleRatio = imageScale / previousScale;
+        const scaleRatio = scale / previousScale;
 
         if (scaleRatio <= ScaleRatioThreshold) {
             logger.debug(
@@ -75,8 +75,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         // Update annotates by scale
         setAnnotates(getAnnotatesByScale(annotates, scaleRatio));
 
-        previousScaleRef.current = imageScale;
-    }, [imageScale]);
+        previousScaleRef.current = scale;
+    }, [scale]);
 
     const getAnnotatesByScale = (
         prevAnnotates: AnnotateStates,
@@ -150,7 +150,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
     const onPageLoadSuccess = async (page: PageCallback): Promise<void> => {
         logger.debug(
-            `Page original size ${page.originalWidth}x${page.originalHeight}, Scaled size ${page.width}x${page.height}`
+            `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf Scaled size ${page.width}x${page.height}`
         );
     };
 
@@ -172,7 +172,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
                 },
                 color: AnnotateColor,
             } satisfies TextAnnotateState,
-            imageScale
+            scale
         );
 
         setAnnotates((prev) => ({
@@ -198,7 +198,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
                 },
                 color: AnnotateColor,
             } satisfies SignatureAnnotateState,
-            imageScale
+            scale
         );
 
         setAnnotates((prev) => ({
@@ -217,7 +217,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         position: XYPosition
     ): void => {
         logger.debug(
-            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y} dpi: ${window.devicePixelRatio}`
+            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${scale}`
         );
 
         setAnnotates((prev) => ({
@@ -251,8 +251,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         annotates,
         currentPdfPage,
         totalPdfPage,
-        imageScale,
-        setImageScale,
+        scale,
+        setScale,
         getAnnotatesByScale,
         getAnnotateByScale,
         onDocumentLoadSuccess,

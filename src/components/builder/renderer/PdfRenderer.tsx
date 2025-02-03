@@ -4,9 +4,10 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
 import type { RenderParameters } from "pdfjs-dist/types/src/display/api.js";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IS_PRODUCTION_ENV } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
+import { WHSize } from "../annotate/BaseAnnotate";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -23,143 +24,87 @@ export interface PdfRendererProps extends CanvasToImageRendererProps {
 }
 
 export interface CanvasToImageRendererProps {
-    // Scale of the image element, not the PDF page scale
-    imageScale: number;
-    setImageScale: (scale: number) => void;
+    // Scale of the canvas element, not the PDF page scale
+    scale: number;
+    setScale: (scale: number) => void;
 }
 
 export default function PdfRenderer({
     pdfFile,
     currentPdfPage,
-    imageScale,
-    setImageScale,
+    scale,
+    setScale,
     onDocumentLoadSuccess,
     onPageLoadSuccess,
 }: PdfRendererProps) {
-    return (
-        <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
-            <Page
-                customRenderer={(props) => (
-                    <CanvasToImageRenderer
-                        {...props}
-                        imageScale={imageScale}
-                        setImageScale={setImageScale}
-                    />
-                )}
-                renderMode="custom"
-                scale={1}
-                onRenderSuccess={onPageLoadSuccess}
-                pageNumber={currentPdfPage}
-                className="pointer-events-none select-none"
-            />
-        </Document>
-    );
-}
-
-export const CanvasToImageRenderer = ({
-    imageScale,
-    setImageScale,
-}: CanvasToImageRendererProps) => {
-    const pageContext = usePageContext();
-    if (!pageContext) {
-        return <span>Unable to find Page context.</span>;
-    }
-
-    const { _className, page, rotate, scale } = pageContext;
-
-    if (!page) {
-        return (
-            <span>
-                Attempted to render page canvas, but no page was specified.
-            </span>
-        );
-    }
-
-    const imageElement = useRef<HTMLImageElement>(null);
+    const [pdfViewPort, setPdfViewPort] = useState<WHSize>({
+        width: 1,
+        height: 1,
+    });
     const containerRef = useRef<HTMLDivElement>(null);
+    const pageCanvasRef = useRef<HTMLCanvasElement>(null);
 
-    const viewport = useMemo(
-        () => page.getViewport({ scale, rotation: rotate }),
-        [page, rotate, scale]
-    );
-
-    const updateImageScale = () => {
-        if (!imageElement.current) return;
-        const currentWidth = imageElement.current.clientWidth;
-        const originalWidth = viewport.width;
+    const updateScale = () => {
+        logger.debug
+        if (!pageCanvasRef.current) return;
+        const currentWidth = pageCanvasRef.current.clientWidth;
+        const originalWidth = pdfViewPort.width;
         const newScale = currentWidth / originalWidth;
 
-        // Sometimes the image width is 0, so we don't want to update the scale
-        if (currentWidth <= 0 || originalWidth <= 0) {
-            logger.debug("Image width is 0, not updating scale");
-            return;
-        }
+        if (newScale !== scale && newScale > 0) {
+            if (newScale > 1) {
+                setScale(1);
+                return;
+            }
 
-        if (newScale !== imageScale) {
-            setImageScale(newScale);
+            setScale(newScale);
         }
     };
 
     useEffect(() => {
-        const container = containerRef.current;
-        if (!container) return;
+        updateScale();
 
-        const resizeObserver = new ResizeObserver(() => {
-            updateImageScale();
-        });
-
-        resizeObserver.observe(container);
+        window.addEventListener("resize", updateScale);
         return () => {
-            resizeObserver.disconnect();
+            window.removeEventListener("resize", updateScale);
         };
-    }, [viewport?.width]);
-
-    function drawPageOnImage() {
-        if (!page) return;
-        const { current: image } = imageElement;
-        if (!image) return;
-
-        const canvas = document.createElement("canvas");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        const renderContext: RenderParameters = {
-            canvasContext: canvas.getContext("2d", {
-                alpha: false,
-            }) as CanvasRenderingContext2D,
-            viewport,
-        };
-
-        const cancellable = page.render(renderContext);
-        cancellable.promise
-            .then(() => {
-                image.src = canvas.toDataURL();
-                updateImageScale(); // Ensure scale updates after image renders
-            })
-            .catch(() => {
-                // Handle errors if necessary
-            });
-
-        return () => {
-            cancellable.cancel();
-        };
-    }
-
-    useEffect(drawPageOnImage, [imageElement,page, viewport]);
+    }, [pdfViewPort]);
 
     return (
-        <div ref={containerRef} className="relative w-full h-auto">
-            <img
-                className={`${_className}__image w-full h-auto`}
-                // height={viewport.height}
-                // width={viewport.width}
-                ref={imageElement}
-            />
-            {!IS_PRODUCTION_ENV && (
-                <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
-                    Scale: {imageScale.toFixed(2)}
-                </div>
-            )}
-        </div>
+        <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
+            <div
+                ref={containerRef}
+                className="relative"
+                style={{
+                    // Prevent canvas from going beyond the viewport
+                    maxWidth: pdfViewPort.width,
+                    maxHeight: pdfViewPort.height,
+                }}
+            >
+                <Page
+                    canvasRef={pageCanvasRef}
+                    _className={`w-full h-auto object-cover`}
+                    onRenderSuccess={(page) => {
+                        const viewport = page.getViewport({ scale: 1 });
+                        setPdfViewPort({
+                            width: viewport.width,
+                            height: viewport.height,
+                        });
+
+                        if (typeof onPageLoadSuccess === "function") {
+                            onPageLoadSuccess(page);
+                        }
+                    }}
+                    scale={1}
+                    pageNumber={currentPdfPage}
+                    className="pointer-events-none select-none"
+                />
+                {!IS_PRODUCTION_ENV && (
+                    <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
+                        Scale: {scale.toFixed(2)}
+                    </div>
+                )}
+            </div>
+        </Document>
     );
-};
+}

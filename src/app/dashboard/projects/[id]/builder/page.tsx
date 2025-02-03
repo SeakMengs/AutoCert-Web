@@ -11,8 +11,8 @@ export default function ProjectBuilderByID() {
     const {
         annotates,
         currentPdfPage,
-        imageScale,
-        setImageScale,
+        scale,
+        setScale,
         addSignatureField,
         addTextField,
         handleDragStop,
@@ -29,10 +29,10 @@ export default function ProjectBuilderByID() {
 
     return (
         <Flex justify="center" align="center">
-            <Space>
+            <Space direction="vertical">
                 <AutoCert
-                    imageScale={imageScale}
-                    setImageScale={setImageScale}
+                    scale={scale}
+                    setScale={setScale}
                     previewMode={false}
                     annotates={annotates}
                     currentPdfPage={currentPdfPage}
