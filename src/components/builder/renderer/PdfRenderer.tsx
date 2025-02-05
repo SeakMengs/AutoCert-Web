@@ -45,11 +45,12 @@ export default function PdfRenderer({
     const pageCanvasRef = useRef<HTMLCanvasElement>(null);
 
     const updateScale = () => {
-        logger.debug
         if (!pageCanvasRef.current) return;
-        const currentWidth = pageCanvasRef.current.clientWidth;
+        const currentWidth = pageCanvasRef.current.getBoundingClientRect().width;
         const originalWidth = pdfViewPort.width;
         const newScale = currentWidth / originalWidth;
+
+        logger.debug(`Current width: ${currentWidth}, Original width: ${originalWidth}, New scale: ${newScale}, Shall expect update annotation with new scale`);
 
         if (newScale !== scale && newScale > 0) {
             if (newScale > 1) {

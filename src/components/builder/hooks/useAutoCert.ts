@@ -5,12 +5,13 @@ import {
 } from "@/components/builder/annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { nanoid } from "nanoid";
-import {  useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
 import { tempSignData } from "./temp";
 import { BaseTextAnnotate, TextAnnotateFont } from "../annotate/TextAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION_ENV } from "@/utils";
+import { getAnnotateByScale, getAnnotateByScaleRatio, getAnnotatesByScale } from "../utils";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -59,77 +60,27 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const previousScaleRef = useRef<number>(scale);
 
     useEffect(() => {
-        logger.debug(`Image scale changed: ${scale}`);
-
         const previousScale = previousScaleRef.current;
-        // Calculate relative change of scale such that it doesn't always go smaller
-        const scaleRatio = scale / previousScale;
 
-        if (scaleRatio <= ScaleRatioThreshold) {
-            logger.debug(
-                `Scale ratio too small, not updating annotates, scaleRatio: ${scaleRatio}`
-            );
-            return;
-        }
-
-        // Update annotates by scale
-        setAnnotates(getAnnotatesByScale(annotates, scaleRatio));
-
+        setAnnotates(getAnnotatesByScale(annotates, scale, previousScale));
         previousScaleRef.current = scale;
     }, [scale]);
-
-    const getAnnotatesByScale = (
-        prevAnnotates: AnnotateStates,
-        scaleRatio: number
-    ): AnnotateStates => {
-        if (scaleRatio <= ScaleRatioThreshold) {
-            logger.debug("Scale ratio too small, not updating annotates");
-            return prevAnnotates;
-        }
-
-        const newAnnotates: AnnotateStates = {};
-
-        for (const page in prevAnnotates) {
-            const pageAnnotates = prevAnnotates[page];
-            newAnnotates[page] = pageAnnotates.map((annotate) => {
-                return getAnnotateByScale(annotate, scaleRatio);
-            });
-        }
-        return newAnnotates;
+    
+    const getUnscaledAnnotates = (): AnnotateStates => {
+        return getAnnotatesByScale(annotates, 1, scale);
     };
 
-    const getAnnotateByScale = (
-        annotate: AnnotateState,
-        scaleRatio: number
-    ) => {
-        if (scaleRatio <= ScaleRatioThreshold) {
-            logger.debug("Scale ratio too small, not updating annotate");
-            return annotate;
+    const getUnscaledAnnotate = (id: string): AnnotateState | undefined => {
+        const pages =  Object.keys(annotates);
+
+        for (const page of pages) {
+            const annotate = annotates[Number(page)].find((annotate) => annotate.id === id);
+            if (annotate) {
+                return getAnnotateByScale(annotate, 1, scale);
+            }
         }
 
-        const baseProps = {
-            position: {
-                x: annotate.position.x * scaleRatio,
-                y: annotate.position.y * scaleRatio,
-            },
-            size: {
-                width: annotate.size.width * scaleRatio,
-                height: annotate.size.height * scaleRatio,
-            },
-        };
-
-        if (annotate.type !== "text") {
-            return { ...annotate, ...baseProps };
-        }
-
-        return {
-            ...annotate,
-            ...baseProps,
-            font: {
-                ...annotate.font,
-                size: annotate.font.size * scaleRatio,
-            },
-        };
+        return undefined;
     };
 
     const onDocumentLoadSuccess = async (
@@ -157,7 +108,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const addTextField = (): void => {
         logger.debug("Adding text field");
 
-        const newTextField = getAnnotateByScale(
+        // Since it has not scaled before, we can pass scale as scale ratio
+        const newTextField = getAnnotateByScaleRatio(
             {
                 id: nanoid(),
                 type: "text",
@@ -185,7 +137,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const addSignatureField = (): void => {
         logger.debug("Adding signature field");
 
-        const newSignatureField = getAnnotateByScale(
+        // Since it has not scaled before, we can pass scale as scale ratio
+        const newSignatureField = getAnnotateByScaleRatio(
             {
                 id: nanoid(),
                 type: "signature",
@@ -198,7 +151,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
                 },
                 color: AnnotateColor,
             } satisfies SignatureAnnotateState,
-            scale
+            scale,
         );
 
         setAnnotates((prev) => ({
@@ -219,6 +172,16 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         logger.debug(
             `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${scale}`
         );
+
+        if (!IS_PRODUCTION_ENV) {
+            const unScaledAnnotate = getUnscaledAnnotate(id);
+
+            if (unScaledAnnotate) {
+                logger.debug(
+                    `Unscaled annotation, w:${unScaledAnnotate.size.width}, h:${unScaledAnnotate.size.height},  Position: x:${unScaledAnnotate.position.x}, y:${unScaledAnnotate.position.y}`
+                );
+            }
+        }
 
         setAnnotates((prev) => ({
             ...prev,
@@ -253,8 +216,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         totalPdfPage,
         scale,
         setScale,
-        getAnnotatesByScale,
-        getAnnotateByScale,
+        getUnscaledAnnotates,
+        getUnscaledAnnotate,
         onDocumentLoadSuccess,
         onPageLoadSuccess,
         setTotalPdfPage,
