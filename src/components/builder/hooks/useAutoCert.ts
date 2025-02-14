@@ -11,13 +11,23 @@ import { tempSignData } from "./temp";
 import { BaseTextAnnotate, TextAnnotateFont } from "../annotate/TextAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION_ENV } from "@/utils";
-import { getAnnotateByScale, getAnnotateByScaleRatio, getAnnotatesByScale } from "../utils";
+import {
+    getAnnotateByScale,
+    getAnnotateByScaleRatio,
+    getAnnotatesByScale,
+} from "../utils";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
 type BaseAnnotateState = Omit<
     BaseAnnotateProps,
-    "children" | "resizable" | "onDragStop" | "onResizeStop" | "previewMode"
+    | "children"
+    | "resizable"
+    | "onDragStop"
+    | "onResizeStop"
+    | "onAnnotateSelect"
+    | "previewMode"
+    | "selected"
 > & {
     type: "text" | "signature";
 };
@@ -54,6 +64,7 @@ export interface UseAutoCertProps {
 export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
     const [annotates, setAnnotates] = useState<AnnotateStates>({});
+    const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
     const [currentPdfPage, setCurrentPdfPage] =
         useState<number>(initialPdfPage);
     const [scale, setScale] = useState<number>(1);
@@ -65,16 +76,18 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         setAnnotates(getAnnotatesByScale(annotates, scale, previousScale));
         previousScaleRef.current = scale;
     }, [scale]);
-    
+
     const getUnscaledAnnotates = (): AnnotateStates => {
         return getAnnotatesByScale(annotates, 1, scale);
     };
 
     const getUnscaledAnnotate = (id: string): AnnotateState | undefined => {
-        const pages =  Object.keys(annotates);
+        const pages = Object.keys(annotates);
 
         for (const page of pages) {
-            const annotate = annotates[Number(page)].find((annotate) => annotate.id === id);
+            const annotate = annotates[Number(page)].find(
+                (annotate) => annotate.id === id
+            );
             if (annotate) {
                 return getAnnotateByScale(annotate, 1, scale);
             }
@@ -151,7 +164,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
                 },
                 color: AnnotateColor,
             } satisfies SignatureAnnotateState,
-            scale,
+            scale
         );
 
         setAnnotates((prev) => ({
@@ -210,12 +223,25 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         }));
     };
 
+    const handleAnnotateSelect = (id: string | undefined): void => {
+        if (id === selectedAnnotateId) {
+            logger.debug(`Select annotation event: ${id} (skip ui update)`);
+            return;
+        }
+        
+        logger.debug(`Select annotation event: ${id}`);
+
+        setSelectedAnnotateId(id);
+    };
+
     return {
         annotates,
+        selectedAnnotateId,
         currentPdfPage,
         totalPdfPage,
         scale,
         setScale,
+        setSelectedAnnotateId,
         getUnscaledAnnotates,
         getUnscaledAnnotate,
         onDocumentLoadSuccess,
@@ -227,5 +253,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         addSignatureField,
         handleResizeStop,
         handleDragStop,
+        handleAnnotateSelect,
     };
 }

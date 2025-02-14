@@ -26,8 +26,10 @@ export default function TextAnnotate({
     previewMode,
     font,
     resizable,
+    selected,
     onDragStop,
     onResizeStop,
+    onAnnotateSelect,
 }: TextAnnotateProps) {
     return (
         <BaseAnnotate
@@ -36,9 +38,11 @@ export default function TextAnnotate({
             size={size}
             resizable={resizable}
             color={color}
+            selected={selected}
             previewMode={previewMode}
             onDragStop={onDragStop}
             onResizeStop={onResizeStop}
+            onAnnotateSelect={onAnnotateSelect}
         >
             <span
                 contentEditable={!previewMode}

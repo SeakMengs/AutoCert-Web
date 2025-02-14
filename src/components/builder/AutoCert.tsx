@@ -11,11 +11,13 @@ export default function AutoCert({
     pdfFile,
     previewMode,
     scale,
+    selectedAnnotateId,
     setScale,
     onDocumentLoadSuccess,
     onPageLoadSuccess,
     onDragStop,
     onResizeStop,
+    onAnnotateSelect,
 }: AutoCertProps) {
     return (
         <div className="flex">
@@ -31,9 +33,11 @@ export default function AutoCert({
                 <AnnotateRenderer
                     previewMode={previewMode}
                     annotates={annotates}
+                    selectedAnnotateId={selectedAnnotateId}
                     currentPdfPage={currentPdfPage}
                     onDragStop={onDragStop}
                     onResizeStop={onResizeStop}
+                    onAnnotateSelect={onAnnotateSelect}
                 />
             </div>
         </div>

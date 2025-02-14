@@ -1,5 +1,9 @@
+// import { createScopedLogger } from "@/utils/logger";
+import { MouseEvent } from "react";
 import { DraggableEvent, DraggableData } from "react-draggable";
 import { ResizeEnable, Rnd } from "react-rnd";
+
+// const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 
 export type XYPosition = {
     x: number;
@@ -15,6 +19,7 @@ export interface BaseAnnotateProps {
     id: string;
     position: XYPosition;
     size: WHSize;
+    selected: boolean;
     // When enable, annotate cannot be resized, dragged, or edited.
     previewMode: boolean;
     resizable?: ResizeEnable | undefined;
@@ -27,6 +32,7 @@ export interface BaseAnnotateProps {
         numberSize: WHSize,
         position: XYPosition
     ) => void;
+    onAnnotateSelect: (id: string | undefined) => void;
 }
 
 export default function BaseAnnotate({
@@ -36,15 +42,37 @@ export default function BaseAnnotate({
     children,
     previewMode,
     resizable,
+    selected,
     color,
     onDragStop,
     onResizeStop,
+    onAnnotateSelect,
 }: BaseAnnotateProps) {
+    const onAnnotateSelectWithStopPropagation = (
+        id: string | undefined,
+        e: MouseEvent<Element> | DraggableEvent
+    ) => {
+        // Prevent the event from propagating to the parent element
+        e.preventDefault();
+        e.stopPropagation();
+        onAnnotateSelect(id);
+    };
     return (
         <Rnd
+            // identifier for on select parent element (in AnnotateRenderer div onClick)
+            className="annotation-rnd"
             size={size}
             position={position}
-            onDragStop={(_e, position) => onDragStop(id, _e, position)}
+            onDragStart={(_e, _data) => {
+                onAnnotateSelectWithStopPropagation(id, _e);
+            }}
+            onDragStop={(_e, position) => {
+                onAnnotateSelectWithStopPropagation(id, _e);
+                onDragStop(id, _e, position);
+            }}
+            onResizeStart={(_e) => {
+                onAnnotateSelectWithStopPropagation(id, _e);
+            }}
             onResizeStop={(_e, _direction, ref, _delta, position) => {
                 onResizeStop(
                     id,
@@ -63,9 +91,15 @@ export default function BaseAnnotate({
             bounds="parent"
         >
             <div
-                className="relative rounded cursor-text w-full h-full"
+                onClick={(e: MouseEvent<HTMLDivElement>) => {
+                    onAnnotateSelectWithStopPropagation(id, e);
+                }}
+                className="relative z-20 rounded cursor-text w-full h-full"
                 style={{
-                    border: previewMode ? "" : `2px dashed ${color}`,
+                    // border: previewMode ? "" : `2px dashed ${color}`,
+                    border: selected
+                        ? `1.5px solid ${color}`
+                        : `1.5px solid transparent`,
                 }}
             >
                 <div
@@ -74,7 +108,7 @@ export default function BaseAnnotate({
                         backgroundColor: previewMode ? "transparent" : color,
                     }}
                 ></div>
-                <div className="relative z-10 flex items-center justify-center w-full h-full">
+                <div className="relative flex items-center justify-center w-full h-full">
                     {children}
                     <div />
                 </div>

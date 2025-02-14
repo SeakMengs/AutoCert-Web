@@ -15,9 +15,11 @@ export default function SignatureAnnotate({
     previewMode,
     signatureData,
     resizable,
+    selected,
     color,
     onDragStop,
     onResizeStop,
+    onAnnotateSelect,
 }: SignatureAnnotateProps) {
     return (
         <BaseAnnotate
@@ -27,8 +29,10 @@ export default function SignatureAnnotate({
             previewMode={previewMode}
             resizable={resizable}
             color={color}
+            selected={selected}
             onDragStop={onDragStop}
             onResizeStop={onResizeStop}
+            onAnnotateSelect={onAnnotateSelect}
         >
             {signatureData ? (
                 <img

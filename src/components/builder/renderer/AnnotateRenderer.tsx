@@ -3,9 +3,14 @@ import { BaseAnnotateProps } from "../annotate/BaseAnnotate";
 import SignatureAnnotate from "../annotate/SignatureAnnotate";
 import TextAnnotate from "../annotate/TextAnnotate";
 import { AnnotateStates } from "../hooks/useAutoCert";
+import { MouseEvent } from "react";
 
 export interface AnnotateRendererProps
-    extends Pick<BaseAnnotateProps, "onDragStop" | "onResizeStop" | "previewMode"> {
+    extends Pick<
+        BaseAnnotateProps,
+        "onDragStop" | "onResizeStop" | "previewMode" | "onAnnotateSelect"
+    > {
+    selectedAnnotateId: string | undefined;
     annotates: AnnotateStates;
     currentPdfPage: number;
 }
@@ -25,12 +30,23 @@ export default function AnnotateRenderer({
     annotates,
     currentPdfPage,
     previewMode,
+    selectedAnnotateId,
     onDragStop,
     onResizeStop,
+    onAnnotateSelect,
 }: AnnotateRendererProps) {
+    const onAnnotationSelect = (id: string | undefined) => {
+        if (previewMode) {
+            return;
+        }
+
+        onAnnotateSelect(id);
+    }
+
     const Annotates =
         Array.isArray(annotates[currentPdfPage]) &&
         annotates[currentPdfPage].map((annotate) => {
+            const selected = selectedAnnotateId === annotate.id;
             switch (annotate.type) {
                 case "text":
                     return (
@@ -39,8 +55,10 @@ export default function AnnotateRenderer({
                             key={annotate.id}
                             previewMode={previewMode}
                             resizable={TEXT_RESIZABLE}
+                            selected={selected}
                             onDragStop={onDragStop}
                             onResizeStop={onResizeStop}
+                            onAnnotateSelect={onAnnotationSelect}
                         />
                     );
                 case "signature":
@@ -50,8 +68,10 @@ export default function AnnotateRenderer({
                             key={annotate.id}
                             previewMode={previewMode}
                             resizable={undefined}
+                            selected={selected}
                             onDragStop={onDragStop}
                             onResizeStop={onResizeStop}
+                            onAnnotateSelect={onAnnotationSelect}
                         />
                     );
                 default:
@@ -60,6 +80,17 @@ export default function AnnotateRenderer({
         });
 
     return (
-        <div className="absolute top-0 left-0 w-full h-full">{Annotates}</div>
+        <div
+            onClick={(e: MouseEvent) => {
+                const target = e.target as HTMLElement;
+                const isAnnotationClick = target.closest('.annotation-rnd');
+                if (!isAnnotationClick) {
+                    onAnnotationSelect(undefined);
+                }
+            }}
+            className="absolute top-0 left-0 w-full h-full z-10"
+        >
+            {Annotates}
+        </div>
     );
 }

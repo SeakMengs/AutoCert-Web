@@ -12,11 +12,13 @@ export default function ProjectBuilderByID() {
         annotates,
         currentPdfPage,
         scale,
+        selectedAnnotateId,
         setScale,
         addSignatureField,
         addTextField,
         handleDragStop,
         handleResizeStop,
+        handleAnnotateSelect,
         onDocumentLoadSuccess,
         onPageLoadSuccess,
     } = useAutoCert({
@@ -36,10 +38,12 @@ export default function ProjectBuilderByID() {
                     previewMode={false}
                     annotates={annotates}
                     currentPdfPage={currentPdfPage}
+                    selectedAnnotateId={selectedAnnotateId}
                     onDocumentLoadSuccess={onDocumentLoadSuccess}
                     onPageLoadSuccess={onPageLoadSuccess}
                     onDragStop={handleDragStop}
                     onResizeStop={handleResizeStop}
+                    onAnnotateSelect={handleAnnotateSelect}
                     pdfFile={pdfFile}
                 />
                 {/* Stuff like button */}
