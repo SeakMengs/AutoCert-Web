@@ -159,6 +159,7 @@ export function EditableHeaderCell({
             onSaveHeaderRow(dataIndex, values[dataIndex]);
         } catch (err) {
             logger.error("Editable cell save failed:", err);
+            setEditing(false);
         }
     };
 
