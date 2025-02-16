@@ -1,7 +1,7 @@
 "use client";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "@ant-design/v5-patch-for-react-19";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, App } from "antd";
 import theme from "./theme";
 
 // https://ant.design/docs/react/compatible-style#antd-config-layer
@@ -13,7 +13,9 @@ export default function AntWrapper({
 }>) {
     return (
         <AntdRegistry>
-            <ConfigProvider theme={theme}>{children}</ConfigProvider>
+            <ConfigProvider theme={theme}>
+                <App>{children}</App>
+            </ConfigProvider>
         </AntdRegistry>
     );
 }

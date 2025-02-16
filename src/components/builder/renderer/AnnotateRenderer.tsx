@@ -35,7 +35,7 @@ export default function AnnotateRenderer({
     onResizeStop,
     onAnnotateSelect,
 }: AnnotateRendererProps) {
-    const onAnnotationSelect = (id: string | undefined) => {
+    const onAnnotationSelect = (id: string | undefined): void => {
         if (previewMode) {
             return;
         }
