@@ -7,7 +7,9 @@ import AutoCert, {
 import useAutoCert from "@/hooks/useAutoCert";
 import { useState } from "react";
 import PdfUploader from "./pdf_uploader";
-import { Flex, Space } from "antd";
+import { Flex, Space, Typography } from "antd";
+
+const { Title, Text } = Typography;
 
 export default function ProjectBuilderByID() {
     const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
@@ -33,7 +35,7 @@ export default function ProjectBuilderByID() {
     }
 
     return (
-        <Flex vertical gap={8}>
+        <Flex vertical gap={32}>
             <Flex justify="center" align="center" vertical={false}>
                 <Space direction="horizontal">
                     <AutoCert
@@ -56,7 +58,10 @@ export default function ProjectBuilderByID() {
                     />
                 </Space>
             </Flex>
-            <AutoCertTable />
+            <Space direction="vertical">
+                <Text strong>Table management</Text>
+                <AutoCertTable />
+            </Space>
         </Flex>
     );
 }
