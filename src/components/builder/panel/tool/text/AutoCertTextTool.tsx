@@ -3,26 +3,49 @@ import {
     Button,
     Card,
     ColorPicker,
+    Flex,
     Form,
-    Input,
     Modal,
     Select,
     Space,
+    Tag,
 } from "antd";
-import { AutoCertPanelProps } from "../../AutoCertPanel";
-import { useState } from "react";
-import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import {
+    AnnotateColor,
+    TextAnnotateState,
+} from "@/components/builder/hooks/useAutoCert";
 import { createScopedLogger } from "@/utils/logger";
+import { AutoCertTableColumn } from "../../AutoCertTable";
+import { AggregationColor } from "antd/es/color-picker/color";
 
 const logger = createScopedLogger(
     "components:builder:panel:tool:text:AutoCertTextTool"
 );
 
-interface AutoCertTextToolProps
-    extends Pick<
-        AutoCertPanelProps,
-        "addTextField" | "tableColumns" | "textAnnotates"
-    > {}
+export type TextFieldSchema = {
+    value: string;
+    fontName: string;
+    color: string;
+};
+
+export interface AutoCertTextToolProps {
+    currentPdfPage: number;
+    textAnnotates: TextAnnotateState[];
+    tableColumns: AutoCertTableColumn[];
+    selectedAnnotateId: string | undefined;
+    onAnnotateSelect: (id: string) => void;
+    onAddTextField: (
+        page: number,
+        { value, fontName, color }: TextFieldSchema
+    ) => void;
+    onUpdateTextFieldById: (
+        id: string,
+        { value, fontName, color }: TextFieldSchema
+    ) => void;
+    onDeleteTextFieldById: (id: string) => void;
+}
 
 type FontOption = {
     label: string;
@@ -30,46 +53,84 @@ type FontOption = {
 };
 
 export default function AutoCertTextTool({
+    currentPdfPage,
+    selectedAnnotateId,
     textAnnotates,
     tableColumns,
-    addTextField,
+    onAddTextField,
+    onUpdateTextFieldById,
+    onDeleteTextFieldById,
+    onAnnotateSelect,
 }: AutoCertTextToolProps) {
     return (
         <Space direction="vertical" className="w-full">
-            <Add addTextField={addTextField} tableColumns={tableColumns} />
-            <List textAnnotates={textAnnotates} />
+            <Add
+                currentPdfPage={currentPdfPage}
+                onAddTextField={onAddTextField}
+                tableColumns={tableColumns}
+            />
+            <Space direction="vertical" className="w-full">
+                {textAnnotates.map((textAnnotate) => (
+                    <AnnotateCard
+                    key={textAnnotate.id}
+                    textAnnotate={textAnnotate}
+                    selectedAnnotateId={selectedAnnotateId}
+                    tableColumns={tableColumns}
+                    onUpdateTextFieldById={onUpdateTextFieldById}
+                    onDeleteTextFieldById={onDeleteTextFieldById}
+                    onAnnotateSelect={onAnnotateSelect}
+                    />
+                ))}
+            </Space>
         </Space>
     );
 }
 
 interface AutoCertTextToolAddProps
-    extends Pick<AutoCertTextToolProps, "addTextField" | "tableColumns"> {}
+    extends Pick<
+        AutoCertTextToolProps,
+        "onAddTextField" | "tableColumns" | "currentPdfPage"
+    > {}
+
+const fontOptions = [
+    { label: "Arial", value: "Arial" },
+    { label: "Helvetica", value: "Helvetica" },
+    { label: "Times New Roman", value: "Times New Roman" },
+] satisfies FontOption[];
 
 const { Option } = Select;
-function Add({ tableColumns, addTextField }: AutoCertTextToolAddProps) {
+function Add({
+    currentPdfPage,
+    tableColumns,
+    onAddTextField,
+}: AutoCertTextToolAddProps) {
     const [modalOpen, setModalOpen] = useState<boolean>(false);
-    const [form] = Form.useForm();
+    const [form] = Form.useForm<TextFieldSchema>();
 
-    const fontOptions = [
-        { label: "Arial", value: "Arial" },
-        { label: "Helvetica", value: "Helvetica" },
-        { label: "Times New Roman", value: "Times New Roman" },
-    ] satisfies FontOption[];
+    const resetForm = () => {
+        form.setFieldsValue({
+            value: tableColumns[0]?.title,
+            fontName: "Arial",
+            color: AnnotateColor,
+        });
+    };
 
     const toggleModal = () => {
-        form.resetFields();
         setModalOpen(!modalOpen);
+        resetForm();
     };
 
     const onModalCancel = () => {
         setModalOpen(false);
+        resetForm();
     };
 
     const handleAddField = async () => {
         logger.debug("AutoCert add text field confirmed");
+
         try {
             const values = await form.validateFields();
-            addTextField();
+            onAddTextField(currentPdfPage, values);
             setModalOpen(false);
         } catch (error) {
             logger.error("AutoCert add text field failed", error);
@@ -89,7 +150,7 @@ function Add({ tableColumns, addTextField }: AutoCertTextToolAddProps) {
             >
                 <Form form={form} layout="vertical">
                     <Form.Item
-                        name="field"
+                        name="value"
                         label="field"
                         rules={[
                             {
@@ -123,7 +184,9 @@ function Add({ tableColumns, addTextField }: AutoCertTextToolAddProps) {
                         name="color"
                         label="Color"
                         initialValue={AnnotateColor}
-                        getValueFromEvent={(color) => color.hex}
+                        getValueFromEvent={(color: AggregationColor) => {
+                            return `#${color.toHex()}`;
+                        }}
                     >
                         <ColorPicker size="small" showText />
                     </Form.Item>
@@ -134,16 +197,138 @@ function Add({ tableColumns, addTextField }: AutoCertTextToolAddProps) {
 }
 
 interface AutoCertTextToolListProps
-    extends Pick<AutoCertTextToolProps, "textAnnotates"> {}
+    extends Pick<
+        AutoCertTextToolProps,
+        | "selectedAnnotateId"
+        | "tableColumns"
+        | "onAnnotateSelect"
+        | "onUpdateTextFieldById"
+        | "onDeleteTextFieldById"
+    > {
+    textAnnotate: TextAnnotateState;
+}
 
-function List({ textAnnotates }: AutoCertTextToolListProps) {
+function AnnotateCard({
+    textAnnotate,
+    selectedAnnotateId,
+    tableColumns,
+    onAnnotateSelect,
+    onUpdateTextFieldById,
+    onDeleteTextFieldById,
+}: AutoCertTextToolListProps) {
+    const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
+    const [form] = Form.useForm<TextFieldSchema>();
+
+    const resetForm = () => {
+        form.setFieldsValue({
+            value: textAnnotate.value,
+            fontName: textAnnotate.font.name,
+            color: textAnnotate.color,
+        });
+    };
+
+    const toggleEditModal = () => {
+        setEditModalOpen(!editModalOpen);
+        resetForm();
+    };
+
+    const onModalCancel = () => {
+        setEditModalOpen(false);
+        resetForm();
+    };
+
+    const handleEditField = async () => {
+        logger.debug("AutoCert edit text field confirmed");
+        try {
+            const values = await form.validateFields();
+            onUpdateTextFieldById(textAnnotate.id, values);
+            setEditModalOpen(false);
+        } catch (error) {
+            logger.error("AutoCert edit text field failed", error);
+        }
+    };
+
     return (
-        <Space direction="vertical" className="w-full">
-            {textAnnotates.map((annotate) => (
-                <Card key={annotate.id} size="small">
-                    <div>{annotate.value}</div>
-                </Card>
-            ))}
-        </Space>
+        <>
+            <Card
+                onClick={() => onAnnotateSelect(textAnnotate.id)}
+                size="small"
+                className="w-full"
+                style={{
+                    borderColor:
+                        textAnnotate.id === selectedAnnotateId
+                            ? textAnnotate.color
+                            : undefined,
+                }}
+            >
+                <Flex justify="space-between" align="center">
+                    <Tag>{textAnnotate.value}</Tag>
+                    <Space>
+                        <Button
+                            onClick={toggleEditModal}
+                            icon={<EditOutlined />}
+                        />
+                        <Button
+                            onClick={() =>
+                                onDeleteTextFieldById(textAnnotate.id)
+                            }
+                            icon={<DeleteOutlined />}
+                            danger
+                        />
+                    </Space>
+                </Flex>
+            </Card>
+            <Modal
+                title="Edit Field"
+                open={editModalOpen}
+                onCancel={onModalCancel}
+                onOk={handleEditField}
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item
+                        name="value"
+                        label="field"
+                        initialValue={textAnnotate.value}
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select a table column field",
+                            },
+                        ]}
+                    >
+                        <Select>
+                            {tableColumns.map((column) => (
+                                <Option key={column.title} value={column.title}>
+                                    {column.title}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item
+                        name="fontName"
+                        label="Font Name"
+                        initialValue={textAnnotate.font.name}
+                    >
+                        <Select>
+                            {fontOptions.map((font) => (
+                                <Option key={font.value} value={font.value}>
+                                    {font.label}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item
+                        name="color"
+                        label="Color"
+                        initialValue={textAnnotate.color}
+                        getValueFromEvent={(color: AggregationColor) => {
+                            return `#${color.toHex()}`;
+                        }}
+                    >
+                        <ColorPicker size="small" showText />
+                    </Form.Item>
+                </Form>
+            </Modal>
+        </>
     );
 }

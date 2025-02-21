@@ -4,17 +4,18 @@ import {
     PlusOutlined,
     SignatureOutlined,
 } from "@ant-design/icons";
-import AutoCertTextTool from "./tool/text/AutoCertTextTool";
-import AutoCertSignatoryTool from "./tool/signatory/AutoCertSignatoryTool";
+import AutoCertTextTool, {
+    AutoCertTextToolProps,
+} from "./tool/text/AutoCertTextTool";
+import AutoCertSignatoryTool, {
+    AutoCertSignatoryToolProps,
+} from "./tool/signatory/AutoCertSignatoryTool";
 import { AutoCertTableColumn, AutoCertTableRow } from "./AutoCertTable";
 import { TextAnnotateState } from "../hooks/useAutoCert";
 
-export interface AutoCertPanelProps {
-    textAnnotates: TextAnnotateState[];
-    tableColumns: AutoCertTableColumn[];
-    addSignatureField: () => void;
-    addTextField: () => void;
-}
+export interface AutoCertPanelProps
+    extends AutoCertTextToolProps,
+        AutoCertSignatoryToolProps {}
 
 const { Title } = Typography;
 
@@ -22,7 +23,12 @@ export default function AutoCertPanel({
     tableColumns,
     textAnnotates,
     addSignatureField,
-    addTextField,
+    selectedAnnotateId,
+    currentPdfPage,
+    onAnnotateSelect,
+    onAddTextField,
+    onUpdateTextFieldById,
+    onDeleteTextFieldById,
 }: AutoCertPanelProps) {
     const collapseItems: CollapseProps["items"] = [
         {
@@ -30,9 +36,14 @@ export default function AutoCertPanel({
             label: "Text fields",
             children: (
                 <AutoCertTextTool
+                    selectedAnnotateId={selectedAnnotateId}
                     textAnnotates={textAnnotates}
-                    addTextField={addTextField}
+                    currentPdfPage={currentPdfPage}
                     tableColumns={tableColumns}
+                    onAddTextField={onAddTextField}
+                    onUpdateTextFieldById={onUpdateTextFieldById}
+                    onDeleteTextFieldById={onDeleteTextFieldById}
+                    onAnnotateSelect={onAnnotateSelect}
                 />
             ),
             // extra: <PlusOutlined onClick={addTextField} />,
@@ -40,7 +51,12 @@ export default function AutoCertPanel({
         {
             key: "2",
             label: "Signatories",
-            children: <AutoCertSignatoryTool />,
+            children: (
+                <AutoCertSignatoryTool
+                    addSignatureField={addSignatureField}
+                    selectedAnnotateId={selectedAnnotateId}
+                />
+            ),
             // extra: <PlusOutlined onClick={addSignatureField} />,
         },
     ];

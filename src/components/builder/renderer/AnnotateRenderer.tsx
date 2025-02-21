@@ -29,11 +29,10 @@ const TEXT_RESIZABLE = {
 export default function AnnotateRenderer({
     annotates,
     currentPdfPage,
-    previewMode,
     selectedAnnotateId,
-    onDragStop,
-    onResizeStop,
+    previewMode,
     onAnnotateSelect,
+    ...restProps
 }: AnnotateRendererProps) {
     const onAnnotationSelect = (id: string | undefined): void => {
         if (previewMode) {
@@ -41,7 +40,7 @@ export default function AnnotateRenderer({
         }
 
         onAnnotateSelect(id);
-    }
+    };
 
     const Annotates =
         Array.isArray(annotates[currentPdfPage]) &&
@@ -52,12 +51,11 @@ export default function AnnotateRenderer({
                     return (
                         <TextAnnotate
                             {...annotate}
+                            {...restProps}
                             key={annotate.id}
                             previewMode={previewMode}
                             resizable={TEXT_RESIZABLE}
                             selected={selected}
-                            onDragStop={onDragStop}
-                            onResizeStop={onResizeStop}
                             onAnnotateSelect={onAnnotationSelect}
                         />
                     );
@@ -65,12 +63,11 @@ export default function AnnotateRenderer({
                     return (
                         <SignatureAnnotate
                             {...annotate}
+                            {...restProps}
                             key={annotate.id}
                             previewMode={previewMode}
                             resizable={undefined}
                             selected={selected}
-                            onDragStop={onDragStop}
-                            onResizeStop={onResizeStop}
                             onAnnotateSelect={onAnnotationSelect}
                         />
                     );
@@ -83,7 +80,7 @@ export default function AnnotateRenderer({
         <div
             onClick={(e: MouseEvent) => {
                 const target = e.target as HTMLElement;
-                const isAnnotationClick = target.closest('.annotation-rnd');
+                const isAnnotationClick = target.closest(".annotation-rnd");
                 if (!isAnnotationClick) {
                     onAnnotationSelect(undefined);
                 }

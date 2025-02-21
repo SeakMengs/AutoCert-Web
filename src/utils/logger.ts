@@ -2,7 +2,7 @@
 export type DebugLevel = "trace" | "debug" | "info" | "warn" | "error";
 import { Chalk } from "chalk";
 import moment from "moment";
-import { IS_PRODUCTION_ENV } from ".";
+import { IS_PRODUCTION } from ".";
 
 const chalk = new Chalk({ level: 3 });
 
@@ -18,7 +18,7 @@ interface Logger {
 }
 
 let currentLevel: DebugLevel =
-!IS_PRODUCTION_ENV ? "debug" : "info";
+!IS_PRODUCTION ? "debug" : "info";
 
 export const logger: Logger = {
   trace: (...messages: any[]) => log("trace", undefined, messages),

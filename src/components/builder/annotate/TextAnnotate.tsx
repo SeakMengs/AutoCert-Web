@@ -2,7 +2,7 @@ import { ResizeEnable } from "react-rnd";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 
 export type TextAnnotateFont = {
-    name: "Arial" | "Khmer OS Siemreap";
+    name: string;
     size: number;
     weight: number;
     color: string;

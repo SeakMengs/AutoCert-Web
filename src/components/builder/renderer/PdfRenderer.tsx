@@ -4,7 +4,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
 import { useEffect, useRef, useState } from "react";
-import { IS_PRODUCTION_ENV } from "@/utils";
+import { IS_PRODUCTION } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
 import { WHSize } from "../annotate/BaseAnnotate";
 import { Skeleton } from "antd";
@@ -104,7 +104,7 @@ export default function PdfRenderer({
           pageNumber={currentPdfPage}
           className="pointer-events-none select-none"
         />
-        {!IS_PRODUCTION_ENV && (
+        {!IS_PRODUCTION && (
           <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
             Scale: {scale.toFixed(2)}
           </div>

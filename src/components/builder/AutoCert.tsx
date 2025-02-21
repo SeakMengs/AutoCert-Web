@@ -1,13 +1,16 @@
 import AutoCertPanel from "./panel/AutoCertPanel";
-import AutoCertTable from "./panel/AutoCertTable"; "./panel/AutoCertPanel";
+import AutoCertTable from "./panel/AutoCertTable";
+("./panel/AutoCertPanel");
 import AnnotateRenderer, {
     AnnotateRendererProps,
 } from "./renderer/AnnotateRenderer";
 import PdfRenderer, { PdfRendererProps } from "./renderer/PdfRenderer";
 
-export type AutoCertProps = AnnotateRendererProps & PdfRendererProps;
+export interface AutoCertProps
+    extends AnnotateRendererProps,
+        PdfRendererProps {}
 
-export {AutoCertTable, AutoCertPanel};
+export { AutoCertTable, AutoCertPanel };
 
 export default function AutoCert({
     annotates,

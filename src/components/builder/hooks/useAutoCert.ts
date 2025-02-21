@@ -10,12 +10,13 @@ import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
 import { tempSignData } from "./temp";
 import { BaseTextAnnotate, TextAnnotateFont } from "../annotate/TextAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
-import { IS_PRODUCTION_ENV } from "@/utils";
+import { IS_PRODUCTION } from "@/utils";
 import {
     getAnnotateByScale,
     getAnnotateByScaleRatio,
     getAnnotatesByScale,
 } from "../utils";
+import { TextFieldSchema } from "../panel/tool/text/AutoCertTextTool";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -110,7 +111,33 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         return getAnnotatesByScale(annotates, 1, scale);
     };
 
-    const getUnscaledAnnotate = (id: string): AnnotateState | undefined => {
+    const getUnscaledAnnotate = (
+        id: string
+    ):
+        | {
+              annotate: AnnotateState;
+              page: number;
+          }
+        | undefined => {
+        const annotate = findAnnotateById(id);
+        if (!annotate) {
+            return undefined;
+        }
+
+        return {
+            ...annotate,
+            annotate: getAnnotateByScale(annotate.annotate, scale, 1),
+        };
+    };
+
+    const findAnnotateById = (
+        id: string
+    ):
+        | {
+              annotate: AnnotateState;
+              page: number;
+          }
+        | undefined => {
         const pages = Object.keys(annotates);
 
         for (const page of pages) {
@@ -118,7 +145,10 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
                 (annotate) => annotate.id === id
             );
             if (annotate) {
-                return getAnnotateByScale(annotate, 1, scale);
+                return {
+                    annotate: annotate,
+                    page: Number(page),
+                };
             }
         }
 
@@ -133,7 +163,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         setTotalPdfPage(pdf.numPages);
         setCurrentPdfPage(initialPdfPage);
 
-        if (!IS_PRODUCTION_ENV) {
+        if (!IS_PRODUCTION) {
             const page = await pdf.getPage(1);
             const width = page.view[2];
             const height = page.view[3];
@@ -178,46 +208,99 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         };
     };
 
-    const addTextField = (): void => {
+    const addTextField = (
+        page: number,
+        { value, fontName, color }: TextFieldSchema
+    ): void => {
         logger.debug("Adding text field");
 
+        const newTF = newTextField();
         // Since it has not scaled before, we can pass scale as scale ratio
-        const newTF = getAnnotateByScaleRatio(newTextField(), scale);
-
-        setAnnotates((prev) => ({
-            ...prev,
-            // Add the new text field to the current page
-            [currentPdfPage]: [...(prev[currentPdfPage] || []), newTF],
-        }));
-    };
-
-    const addSignatureField = (): void => {
-        logger.debug("Adding signature field");
-
-        // Since it has not scaled before, we can pass scale as scale ratio
-        const newSignatureField = getAnnotateByScaleRatio(
+        const newTFScaled = getAnnotateByScaleRatio(
             {
-                id: nanoid(),
-                type: "signature",
-                position: { x: 100, y: 100 },
-                // signatureData: "",
-                signatureData: tempSignData,
-                size: {
-                    width: SignatureAnnotateWidth,
-                    height: SignatureAnnotateHeight,
+                ...newTF,
+                font: {
+                    ...newTF.font,
+                    name: fontName,
                 },
-                color: AnnotateColor,
-            } satisfies SignatureAnnotateState,
+                value,
+                color,
+            },
             scale
         );
 
         setAnnotates((prev) => ({
             ...prev,
+            [page]: [...(prev[page] || []), newTFScaled],
+        }));
+        setSelectedAnnotateId(newTFScaled.id);
+    };
+
+    const updateTextFieldById = (
+        id: string,
+        { value, fontName, color }: TextFieldSchema
+    ): void => {
+        logger.debug(`Update text field with id ${id}`);
+
+        const existingAnnotate = findAnnotateById(id);
+        if (!existingAnnotate) {
+            logger.warn(`Text field with id ${id} not found`);
+            return;
+        }
+
+        const { annotate, page } = existingAnnotate;
+        if (annotate.type !== "text") {
+            logger.warn(`Text field with id ${id} not found`);
+            return;
+        }
+
+        const updatedAnnotate = {
+            ...annotate,
+            font: {
+                ...annotate.font,
+                name: fontName,
+            },
+            value,
+            color,
+        } satisfies TextAnnotateState;
+
+        setAnnotates((prev) => ({
+            ...prev,
+            [page]: prev[page].map((annotation) =>
+                annotation.id === id ? updatedAnnotate : annotation
+            ),
+        }));
+        setSelectedAnnotateId(updatedAnnotate.id);
+    };
+
+    const removeTextFieldById = (id: string): void => {
+        logger.debug(`Remove text field with id ${id}`);
+
+        const existingAnnotate = findAnnotateById(id);
+        if (!existingAnnotate) {
+            logger.warn(`Text field with id ${id} not found`);
+            return;
+        }
+
+        const { page } = existingAnnotate;
+
+        setAnnotates((prev) => ({
+            ...prev,
+            [page]: prev[page].filter((annotation) => annotation.id !== id),
+        }));
+    }
+
+    const addSignatureField = (): void => {
+        logger.debug("Adding signature field");
+
+        // Since it has not scaled before, we can pass scale as scale ratio
+        const newSF = newSignatureField();
+        const newSFScaled = getAnnotateByScaleRatio(newSF, scale);
+
+        setAnnotates((prev) => ({
+            ...prev,
             // Add the new signature field to the current page
-            [currentPdfPage]: [
-                ...(prev[currentPdfPage] || []),
-                newSignatureField,
-            ],
+            [currentPdfPage]: [...(prev[currentPdfPage] || []), newSFScaled],
         }));
     };
 
@@ -230,10 +313,11 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${scale}`
         );
 
-        if (!IS_PRODUCTION_ENV) {
-            const unScaledAnnotate = getUnscaledAnnotate(id);
+        if (!IS_PRODUCTION) {
+            const unScaledAnnotateResult = getUnscaledAnnotate(id);
 
-            if (unScaledAnnotate) {
+            if (unScaledAnnotateResult) {
+                const { annotate: unScaledAnnotate } = unScaledAnnotateResult;
                 logger.debug(
                     `Unscaled annotation, w:${unScaledAnnotate.size.width}, h:${unScaledAnnotate.size.height},  Position: x:${unScaledAnnotate.position.x}, y:${unScaledAnnotate.position.y}`
                 );
@@ -296,6 +380,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         setCurrentPdfPage,
         setAnnotates,
         addTextField,
+        updateTextFieldById,
+        removeTextFieldById,
         addSignatureField,
         handleResizeStop,
         handleDragStop,

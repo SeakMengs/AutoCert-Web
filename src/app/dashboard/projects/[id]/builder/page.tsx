@@ -13,7 +13,7 @@ import {
     AutoCertTableRow,
 } from "@/components/builder/panel/AutoCertTable";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function ProjectBuilderByID() {
     const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
@@ -27,6 +27,8 @@ export default function ProjectBuilderByID() {
         setScale,
         addSignatureField,
         addTextField,
+        updateTextFieldById,
+        removeTextFieldById,
         handleDragStop,
         handleResizeStop,
         handleAnnotateSelect,
@@ -61,10 +63,15 @@ export default function ProjectBuilderByID() {
                         pdfFile={pdfFile}
                     />
                     <AutoCertPanel
+                        currentPdfPage={currentPdfPage}
+                        selectedAnnotateId={selectedAnnotateId}
                         textAnnotates={textAnnotates}
                         tableColumns={columns}
                         addSignatureField={addSignatureField}
-                        addTextField={addTextField}
+                        onAddTextField={addTextField}
+                        onUpdateTextFieldById={updateTextFieldById}
+                        onDeleteTextFieldById={removeTextFieldById}
+                        onAnnotateSelect={handleAnnotateSelect}
                     />
                 </Flex>
             </Flex>

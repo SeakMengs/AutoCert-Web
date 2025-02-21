@@ -1,7 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { JWT_COOKIE_TYPE } from "@/types/cookie";
-import { getJwtCookieName, IS_PRODUCTION_ENV, JWT_COOKIE_NAME } from ".";
+import { getJwtCookieName, IS_PRODUCTION, JWT_COOKIE_NAME } from ".";
 
 export async function getCookie(name: string): Promise<string | undefined> {
   const cookieStore = await cookies();
@@ -28,7 +28,7 @@ export async function setJwtTokenCookie(
   cookieStore.set(getJwtCookieName(jwtTokenName, type), token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: IS_PRODUCTION_ENV,
+    secure: IS_PRODUCTION,
     expires: expiresAt,
     path: "/",
   });
@@ -43,7 +43,7 @@ export async function deleteJwtTokenCookie(
   cookieStore.set(getJwtCookieName(jwtTokenName, type), "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: IS_PRODUCTION_ENV,
+    secure: IS_PRODUCTION,
     maxAge: 0,
     path: "/",
   });

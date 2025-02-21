@@ -40,6 +40,7 @@ export function getAnnotateByScale(
     return getAnnotateByScaleRatio(annotate, scaleRatio);
 }
 
+// Scale ratio is by how much the scale has changed since the previous scale
 export function getAnnotateByScaleRatio(
     annotate: AnnotateState,
     scaleRatio: number
