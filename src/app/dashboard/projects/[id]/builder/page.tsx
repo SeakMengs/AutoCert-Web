@@ -8,6 +8,10 @@ import useAutoCert from "@/hooks/useAutoCert";
 import { useState } from "react";
 import PdfUploader from "./pdf_uploader";
 import { Flex, Space, Typography } from "antd";
+import {
+    AutoCertTableColumn,
+    AutoCertTableRow,
+} from "@/components/builder/panel/AutoCertTable";
 
 const { Title, Text } = Typography;
 
@@ -15,6 +19,8 @@ export default function ProjectBuilderByID() {
     const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
     const {
         annotates,
+        textAnnotates,
+        signatureAnnotates,
         currentPdfPage,
         scale,
         selectedAnnotateId,
@@ -29,6 +35,8 @@ export default function ProjectBuilderByID() {
     } = useAutoCert({
         initialPdfPage: 1,
     });
+    const [rows, setRows] = useState<AutoCertTableRow[]>([]);
+    const [columns, setColumns] = useState<AutoCertTableColumn[]>([]);
 
     if (!pdfFile) {
         return <PdfUploader setPdfFile={setPdfFile} />;
@@ -37,7 +45,7 @@ export default function ProjectBuilderByID() {
     return (
         <Flex vertical gap={32}>
             <Flex justify="center" align="center" vertical={false}>
-                <Space direction="horizontal">
+                <Flex justify="center" vertical={false} gap={32}>
                     <AutoCert
                         scale={scale}
                         setScale={setScale}
@@ -53,15 +61,22 @@ export default function ProjectBuilderByID() {
                         pdfFile={pdfFile}
                     />
                     <AutoCertPanel
+                        textAnnotates={textAnnotates}
+                        tableColumns={columns}
                         addSignatureField={addSignatureField}
                         addTextField={addTextField}
                     />
-                </Space>
+                </Flex>
             </Flex>
-            <Space direction="vertical">
-                <Text strong>Table management</Text>
-                <AutoCertTable />
-            </Space>
+            <Flex vertical>
+                <Title level={4}>Table management</Title>
+                <AutoCertTable
+                    rows={rows}
+                    columns={columns}
+                    setRows={setRows}
+                    setColumns={setColumns}
+                />
+            </Flex>
         </Flex>
     );
 }

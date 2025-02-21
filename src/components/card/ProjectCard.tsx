@@ -2,11 +2,8 @@
 import {
     Avatar,
     Badge,
-    Button,
     Card,
-    Dropdown,
     Flex,
-    MenuProps,
     Skeleton,
     Tag,
     Tooltip,
@@ -18,11 +15,9 @@ import {
     DeleteOutlined,
     EditOutlined,
     EyeOutlined,
-    MoreOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import moment from "moment";
-import { cn } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
 import Link from "next/link";
 
@@ -135,13 +130,12 @@ export default function ProjectCard({
             }
             actions={[
                 <EyeOutlined
-                    key="view"
                     disabled={status != ProjectStatus.Completed}
                 />,
                 <Link href={`/dashboard/projects/${id}/builder`}>
-                    <EditOutlined key={"edit"} />
+                    <EditOutlined />
                 </Link>,
-                <DeleteOutlined key="delete" className="hover:text-red-500" />,
+                <DeleteOutlined className="hover:text-red-500" />,
             ]}
         >
             <Meta

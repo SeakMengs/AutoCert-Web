@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { IS_PRODUCTION_ENV } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
 import { WHSize } from "../annotate/BaseAnnotate";
+import { Skeleton } from "antd";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -73,7 +74,9 @@ export default function PdfRenderer({
   }, [pdfViewPort]);
 
   return (
-    <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
+    <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}
+      loading={<Skeleton.Image active className="w-96 h-96" />}
+    >
       <div
         ref={containerRef}
         className="relative"

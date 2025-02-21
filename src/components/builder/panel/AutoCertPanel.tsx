@@ -1,48 +1,54 @@
-import { Button, Flex, Space } from "antd";
-import { EditOutlined, SignatureOutlined } from "@ant-design/icons";
+import { Button, Collapse, CollapseProps, Flex, Space, Typography } from "antd";
+import {
+    EditOutlined,
+    PlusOutlined,
+    SignatureOutlined,
+} from "@ant-design/icons";
+import AutoCertTextTool from "./tool/text/AutoCertTextTool";
+import AutoCertSignatoryTool from "./tool/signatory/AutoCertSignatoryTool";
+import { AutoCertTableColumn, AutoCertTableRow } from "./AutoCertTable";
+import { TextAnnotateState } from "../hooks/useAutoCert";
 
-export interface PanelProps {
+export interface AutoCertPanelProps {
+    textAnnotates: TextAnnotateState[];
+    tableColumns: AutoCertTableColumn[];
     addSignatureField: () => void;
     addTextField: () => void;
 }
 
-export default function Panel({ addSignatureField, addTextField }: PanelProps) {
+const { Title } = Typography;
+
+export default function AutoCertPanel({
+    tableColumns,
+    textAnnotates,
+    addSignatureField,
+    addTextField,
+}: AutoCertPanelProps) {
+    const collapseItems: CollapseProps["items"] = [
+        {
+            key: "1",
+            label: "Text fields",
+            children: (
+                <AutoCertTextTool
+                    textAnnotates={textAnnotates}
+                    addTextField={addTextField}
+                    tableColumns={tableColumns}
+                />
+            ),
+            // extra: <PlusOutlined onClick={addTextField} />,
+        },
+        {
+            key: "2",
+            label: "Signatories",
+            children: <AutoCertSignatoryTool />,
+            // extra: <PlusOutlined onClick={addSignatureField} />,
+        },
+    ];
+
     return (
-        <div>
-            <ToolPanel
-                addSignatureField={addSignatureField}
-                addTextField={addTextField}
-            />
+        <div className="w-96">
+            <Title level={3}>Tools</Title>
+            <Collapse items={collapseItems} />
         </div>
-    );
-}
-
-interface ToolPanelProps
-    extends Pick<PanelProps, "addSignatureField" | "addTextField"> {}
-
-function ToolPanel({ addSignatureField, addTextField }: ToolPanelProps) {
-    return (
-        <Flex>
-            <Space direction="horizontal" style={{ width: "100%" }}>
-                <Button
-                    type="primary"
-                    icon={<EditOutlined />}
-                    size="large"
-                    style={{ width: "100%" }}
-                    onClick={() => addTextField()}
-                >
-                    Add Text Field
-                </Button>
-                <Button
-                    type="default"
-                    icon={<SignatureOutlined />}
-                    size="large"
-                    style={{ width: "100%" }}
-                    onClick={() => addSignatureField()}
-                >
-                    Add Signature Field
-                </Button>
-            </Space>
-        </Flex>
     );
 }
