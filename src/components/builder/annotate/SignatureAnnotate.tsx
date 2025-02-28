@@ -9,31 +9,11 @@ export interface SignatureAnnotateProps
         BaseSignatureAnnotate {}
 
 export default function SignatureAnnotate({
-    id,
-    position,
-    size,
-    previewMode,
     signatureData,
-    resizable,
-    selected,
-    color,
-    onDragStop,
-    onResizeStop,
-    onAnnotateSelect,
+    ...restProps
 }: SignatureAnnotateProps) {
     return (
-        <BaseAnnotate
-            id={id}
-            position={position}
-            size={size}
-            previewMode={previewMode}
-            resizable={resizable}
-            color={color}
-            selected={selected}
-            onDragStop={onDragStop}
-            onResizeStop={onResizeStop}
-            onAnnotateSelect={onAnnotateSelect}
-        >
+        <BaseAnnotate {...restProps}>
             {signatureData ? (
                 <img
                     src={signatureData}

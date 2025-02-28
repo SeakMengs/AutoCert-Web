@@ -26,6 +26,7 @@ export interface BaseAnnotateProps {
     children: React.ReactNode;
     // Background and border color of the annotate
     color: string;
+    scale: number;
     onDragStop: (id: string, e: DraggableEvent, data: DraggableData) => void;
     onResizeStop: (
         id: string,
@@ -44,6 +45,7 @@ export default function BaseAnnotate({
     resizable,
     selected,
     color,
+    scale,
     onDragStop,
     onResizeStop,
     onAnnotateSelect,
@@ -57,18 +59,31 @@ export default function BaseAnnotate({
         e.stopPropagation();
         onAnnotateSelect(id);
     };
+
     return (
         <Rnd
             // identifier for on select parent element (in AnnotateRenderer div onClick)
             className="annotation-rnd"
-            size={size}
-            position={position}
+            // size={size}
+            // position={position}
+            size={{
+                width: size.width * scale,
+                height: size.height * scale,
+            }}
+            position={{
+                x: position.x * scale,
+                y: position.y * scale,
+            }}
             onDragStart={(_e, _data) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
             }}
             onDragStop={(_e, position) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
-                onDragStop(id, _e, position);
+                onDragStop(id, _e, {
+                    ...position,
+                    x: position.x / scale,
+                    y: position.y / scale,
+                });
             }}
             onResizeStart={(_e) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
@@ -76,13 +91,23 @@ export default function BaseAnnotate({
             onResizeStop={(_e, _direction, ref, _delta, position) => {
                 onResizeStop(
                     id,
+                    // {
+                    //     width: Number(ref.style.width.replace("px", "")),
+                    //     height: Number(ref.style.height.replace("px", "")),
+                    // },
+                    // {
+                    //     x: position.x,
+                    //     y: position.y,
+                    // }
                     {
-                        width: Number(ref.style.width.replace("px", "")),
-                        height: Number(ref.style.height.replace("px", "")),
+                        width:
+                            Number(ref.style.width.replace("px", "")) / scale,
+                        height:
+                            Number(ref.style.height.replace("px", "")) / scale,
                     },
                     {
-                        x: position.x,
-                        y: position.y,
+                        x: position.x / scale,
+                        y: position.y / scale,
                     }
                 );
             }}

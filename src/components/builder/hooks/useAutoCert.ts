@@ -8,14 +8,9 @@ import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
 import { tempSignData } from "./temp";
-import { BaseTextAnnotate, TextAnnotateFont } from "../annotate/TextAnnotate";
+import { BaseTextAnnotate } from "../annotate/TextAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION } from "@/utils";
-import {
-    getAnnotateByScale,
-    getAnnotateByScaleRatio,
-    getAnnotatesByScale,
-} from "../utils";
 import { TextFieldSchema } from "../panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "../panel/AutoCertTable";
 
@@ -30,6 +25,7 @@ type BaseAnnotateState = Omit<
     | "onAnnotateSelect"
     | "previewMode"
     | "selected"
+    | "scale"
 > & {
     type: "text" | "signature";
 };
@@ -58,8 +54,6 @@ const SignatureAnnotateHeight = 90;
 export const AnnotateColor = "#FFC4C4";
 export const AnnotateFontSize = 24;
 
-// Scale ratio threshold to determine if the scale is too small to update annotates
-const ScaleRatioThreshold = 0;
 export interface UseAutoCertProps {
     initialPdfPage: number;
 }
@@ -105,8 +99,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
     const [currentPdfPage, setCurrentPdfPage] =
         useState<number>(initialPdfPage);
+    // Scale apply in annotate folder
     const [scale, setScale] = useState<number>(1);
-    const previousScaleRef = useRef<number>(scale);
 
     /**
      * Update text and signature annotates when annotates change
@@ -132,36 +126,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         setTextAnnotates(texts);
         setSignatureAnnotates(signatures);
     }, [annotates]);
-
-    useEffect(() => {
-        const previousScale = previousScaleRef.current;
-
-        setAnnotates(getAnnotatesByScale(annotates, scale, previousScale));
-        previousScaleRef.current = scale;
-    }, [scale]);
-
-    const getUnscaledAnnotates = (): AnnotateStates => {
-        return getAnnotatesByScale(annotates, 1, scale);
-    };
-
-    const getUnscaledAnnotate = (
-        id: string
-    ):
-        | {
-              annotate: AnnotateState;
-              page: number;
-          }
-        | undefined => {
-        const annotate = findAnnotateById(id);
-        if (!annotate) {
-            return undefined;
-        }
-
-        return {
-            ...annotate,
-            annotate: getAnnotateByScale(annotate.annotate, scale, 1),
-        };
-    };
 
     const findAnnotateById = (
         id: string
@@ -212,30 +176,25 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
     const onAddTextField = (
         page: number,
-        { value, fontName, color }: TextFieldSchema
+        { value, color, fontName }: TextFieldSchema
     ): void => {
         logger.debug("Adding text field");
 
-        const newTF = newTextField();
-        // Since it has not scaled before, we can pass scale as scale ratio
-        const newTFScaled = getAnnotateByScaleRatio(
-            {
-                ...newTF,
-                font: {
-                    ...newTF.font,
-                    name: fontName,
-                },
-                value,
-                color,
+        const newTF = {
+            ...newTextField(),
+            value,
+            color,
+            font: {
+                ...newTextField().font,
+                name: fontName,
             },
-            scale
-        );
+        };
 
         setAnnotates((prev) => ({
             ...prev,
-            [page]: [...(prev[page] || []), newTFScaled],
+            [page]: [...(prev[page] || []), newTF],
         }));
-        setSelectedAnnotateId(newTFScaled.id);
+        setSelectedAnnotateId(newTF.id);
     };
 
     const onUpdateTextField = (
@@ -295,12 +254,11 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
         // Since it has not scaled before, we can pass scale as scale ratio
         const newSF = newSignatureField();
-        const newSFScaled = getAnnotateByScaleRatio(newSF, scale);
 
         setAnnotates((prev) => ({
             ...prev,
             // Add the new signature field to the current page
-            [currentPdfPage]: [...(prev[currentPdfPage] || []), newSFScaled],
+            [currentPdfPage]: [...(prev[currentPdfPage] || []), newSF],
         }));
     };
 
@@ -312,17 +270,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         logger.debug(
             `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${scale}`
         );
-
-        if (!IS_PRODUCTION) {
-            const unScaledAnnotateResult = getUnscaledAnnotate(id);
-
-            if (unScaledAnnotateResult) {
-                const { annotate: unScaledAnnotate } = unScaledAnnotateResult;
-                logger.debug(
-                    `Unscaled annotation, w:${unScaledAnnotate.size.width}, h:${unScaledAnnotate.size.height},  Position: x:${unScaledAnnotate.position.x}, y:${unScaledAnnotate.position.y}`
-                );
-            }
-        }
 
         setAnnotates((prev) => ({
             ...prev,
@@ -406,8 +353,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         scale,
         setScale,
         setSelectedAnnotateId,
-        getUnscaledAnnotates,
-        getUnscaledAnnotate,
         onDocumentLoadSuccess,
         onPageLoadSuccess,
         setTotalPdfPage,

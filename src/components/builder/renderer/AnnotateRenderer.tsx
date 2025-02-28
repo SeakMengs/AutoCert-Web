@@ -8,7 +8,11 @@ import { MouseEvent } from "react";
 export interface AnnotateRendererProps
     extends Pick<
         BaseAnnotateProps,
-        "onDragStop" | "onResizeStop" | "previewMode" | "onAnnotateSelect"
+        | "onDragStop"
+        | "onResizeStop"
+        | "previewMode"
+        | "onAnnotateSelect"
+        | "scale"
     > {
     selectedAnnotateId: string | undefined;
     annotates: AnnotateStates;
@@ -30,16 +34,14 @@ export default function AnnotateRenderer({
     annotates,
     currentPdfPage,
     selectedAnnotateId,
-    previewMode,
-    onAnnotateSelect,
     ...restProps
 }: AnnotateRendererProps) {
     const onAnnotationSelect = (id: string | undefined): void => {
-        if (previewMode) {
+        if (restProps.previewMode) {
             return;
         }
 
-        onAnnotateSelect(id);
+        restProps.onAnnotateSelect(id);
     };
 
     const Annotates =
@@ -53,7 +55,6 @@ export default function AnnotateRenderer({
                             {...annotate}
                             {...restProps}
                             key={annotate.id}
-                            previewMode={previewMode}
                             resizable={TEXT_RESIZABLE}
                             selected={selected}
                             onAnnotateSelect={onAnnotationSelect}
@@ -65,7 +66,6 @@ export default function AnnotateRenderer({
                             {...annotate}
                             {...restProps}
                             key={annotate.id}
-                            previewMode={previewMode}
                             resizable={undefined}
                             selected={selected}
                             onAnnotateSelect={onAnnotationSelect}

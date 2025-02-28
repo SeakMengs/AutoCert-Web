@@ -18,40 +18,22 @@ export interface TextAnnotateProps
         BaseTextAnnotate {}
 
 export default function TextAnnotate({
-    id,
-    position,
-    size,
-    value,
-    color,
-    previewMode,
     font,
-    resizable,
-    selected,
-    onDragStop,
-    onResizeStop,
-    onAnnotateSelect,
+    value,
+    ...restProps
 }: TextAnnotateProps) {
     return (
         <BaseAnnotate
-            id={id}
-            position={position}
-            size={size}
-            resizable={resizable}
-            color={color}
-            selected={selected}
-            previewMode={previewMode}
-            onDragStop={onDragStop}
-            onResizeStop={onResizeStop}
-            onAnnotateSelect={onAnnotateSelect}
+            {...restProps}
         >
             <span
-                contentEditable={!previewMode}
+                contentEditable={!restProps.previewMode}
                 suppressContentEditableWarning
-                id={`textAnnotate-${id}`}
+                id={`textAnnotate-${restProps.id}`}
                 className={`text-center border-none bg-transparent outline-none resize-none`}
                 style={{
                     fontFamily: font.name,
-                    fontSize: `${font.size}px`,
+                    fontSize: `${font.size * restProps.scale}px`,
                     fontWeight: font.weight,
                     color: font.color,
                     lineHeight: "1.2",

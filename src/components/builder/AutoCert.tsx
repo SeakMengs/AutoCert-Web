@@ -38,6 +38,7 @@ export default function AutoCert({
                     onPageLoadSuccess={onPageLoadSuccess}
                 />
                 <AnnotateRenderer
+                    scale={scale}
                     previewMode={previewMode}
                     annotates={annotates}
                     selectedAnnotateId={selectedAnnotateId}

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { AutoCertTableColumn, AutoCertTableRow } from "../panel/AutoCertTable";
 
+// Mostly only handle set state such that I can easily integrate api calls later
+
 export default function useAutoCertTable({
     initialRows = [],
     initialColumns = [],
