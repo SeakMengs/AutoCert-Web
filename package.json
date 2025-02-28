@@ -16,15 +16,15 @@
     "chalk": "^5.4.1",
     "clsx": "^2.1.1",
     "moment": "^2.30.1",
-    "nanoid": "^5.1.0",
-    "next": "15.1.4",
+    "nanoid": "5.1.2",
+    "next": "15.2.0",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-pdf": "^9.2.1",
     "react-rnd": "^10.4.14",
     "react-signature-canvas": "^1.0.7",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "@ant-design/v5-patch-for-react-19": "^1.0.3",

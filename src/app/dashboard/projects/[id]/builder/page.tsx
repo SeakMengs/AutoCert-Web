@@ -4,14 +4,10 @@ import AutoCert, {
     AutoCertPanel,
     AutoCertTable,
 } from "@/components/builder/AutoCert";
-import useAutoCert from "@/hooks/useAutoCert";
-import { useState } from "react";
+import { useAutoCertTable, useAutoCert } from "@/hooks/useAutoCert";
+import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
-import { Flex, Space, Typography } from "antd";
-import {
-    AutoCertTableColumn,
-    AutoCertTableRow,
-} from "@/components/builder/panel/AutoCertTable";
+import { Flex, Typography } from "antd";
 
 const { Title } = Typography;
 
@@ -25,20 +21,39 @@ export default function ProjectBuilderByID() {
         scale,
         selectedAnnotateId,
         setScale,
-        addSignatureField,
-        addTextField,
-        updateTextFieldById,
-        removeTextFieldById,
-        handleDragStop,
-        handleResizeStop,
-        handleAnnotateSelect,
+        onAddTextField,
+        onUpdateTextField,
+        onDeleteTextField,
+        onAddSignatureField,
+        onAnnotateDragStop,
+        onAnnotateResizeStop,
+        onAnnotateSelect,
         onDocumentLoadSuccess,
         onPageLoadSuccess,
+        onColumnTitleChange,
+        removeUnnecessaryAnnotates,
     } = useAutoCert({
         initialPdfPage: 1,
     });
-    const [rows, setRows] = useState<AutoCertTableRow[]>([]);
-    const [columns, setColumns] = useState<AutoCertTableColumn[]>([]);
+    const { columns, onColumnUpdate, ...autoCertTableProps } = useAutoCertTable(
+        {
+            initialRows: [],
+            initialColumns: [],
+        }
+    );
+
+    useEffect(() => {
+        removeUnnecessaryAnnotates(columns);
+    }, [columns]);
+
+    // Update column title in the table and in the annotates that used the column title
+    const onAutoCertTableColumnTitleUpdate = (
+        oldTitle: string,
+        newTitle: string
+    ): void => {
+        onColumnUpdate(oldTitle, newTitle);
+        onColumnTitleChange(oldTitle, newTitle);
+    };
 
     if (!pdfFile) {
         return <PdfUploader setPdfFile={setPdfFile} />;
@@ -57,9 +72,9 @@ export default function ProjectBuilderByID() {
                         selectedAnnotateId={selectedAnnotateId}
                         onDocumentLoadSuccess={onDocumentLoadSuccess}
                         onPageLoadSuccess={onPageLoadSuccess}
-                        onDragStop={handleDragStop}
-                        onResizeStop={handleResizeStop}
-                        onAnnotateSelect={handleAnnotateSelect}
+                        onDragStop={onAnnotateDragStop}
+                        onResizeStop={onAnnotateResizeStop}
+                        onAnnotateSelect={onAnnotateSelect}
                         pdfFile={pdfFile}
                     />
                     <AutoCertPanel
@@ -67,21 +82,20 @@ export default function ProjectBuilderByID() {
                         selectedAnnotateId={selectedAnnotateId}
                         textAnnotates={textAnnotates}
                         tableColumns={columns}
-                        addSignatureField={addSignatureField}
-                        onAddTextField={addTextField}
-                        onUpdateTextFieldById={updateTextFieldById}
-                        onDeleteTextFieldById={removeTextFieldById}
-                        onAnnotateSelect={handleAnnotateSelect}
+                        onAddSignatureField={onAddSignatureField}
+                        onAddTextField={onAddTextField}
+                        onUpdateTextField={onUpdateTextField}
+                        onDeleteTextField={onDeleteTextField}
+                        onAnnotateSelect={onAnnotateSelect}
                     />
                 </Flex>
             </Flex>
             <Flex vertical>
                 <Title level={4}>Table management</Title>
                 <AutoCertTable
-                    rows={rows}
                     columns={columns}
-                    setRows={setRows}
-                    setColumns={setColumns}
+                    onColumnUpdate={onAutoCertTableColumnTitleUpdate}
+                    {...autoCertTableProps}
                 />
             </Flex>
         </Flex>

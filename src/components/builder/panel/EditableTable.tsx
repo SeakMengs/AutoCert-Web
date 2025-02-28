@@ -6,6 +6,7 @@ import {
     Button,
     Flex,
     Popconfirm,
+    Tooltip,
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import {
@@ -185,17 +186,19 @@ export function EditableHeaderCell({
             >
                 <div>{children}</div>
                 <Popconfirm
-                    title="All rows under this column will be deleted permanently. Are you sure?"
+                    title="All rows and annotations under this column will be deleted. Are you sure?"
                     onConfirm={() => onDeleteHeaderColumn(dataIndex)}
                 >
-                    <Button
-                        className="opacity-0 group-hover:opacity-100"
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        // Prevent the click event from propagating to the parent element which trigger edit mode
-                        onClick={(e) => e.stopPropagation()}
-                    />
+                    <Tooltip title="Delete column">
+                        <Button
+                            className="opacity-0 group-hover:opacity-100"
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            // Prevent the click event from propagating to the parent element which trigger edit mode
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </Tooltip>
                 </Popconfirm>
             </Flex>
         );

@@ -57,7 +57,7 @@ export default function TextAnnotate({
                     lineHeight: "1.2",
                 }}
             >
-                {value}
+                {`{${value}}`}
             </span>
         </BaseAnnotate>
     );

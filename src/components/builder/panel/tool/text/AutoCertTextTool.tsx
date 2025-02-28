@@ -40,11 +40,11 @@ export interface AutoCertTextToolProps {
         page: number,
         { value, fontName, color }: TextFieldSchema
     ) => void;
-    onUpdateTextFieldById: (
+    onUpdateTextField: (
         id: string,
         { value, fontName, color }: TextFieldSchema
     ) => void;
-    onDeleteTextFieldById: (id: string) => void;
+    onDeleteTextField: (id: string) => void;
 }
 
 type FontOption = {
@@ -58,8 +58,8 @@ export default function AutoCertTextTool({
     textAnnotates,
     tableColumns,
     onAddTextField,
-    onUpdateTextFieldById,
-    onDeleteTextFieldById,
+    onUpdateTextField,
+    onDeleteTextField,
     onAnnotateSelect,
 }: AutoCertTextToolProps) {
     return (
@@ -76,8 +76,8 @@ export default function AutoCertTextTool({
                     textAnnotate={textAnnotate}
                     selectedAnnotateId={selectedAnnotateId}
                     tableColumns={tableColumns}
-                    onUpdateTextFieldById={onUpdateTextFieldById}
-                    onDeleteTextFieldById={onDeleteTextFieldById}
+                    onUpdateTextField={onUpdateTextField}
+                    onDeleteTextField={onDeleteTextField}
                     onAnnotateSelect={onAnnotateSelect}
                     />
                 ))}
@@ -202,8 +202,8 @@ interface AutoCertTextToolListProps
         | "selectedAnnotateId"
         | "tableColumns"
         | "onAnnotateSelect"
-        | "onUpdateTextFieldById"
-        | "onDeleteTextFieldById"
+        | "onUpdateTextField"
+        | "onDeleteTextField"
     > {
     textAnnotate: TextAnnotateState;
 }
@@ -213,8 +213,8 @@ function AnnotateCard({
     selectedAnnotateId,
     tableColumns,
     onAnnotateSelect,
-    onUpdateTextFieldById,
-    onDeleteTextFieldById,
+    onUpdateTextField,
+    onDeleteTextField,
 }: AutoCertTextToolListProps) {
     const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
     const [form] = Form.useForm<TextFieldSchema>();
@@ -241,7 +241,7 @@ function AnnotateCard({
         logger.debug("AutoCert edit text field confirmed");
         try {
             const values = await form.validateFields();
-            onUpdateTextFieldById(textAnnotate.id, values);
+            onUpdateTextField(textAnnotate.id, values);
             setEditModalOpen(false);
         } catch (error) {
             logger.error("AutoCert edit text field failed", error);
@@ -270,7 +270,7 @@ function AnnotateCard({
                         />
                         <Button
                             onClick={() =>
-                                onDeleteTextFieldById(textAnnotate.id)
+                                onDeleteTextField(textAnnotate.id)
                             }
                             icon={<DeleteOutlined />}
                             danger

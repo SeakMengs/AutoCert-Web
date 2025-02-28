@@ -1,17 +1,10 @@
-import { Button, Collapse, CollapseProps, Flex, Space, Typography } from "antd";
-import {
-    EditOutlined,
-    PlusOutlined,
-    SignatureOutlined,
-} from "@ant-design/icons";
+import { Collapse, CollapseProps, Typography } from "antd";
 import AutoCertTextTool, {
     AutoCertTextToolProps,
 } from "./tool/text/AutoCertTextTool";
 import AutoCertSignatoryTool, {
     AutoCertSignatoryToolProps,
 } from "./tool/signatory/AutoCertSignatoryTool";
-import { AutoCertTableColumn, AutoCertTableRow } from "./AutoCertTable";
-import { TextAnnotateState } from "../hooks/useAutoCert";
 
 export interface AutoCertPanelProps
     extends AutoCertTextToolProps,
@@ -22,13 +15,13 @@ const { Title } = Typography;
 export default function AutoCertPanel({
     tableColumns,
     textAnnotates,
-    addSignatureField,
     selectedAnnotateId,
     currentPdfPage,
     onAnnotateSelect,
     onAddTextField,
-    onUpdateTextFieldById,
-    onDeleteTextFieldById,
+    onUpdateTextField,
+    onDeleteTextField,
+    onAddSignatureField,
 }: AutoCertPanelProps) {
     const collapseItems: CollapseProps["items"] = [
         {
@@ -41,8 +34,8 @@ export default function AutoCertPanel({
                     currentPdfPage={currentPdfPage}
                     tableColumns={tableColumns}
                     onAddTextField={onAddTextField}
-                    onUpdateTextFieldById={onUpdateTextFieldById}
-                    onDeleteTextFieldById={onDeleteTextFieldById}
+                    onUpdateTextField={onUpdateTextField}
+                    onDeleteTextField={onDeleteTextField}
                     onAnnotateSelect={onAnnotateSelect}
                 />
             ),
@@ -53,7 +46,7 @@ export default function AutoCertPanel({
             label: "Signatories",
             children: (
                 <AutoCertSignatoryTool
-                    addSignatureField={addSignatureField}
+                    onAddSignatureField={onAddSignatureField}
                     selectedAnnotateId={selectedAnnotateId}
                 />
             ),

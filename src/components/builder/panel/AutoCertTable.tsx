@@ -58,15 +58,28 @@ export type AutoCertTableRow = {
 export interface AutoCertTableProps {
     columns: AutoCertTableColumn[];
     rows: AutoCertTableRow[];
-    setRows: React.Dispatch<React.SetStateAction<AutoCertTableRow[]>>;
-    setColumns: React.Dispatch<React.SetStateAction<AutoCertTableColumn[]>>;
+    onColumnAdd: (newColumn: AutoCertTableColumn) => void;
+    onColumnDelete: (columnTitle: string) => void;
+    onColumnUpdate: (oldTitle: string, newTitle: string) => void;
+    onRowAdd: (newRow: AutoCertTableRow) => void;
+    onRowUpdate: (updatedRow: AutoCertTableRow) => void;
+    onRowsDelete: (selectedKeys: React.Key[]) => void;
+    onImportFromCSV: (
+        newRows: AutoCertTableRow[],
+        newColumns: AutoCertTableColumn[]
+    ) => void;
 }
 
 export default function AutoCertTable({
     rows,
-    setRows,
     columns,
-    setColumns,
+    onColumnAdd,
+    onColumnDelete,
+    onColumnUpdate,
+    onRowAdd,
+    onRowUpdate,
+    onRowsDelete,
+    onImportFromCSV,
 }: AutoCertTableProps) {
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const tblRef: Parameters<typeof Table>[0]["ref"] = React.useRef(null);
@@ -110,7 +123,8 @@ export default function AutoCertTable({
                     ...values,
                     key: nanoid(),
                 };
-                setRows([...rows, newRow]);
+
+                onRowAdd(newRow);
                 addRowForm.resetFields();
                 message.success("New row added.");
             },
@@ -140,11 +154,13 @@ export default function AutoCertTable({
 
                 if (!columnTitle) {
                     message.warning("Column title is empty.");
+                    addColumForm.resetFields();
                     return;
                 }
 
                 if (columns.some((col) => col.title === columnTitle)) {
                     message.warning("Column title already exists.");
+                    addColumForm.resetFields();
                     return;
                 }
 
@@ -154,17 +170,9 @@ export default function AutoCertTable({
                     editable: true,
                 } satisfies AutoCertTableColumn;
 
-                setColumns([...columns, newColumn]);
-
-                // Append new column to existing rows with empty values
-                setRows(
-                    rows.map((row) => ({
-                        ...row,
-                        [columnTitle]: "",
-                    }))
-                );
-
+                onColumnAdd(newColumn);
                 addColumForm.resetFields();
+
                 message.success("New column added.");
             },
             maskClosable: true,
@@ -173,69 +181,37 @@ export default function AutoCertTable({
     };
 
     const handleDeleteSelectedRows = (): void => {
-        setRows((prev) =>
-            prev.filter((item) => !selectedRowKeys.includes(item.key))
-        );
+        logger.debug("Delete selected rows", selectedRowKeys);
+
+        onRowsDelete(selectedRowKeys);
         setSelectedRowKeys([]);
     };
 
     const handleSaveBodyRow = (row: AutoCertTableRow): void => {
-        const newData = [...rows];
-        // Find the row by key and replace it with the new row data
-        const index = newData.findIndex((item) => row.key === item.key);
-        const item = newData[index];
-        newData.splice(index, 1, {
-            ...item,
-            ...row,
-        });
-        setRows(newData);
+        logger.debug("Save body row", row);
+
+        onRowUpdate(row);
     };
 
     const handleDeleteHeaderColumn = (columnTitle: string): void => {
         logger.debug("Delete column", columnTitle);
-        // remove column from columns
-        const newColumns = columns.filter((col) => col.title !== columnTitle);
 
-        // remove column from rows
-        const newRows = rows.map((row) => {
-            const newRow = { ...row };
-            // Delete the property with key `columnTitle`
-            delete newRow[columnTitle];
-            return newRow;
-        }) as AutoCertTableRow[];
-
-        setColumns(newColumns);
-        setRows(newRows);
+        onColumnDelete(columnTitle);
     };
 
-    const handleSaveHeaderRow = (columnTitle: string, value: any): void => {
-        logger.debug("Save header row", columnTitle, value);
+    const handleSaveHeaderRow = (columnTitle: string, newTitle: any): void => {
+        logger.debug("Save header row", columnTitle, newTitle);
 
-        if (columnTitle === value) {
+        if (columnTitle === newTitle) {
             return;
         }
 
-        const newColumns = columns.map((col) => {
-            if (col.title === columnTitle) {
-                return {
-                    ...col,
-                    title: value,
-                    dataIndex: value,
-                };
-            }
-            return col;
-        });
+        if (columns.some((c) => c.title === newTitle)) {
+            message.warning("Column title already exists.");
+            return;
+        }
 
-        // update column title in rows
-        const newRows = rows.map((row) => {
-            const newRow = { ...row };
-            newRow[value] = newRow[columnTitle];
-            delete newRow[columnTitle];
-            return newRow;
-        }) as AutoCertTableRow[];
-
-        setColumns(newColumns);
-        setRows(newRows);
+        onColumnUpdate(columnTitle, newTitle);
     };
 
     const handleCSVFileUpload = async (
@@ -262,8 +238,7 @@ export default function AutoCertTable({
             // Parse csv already handle duplicate column name by adding a number suffix
             const { columns, rows } = await parseCSV(file);
 
-            setColumns(columns);
-            setRows(rows);
+            onImportFromCSV(rows, columns);
             message.success("CSV file parsed successfully.");
         } catch (error) {
             message.error("Failed to parse csv file.");
@@ -403,7 +378,7 @@ export default function AutoCertTable({
                     showQuickJumper: true,
                     showTotal: (total, range) =>
                         `Showing ${range[0]}-${range[1]} of ${total} items`,
-                    pageSizeOptions: [10, 20, 50, 100, 200, 500],
+                    pageSizeOptions: [10, 20, 50, 100, 200],
                     responsive: true,
                 }}
             />

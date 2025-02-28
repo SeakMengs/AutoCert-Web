@@ -1,11 +1,19 @@
+import { Button } from "antd";
+
 export interface AutoCertSignatoryToolProps {
-    addSignatureField: () => void;
-    selectedAnnotateId: string | undefined;
+  onAddSignatureField: () => void;
+  selectedAnnotateId: string | undefined;
 }
 
 export default function AutoCertSignatoryTool({
-    addSignatureField,
-    selectedAnnotateId,
+  onAddSignatureField,
+  selectedAnnotateId,
 }: AutoCertSignatoryToolProps) {
-    return <div>AutoCertSignatoryTool</div>;
+  return (
+    <div>
+      <Button type="dashed" onClick={onAddSignatureField}>
+        Add Text Field
+      </Button>
+    </div>
+  );
 }

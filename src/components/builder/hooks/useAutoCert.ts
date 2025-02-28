@@ -17,6 +17,7 @@ import {
     getAnnotatesByScale,
 } from "../utils";
 import { TextFieldSchema } from "../panel/tool/text/AutoCertTextTool";
+import { AutoCertTableColumn } from "../panel/AutoCertTable";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -63,6 +64,37 @@ export interface UseAutoCertProps {
     initialPdfPage: number;
 }
 
+const newTextField = (): TextAnnotateState => {
+    return {
+        id: nanoid(),
+        type: "text",
+        position: { x: 100, y: 100 },
+        value: "Enter Text",
+        size: { width: TextAnnotateWidth, height: TextAnnotateHeight },
+        font: {
+            name: "Arial",
+            size: 24,
+            weight: 400,
+            color: "#000000",
+        },
+        color: AnnotateColor,
+    };
+};
+
+const newSignatureField = (): SignatureAnnotateState => {
+    return {
+        id: nanoid(),
+        type: "signature",
+        position: { x: 100, y: 100 },
+        signatureData: tempSignData,
+        size: {
+            width: SignatureAnnotateWidth,
+            height: SignatureAnnotateHeight,
+        },
+        color: AnnotateColor,
+    };
+};
+
 export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
     const [annotates, setAnnotates] = useState<AnnotateStates>({});
@@ -83,15 +115,16 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     useEffect(() => {
         const texts: TextAnnotateState[] = [];
         const signatures: SignatureAnnotateState[] = [];
+        const pages = Object.keys(annotates);
 
-        Object.keys(annotates).forEach((page) => {
-            annotates[Number(page)].forEach((annotate) => {
-                switch (annotate.type) {
+        pages.forEach((p) => {
+            annotates[Number(p)].forEach((a) => {
+                switch (a.type) {
                     case "text":
-                        texts.push(annotate);
+                        texts.push(a);
                         break;
                     case "signature":
-                        signatures.push(annotate);
+                        signatures.push(a);
                         break;
                 }
             });
@@ -177,38 +210,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         );
     };
 
-    const newTextField = (): TextAnnotateState => {
-        return {
-            id: nanoid(),
-            type: "text",
-            position: { x: 100, y: 100 },
-            value: "Enter Text",
-            size: { width: TextAnnotateWidth, height: TextAnnotateHeight },
-            font: {
-                name: "Arial",
-                size: 24,
-                weight: 400,
-                color: "#000000",
-            },
-            color: AnnotateColor,
-        };
-    };
-
-    const newSignatureField = (): SignatureAnnotateState => {
-        return {
-            id: nanoid(),
-            type: "signature",
-            position: { x: 100, y: 100 },
-            signatureData: tempSignData,
-            size: {
-                width: SignatureAnnotateWidth,
-                height: SignatureAnnotateHeight,
-            },
-            color: AnnotateColor,
-        };
-    };
-
-    const addTextField = (
+    const onAddTextField = (
         page: number,
         { value, fontName, color }: TextFieldSchema
     ): void => {
@@ -236,7 +238,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         setSelectedAnnotateId(newTFScaled.id);
     };
 
-    const updateTextFieldById = (
+    const onUpdateTextField = (
         id: string,
         { value, fontName, color }: TextFieldSchema
     ): void => {
@@ -266,14 +268,12 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
         setAnnotates((prev) => ({
             ...prev,
-            [page]: prev[page].map((annotation) =>
-                annotation.id === id ? updatedAnnotate : annotation
-            ),
+            [page]: prev[page].map((a) => (a.id === id ? updatedAnnotate : a)),
         }));
         setSelectedAnnotateId(updatedAnnotate.id);
     };
 
-    const removeTextFieldById = (id: string): void => {
+    const onDeleteTextField = (id: string): void => {
         logger.debug(`Remove text field with id ${id}`);
 
         const existingAnnotate = findAnnotateById(id);
@@ -288,9 +288,9 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             ...prev,
             [page]: prev[page].filter((annotation) => annotation.id !== id),
         }));
-    }
+    };
 
-    const addSignatureField = (): void => {
+    const onAddSignatureField = (): void => {
         logger.debug("Adding signature field");
 
         // Since it has not scaled before, we can pass scale as scale ratio
@@ -304,7 +304,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         }));
     };
 
-    const handleResizeStop = (
+    const onAnnotateResizeStop = (
         id: string,
         size: WHSize,
         position: XYPosition
@@ -334,7 +334,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         }));
     };
 
-    const handleDragStop = (
+    const onAnnotateDragStop = (
         id: string,
         _e: any,
         position: XYPosition
@@ -351,7 +351,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         }));
     };
 
-    const handleAnnotateSelect = (id: string | undefined): void => {
+    const onAnnotateSelect = (id: string | undefined): void => {
         if (id === selectedAnnotateId) {
             logger.debug(`Select annotation event: ${id} (skip ui update)`);
             return;
@@ -360,6 +360,40 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         logger.debug(`Select annotation event: ${id}`);
 
         setSelectedAnnotateId(id);
+    };
+
+    const onColumnTitleChange = (oldTitle: string, newTitle: string): void => {
+        const pages = Object.keys(annotates);
+        const newAnnotates = { ...annotates };
+
+        // update value of annotate text with value of oldTitle to newTitle
+        pages.forEach((p) => {
+            const pageAnnotates = newAnnotates[Number(p)];
+            pageAnnotates.forEach((a) => {
+                if (a.type === "text" && a.value === oldTitle) {
+                    a.value = newTitle;
+                }
+            });
+        });
+
+        setAnnotates(newAnnotates);
+    };
+
+    // Remove annotates that does not exist in the table column
+    const removeUnnecessaryAnnotates = (
+        columns: AutoCertTableColumn[]
+    ): void => {
+        const tableTitles = columns.map((c) => c.title);
+        const pages = Object.keys(annotates);
+        const newAnnotates = { ...annotates };
+
+        pages.forEach((p) => {
+            newAnnotates[Number(p)] = newAnnotates[Number(p)].filter(
+                (a) => !(a.type === "text" && !tableTitles.includes(a.value))
+            );
+        });
+
+        setAnnotates(newAnnotates);
     };
 
     return {
@@ -379,12 +413,14 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         setTotalPdfPage,
         setCurrentPdfPage,
         setAnnotates,
-        addTextField,
-        updateTextFieldById,
-        removeTextFieldById,
-        addSignatureField,
-        handleResizeStop,
-        handleDragStop,
-        handleAnnotateSelect,
+        onAddTextField,
+        onUpdateTextField,
+        onDeleteTextField,
+        onAddSignatureField,
+        onAnnotateResizeStop,
+        onAnnotateDragStop,
+        onAnnotateSelect,
+        onColumnTitleChange,
+        removeUnnecessaryAnnotates,
     };
 }
