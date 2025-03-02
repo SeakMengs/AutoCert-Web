@@ -13,6 +13,7 @@ export interface AnnotateRendererProps
         | "previewMode"
         | "onAnnotateSelect"
         | "scale"
+        | "zoomScale"
     > {
     selectedAnnotateId: string | undefined;
     annotates: AnnotateStates;

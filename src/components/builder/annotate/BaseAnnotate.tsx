@@ -27,6 +27,7 @@ export interface BaseAnnotateProps {
     // Background and border color of the annotate
     color: string;
     scale: number;
+    zoomScale: number;
     onDragStop: (id: string, e: DraggableEvent, data: DraggableData) => void;
     onResizeStop: (
         id: string,
@@ -46,6 +47,7 @@ export default function BaseAnnotate({
     selected,
     color,
     scale,
+    zoomScale,
     onDragStop,
     onResizeStop,
     onAnnotateSelect,
@@ -64,6 +66,7 @@ export default function BaseAnnotate({
         <Rnd
             // identifier for on select parent element (in AnnotateRenderer div onClick)
             className="annotation-rnd"
+            scale={zoomScale}
             // size={size}
             // position={position}
             size={{

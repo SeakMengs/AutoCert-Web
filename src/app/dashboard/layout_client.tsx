@@ -31,15 +31,15 @@ const logger = createScopedLogger("dashboard:layout_client");
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
-const BarSize = 56;
+export const BarSize = 56;
 
-const headerStyle: React.CSSProperties = {
-    position: "sticky",
-    top: 0,
-    zIndex: 1,
-    width: "100%",
-    alignItems: "center",
-};
+// const headerStyle: React.CSSProperties = {
+//     position: "sticky",
+//     top: 0,
+//     zIndex: 1,
+//     width: "100%",
+//     alignItems: "center",
+// };
 
 export default function DashboardLayoutClient({
     user,
@@ -53,12 +53,20 @@ export default function DashboardLayoutClient({
         token: { colorBgContainer, colorSplit },
     } = theme.useToken();
 
+    const toggleCollapse = (): void => {
+        setCollapsed(!collapsed);
+    };
+
     return (
         <Layout style={{ minHeight: "100vh" }} hasSider>
-            <LeftSideBar collapsed={collapsed} />
+            <LeftSideBar
+                toggleCollapse={toggleCollapse}
+                collapsed={collapsed}
+                user={user}
+            />
 
             <Layout>
-                <Header
+                {/* <Header
                     style={{
                         ...headerStyle,
                         padding: 0,
@@ -89,12 +97,12 @@ export default function DashboardLayoutClient({
                                 marginRight: 24,
                             }}
                         >
-                            <UserNameAndAvatar user={user} />
+                            <UserNameAndAvatar collapsed user={user} />
                         </Space>
                     </Flex>
-                </Header>
+                </Header> */}
                 <Content
-                    className="p-4 drop-shadow-sm overflow-auto"
+                    className="drop-shadow-sm overflow-auto"
                     style={{
                         background: colorBgContainer,
                     }}
@@ -107,8 +115,8 @@ export default function DashboardLayoutClient({
 }
 
 const siderStyle: React.CSSProperties = {
-    overflow: "auto",
-    height: "100vh",
+    minHeight: "100vh",
+    maxHeight: "100vh",
     position: "sticky",
     insetInlineStart: 0,
     top: 0,
@@ -117,7 +125,15 @@ const siderStyle: React.CSSProperties = {
     scrollbarGutter: "stable",
 };
 
-function LeftSideBar({ collapsed }: { collapsed: boolean }) {
+function LeftSideBar({
+    collapsed,
+    toggleCollapse,
+    user,
+}: {
+    toggleCollapse: () => void;
+    collapsed: boolean;
+    user: AuthUser;
+}) {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -159,16 +175,32 @@ function LeftSideBar({ collapsed }: { collapsed: boolean }) {
                 borderRight: `1px solid ${colorSplit}`,
             }}
         >
-            <Logo collapsed={collapsed} />
-            <Menu
-                mode="inline"
-                defaultSelectedKeys={["1"]}
-                items={menuItems}
-                style={{
-                    background: colorBgContainer,
-                    borderRight: "none",
-                }}
-                onClick={onMenuClick}
+            <Flex className="h-full" vertical justify="space-between">
+                <div>
+                    <Logo collapsed={collapsed} />
+                    <Menu
+                        mode="inline"
+                        defaultSelectedKeys={["1"]}
+                        items={menuItems}
+                        style={{
+                            background: colorBgContainer,
+                            borderRight: "none",
+                        }}
+                        onClick={onMenuClick}
+                    />
+                </div>
+                <div>
+                    <UserNameAndAvatar collapsed={collapsed} user={user} />
+                </div>
+            </Flex>
+            <Button
+                size="small"
+                type="text"
+                icon={
+                    collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />
+                }
+                onClick={toggleCollapse}
+                className="absolute top-1/2 right-[-10px] z-50"
             />
         </Sider>
     );
@@ -198,7 +230,17 @@ function Logo({ collapsed }: { collapsed: boolean }) {
     );
 }
 
-function UserNameAndAvatar({ user }: { user: AuthUser }) {
+function UserNameAndAvatar({
+    collapsed,
+    user,
+}: {
+    user: AuthUser;
+    collapsed: boolean;
+}) {
+    const {
+        token: { colorSplit },
+    } = theme.useToken();
+
     const menuItems = [
         {
             key: "1",
@@ -244,15 +286,34 @@ function UserNameAndAvatar({ user }: { user: AuthUser }) {
     } satisfies MenuProps;
 
     return (
-        <div className="motion-preset-confetti">
-            <Space className="hover:cursor-pointer flex">
-                <Text>
-                    <strong>{user.lastName}</strong>
-                </Text>
-                <Dropdown menu={menuProps} trigger={["click"]}>
+        <Flex
+            className="motion-preset-confetti"
+            justify="center"
+            align="center"
+            style={{
+                height: BarSize,
+                borderTop: `1px solid ${colorSplit}`,
+            }}
+            gap={4}
+        >
+            <Dropdown menu={menuProps} trigger={["click"]}>
+                <Space className="hover:cursor-pointer">
                     <Avatar src={user.profileUrl} icon={<UserOutlined />} />
-                </Dropdown>
-            </Space>
-        </div>
+                    {!collapsed && (
+                        <div className="overflow-hidden">
+                            <Text className="block font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                {user.lastName}
+                            </Text>
+                            <Text
+                                type="secondary"
+                                className="text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+                            >
+                                {user.email}
+                            </Text>
+                        </div>
+                    )}
+                </Space>
+            </Dropdown>
+        </Flex>
     );
 }

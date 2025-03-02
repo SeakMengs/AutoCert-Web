@@ -42,8 +42,6 @@ export type ProjectCardProps = {
 export const ProjectStatus = {
     // When the project is being prepared
     Preparing: "Preparing",
-    // When all signatories have been invited to the project
-    Pending: "Pending",
     // When all signatories have signed the project and the server is processing the certificates
     Processing: "Processing",
     // When the certificates are ready
@@ -52,7 +50,6 @@ export const ProjectStatus = {
 
 export const StatusColorMap = {
     [ProjectStatus.Preparing]: "default",
-    [ProjectStatus.Pending]: "processing",
     [ProjectStatus.Processing]: "warning",
     [ProjectStatus.Completed]: "success",
 };
@@ -68,36 +65,6 @@ export default function ProjectCard({
     signatories,
 }: ProjectCardProps) {
     const [loading, setLoading] = useState<boolean>(true);
-    // const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
-    // const menuItems = [
-    //     {
-    //         key: "1",
-    //         icon: <DeleteOutlined />,
-    //         label: "Delete",
-    //     },
-    // ] satisfies Required<MenuProps>["items"];
-
-    // const handleMenuClick: MenuProps["onClick"] = (e) => {
-    //     const label =
-    //         menuItems.find((item) => item.key === e.key)?.label ??
-    //         "Unkonwn menu item";
-    //     logger.debug(`Project card dropdown menu: ${label} clicked`);
-
-    //     switch (e.key) {
-    //         case menuItems[0].key:
-    //             onMenuDeleteClick();
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // };
-
-    // const onMenuDeleteClick = () => {};
-
-    // const menuProps = {
-    //     items: menuItems,
-    //     onClick: handleMenuClick,
-    // } satisfies MenuProps;
 
     useEffect(() => {
         // delay loading state for 1 second

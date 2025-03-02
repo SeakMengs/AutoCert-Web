@@ -27,6 +27,7 @@ type BaseAnnotateState = Omit<
     | "previewMode"
     | "selected"
     | "scale"
+    | "zoomScale"
 > & {
     type: "text" | "signature";
 };
@@ -101,7 +102,9 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [currentPdfPage, setCurrentPdfPage] =
         useState<number>(initialPdfPage);
     // Scale apply in annotate folder
-    const [scale,setScale] = useState<number>(1);
+    const [scale, setScale] = useState<number>(1);
+    // For zoom pan and pinch
+    const [zoomScale, setZoomScale] = useState<number>(1);
 
     /**
      * Update text and signature annotates when annotates change
@@ -162,6 +165,10 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         }
 
         setScale(newScale);
+    };
+
+    const onZoomScaleChange = (newZoomScale: number): void => {
+        setZoomScale(newZoomScale);
     };
 
     const onDocumentLoadSuccess = async (
@@ -363,6 +370,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         currentPdfPage,
         totalPdfPage,
         scale,
+        zoomScale,
+        onZoomScaleChange,
         onScaleChange,
         onDocumentLoadSuccess,
         onPageLoadSuccess,

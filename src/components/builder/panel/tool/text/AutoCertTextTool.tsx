@@ -6,9 +6,12 @@ import {
     Flex,
     Form,
     Modal,
+    Popconfirm,
     Select,
     Space,
     Tag,
+    theme,
+    Tooltip,
 } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useState } from "react";
@@ -71,14 +74,14 @@ export default function AutoCertTextTool({
             />
             <Space direction="vertical" className="w-full">
                 {textAnnotates.map((textAnnotate) => (
-                    <AnnotateCard
-                    key={textAnnotate.id}
-                    textAnnotate={textAnnotate}
-                    selectedAnnotateId={selectedAnnotateId}
-                    tableColumns={tableColumns}
-                    onUpdateTextField={onUpdateTextField}
-                    onDeleteTextField={onDeleteTextField}
-                    onAnnotateSelect={onAnnotateSelect}
+                    <AnnotateTextCard
+                        key={textAnnotate.id}
+                        textAnnotate={textAnnotate}
+                        selectedAnnotateId={selectedAnnotateId}
+                        tableColumns={tableColumns}
+                        onUpdateTextField={onUpdateTextField}
+                        onDeleteTextField={onDeleteTextField}
+                        onAnnotateSelect={onAnnotateSelect}
                     />
                 ))}
             </Space>
@@ -148,10 +151,10 @@ function Add({
                 onCancel={onModalCancel}
                 onOk={handleAddField}
             >
-                <Form form={form} layout="vertical">
+                <Form form={form} layout="horizontal">
                     <Form.Item
                         name="value"
-                        label="field"
+                        label="Field"
                         rules={[
                             {
                                 required: true,
@@ -208,7 +211,7 @@ interface AutoCertTextToolListProps
     textAnnotate: TextAnnotateState;
 }
 
-function AnnotateCard({
+function AnnotateTextCard({
     textAnnotate,
     selectedAnnotateId,
     tableColumns,
@@ -216,6 +219,9 @@ function AnnotateCard({
     onUpdateTextField,
     onDeleteTextField,
 }: AutoCertTextToolListProps) {
+    const {
+        token: { colorPrimary },
+    } = theme.useToken();
     const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
     const [form] = Form.useForm<TextFieldSchema>();
 
@@ -255,26 +261,30 @@ function AnnotateCard({
                 size="small"
                 className="w-full"
                 style={{
+                    border: "1px solid transparent",
                     borderColor:
                         textAnnotate.id === selectedAnnotateId
-                            ? textAnnotate.color
+                            ? colorPrimary
                             : undefined,
                 }}
             >
                 <Flex justify="space-between" align="center">
                     <Tag>{textAnnotate.value}</Tag>
                     <Space>
-                        <Button
-                            onClick={toggleEditModal}
-                            icon={<EditOutlined />}
-                        />
-                        <Button
-                            onClick={() =>
-                                onDeleteTextField(textAnnotate.id)
-                            }
-                            icon={<DeleteOutlined />}
-                            danger
-                        />
+                        <Tooltip title="Edit">
+                            <Button
+                                onClick={toggleEditModal}
+                                icon={<EditOutlined />}
+                            />
+                        </Tooltip>
+                        <Popconfirm
+                            title="Are you sure to delete this field?"
+                            onConfirm={() => onDeleteTextField(textAnnotate.id)}
+                        >
+                            <Tooltip title="Delete">
+                                <Button icon={<DeleteOutlined />} danger />
+                            </Tooltip>
+                        </Popconfirm>
                     </Space>
                 </Flex>
             </Card>
@@ -284,10 +294,10 @@ function AnnotateCard({
                 onCancel={onModalCancel}
                 onOk={handleEditField}
             >
-                <Form form={form} layout="vertical">
+                <Form form={form} layout="horizontal">
                     <Form.Item
                         name="value"
-                        label="field"
+                        label="Field"
                         initialValue={textAnnotate.value}
                         rules={[
                             {

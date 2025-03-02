@@ -7,19 +7,33 @@ import AutoCert, {
 import { useAutoCertTable, useAutoCert } from "@/hooks/useAutoCert";
 import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
-import { Flex, Typography } from "antd";
+import { Flex, theme, Typography } from "antd";
+import { BarSize } from "@/app/dashboard/layout_client";
 
 const { Title } = Typography;
 
+const headerStyle: React.CSSProperties = {
+    position: "sticky",
+    top: 0,
+    zIndex: 1,
+    width: "100%",
+    alignItems: "center",
+};
+
 export default function ProjectBuilderByID() {
+    const {
+        token: { colorBgLayout, colorSplit },
+    } = theme.useToken();
     const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
     const {
         annotates,
         textAnnotates,
         signatureAnnotates,
         currentPdfPage,
-        scale,
         selectedAnnotateId,
+        scale,
+        zoomScale,
+        onZoomScaleChange,
         onScaleChange,
         onAddTextField,
         onUpdateTextField,
@@ -60,10 +74,27 @@ export default function ProjectBuilderByID() {
     }
 
     return (
-        <Flex vertical gap={32}>
-            <Flex justify="center" align="center" vertical={false}>
-                <Flex justify="center" vertical={false} gap={32}>
+        <>
+            <Header />
+            <Flex
+                vertical={false}
+                // to reserve space for the header
+                className={`w-fulloverflow-hidden`}
+                style={{
+                    height: `calc(100vh - ${BarSize}px)`,
+                }}
+            >
+                <Flex
+                    className="w-full p-2"
+                    justify="center"
+                    align="center"
+                    style={{
+                        background: colorBgLayout,
+                    }}
+                >
                     <AutoCert
+                        zoomScale={zoomScale}
+                        onZoomScaleChange={onZoomScaleChange}
                         scale={scale}
                         onScaleChange={onScaleChange}
                         previewMode={false}
@@ -77,6 +108,13 @@ export default function ProjectBuilderByID() {
                         onAnnotateSelect={onAnnotateSelect}
                         pdfFile={pdfFile}
                     />
+                </Flex>
+                <div
+                    style={{
+                        borderLeft: `1px solid ${colorSplit}`,
+                    }}
+                    className="p-2"
+                >
                     <AutoCertPanel
                         currentPdfPage={currentPdfPage}
                         selectedAnnotateId={selectedAnnotateId}
@@ -88,16 +126,32 @@ export default function ProjectBuilderByID() {
                         onDeleteTextField={onDeleteTextField}
                         onAnnotateSelect={onAnnotateSelect}
                     />
-                </Flex>
+                </div>
             </Flex>
-            <Flex vertical>
-                <Title level={4}>Table management</Title>
-                <AutoCertTable
-                    columns={columns}
-                    onColumnUpdate={onAutoCertTableColumnTitleUpdate}
-                    {...autoCertTableProps}
-                />
+        </>
+    );
+}
+
+function Header() {
+    const {
+        token: { colorSplit, colorBgContainer },
+    } = theme.useToken();
+
+    return (
+        <header
+            style={{
+                ...headerStyle,
+                padding: 0,
+                background: colorBgContainer,
+                height: BarSize,
+                borderBottom: `1px solid ${colorSplit}`,
+            }}
+        >
+            <Flex className="w-full h-full p-2" align="center">
+                <Title level={4} style={{ margin: 0 }}>
+                    Certificate of Achievement
+                </Title>
             </Flex>
-        </Flex>
+        </header>
     );
 }

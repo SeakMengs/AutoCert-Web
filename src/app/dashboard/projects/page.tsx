@@ -112,7 +112,7 @@ export default function DashboardProject() {
     });
 
     return (
-        <Space direction="vertical" size={"middle"} className="w-full">
+        <Space direction="vertical" size={"middle"} className="w-full p-4">
             <Flex vertical gap={16}>
                 <Search
                     placeholder="Search by project title"
