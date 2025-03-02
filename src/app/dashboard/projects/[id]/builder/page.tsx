@@ -20,7 +20,7 @@ export default function ProjectBuilderByID() {
         currentPdfPage,
         scale,
         selectedAnnotateId,
-        setScale,
+        onScaleChange,
         onAddTextField,
         onUpdateTextField,
         onDeleteTextField,
@@ -65,7 +65,7 @@ export default function ProjectBuilderByID() {
                 <Flex justify="center" vertical={false} gap={32}>
                     <AutoCert
                         scale={scale}
-                        setScale={setScale}
+                        onScaleChange={onScaleChange}
                         previewMode={false}
                         annotates={annotates}
                         currentPdfPage={currentPdfPage}

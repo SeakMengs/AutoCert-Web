@@ -12,7 +12,8 @@ import { BaseTextAnnotate } from "../annotate/TextAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION } from "@/utils";
 import { TextFieldSchema } from "../panel/tool/text/AutoCertTextTool";
-import { AutoCertTableColumn } from "../panel/AutoCertTable";
+import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
+import { MIN_SCALE } from "../utils";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -100,7 +101,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [currentPdfPage, setCurrentPdfPage] =
         useState<number>(initialPdfPage);
     // Scale apply in annotate folder
-    const [scale, setScale] = useState<number>(1);
+    const [scale,setScale] = useState<number>(1);
 
     /**
      * Update text and signature annotates when annotates change
@@ -150,6 +151,17 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         }
 
         return undefined;
+    };
+
+    const onScaleChange = (newScale: number): void => {
+        if (newScale === scale && newScale <= MIN_SCALE) {
+            logger.debug(
+                `Scale is the same as before or is lesser than minimum scale, skip update: ${newScale}`
+            );
+            return;
+        }
+
+        setScale(newScale);
     };
 
     const onDocumentLoadSuccess = async (
@@ -351,13 +363,9 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         currentPdfPage,
         totalPdfPage,
         scale,
-        setScale,
-        setSelectedAnnotateId,
+        onScaleChange,
         onDocumentLoadSuccess,
         onPageLoadSuccess,
-        setTotalPdfPage,
-        setCurrentPdfPage,
-        setAnnotates,
         onAddTextField,
         onUpdateTextField,
         onDeleteTextField,

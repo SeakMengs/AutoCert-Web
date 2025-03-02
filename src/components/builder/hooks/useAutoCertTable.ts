@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AutoCertTableColumn, AutoCertTableRow } from "../panel/AutoCertTable";
+import { AutoCertTableColumn, AutoCertTableRow } from "../panel/table/AutoCertTable";
 
 // Mostly only handle set state such that I can easily integrate api calls later
 

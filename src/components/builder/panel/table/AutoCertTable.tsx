@@ -13,13 +13,11 @@ import {
 } from "antd";
 import {
     DeleteOutlined,
-    ImportOutlined,
     PlusOutlined,
     UploadOutlined,
 } from "@ant-design/icons";
 import { nanoid } from "nanoid";
 import { createScopedLogger } from "@/utils/logger";
-import { parseCSV } from "../utils";
 import {
     EditableBodyCell,
     EditableBodyCellProps,
@@ -27,6 +25,7 @@ import {
     EditableHeaderCell,
     EditableHeaderCellProps,
 } from "./EditableTable";
+import { parseCSV } from "../../utils";
 
 const logger = createScopedLogger("components:builder:panel:AutoCertTable");
 

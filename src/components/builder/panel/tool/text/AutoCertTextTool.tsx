@@ -11,14 +11,14 @@ import {
     Tag,
 } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
     AnnotateColor,
     TextAnnotateState,
 } from "@/components/builder/hooks/useAutoCert";
 import { createScopedLogger } from "@/utils/logger";
-import { AutoCertTableColumn } from "../../AutoCertTable";
 import { AggregationColor } from "antd/es/color-picker/color";
+import { AutoCertTableColumn } from "../../table/AutoCertTable";
 
 const logger = createScopedLogger(
     "components:builder:panel:tool:text:AutoCertTextTool"

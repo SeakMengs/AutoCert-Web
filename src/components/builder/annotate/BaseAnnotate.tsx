@@ -135,7 +135,6 @@ export default function BaseAnnotate({
                 ></div>
                 <div className="relative flex items-center justify-center w-full h-full">
                     {children}
-                    <div />
                 </div>
             </div>
         </Rnd>

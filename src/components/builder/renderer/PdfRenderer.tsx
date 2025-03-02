@@ -8,7 +8,6 @@ import { IS_PRODUCTION } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
 import { WHSize } from "../annotate/BaseAnnotate";
 import { Skeleton } from "antd";
-import { MIN_SCALE } from "../utils";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -17,24 +16,21 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const logger = createScopedLogger("components:builder:renderer:PdfRenderer");
 
-export interface PdfRendererProps extends CanvasToImageRendererProps {
+export interface PdfRendererProps {
     pdfFile: string;
     currentPdfPage: number;
-    onDocumentLoadSuccess?: (pdf: DocumentCallback) => void;
-    onPageLoadSuccess?: (page: PageCallback) => void;
-}
-
-export interface CanvasToImageRendererProps {
     // Scale of the canvas element, not the PDF page scale
     scale: number;
-    setScale: (scale: number) => void;
+    onScaleChange: (scale: number) => void;
+    onDocumentLoadSuccess?: (pdf: DocumentCallback) => void;
+    onPageLoadSuccess?: (page: PageCallback) => void;
 }
 
 export default function PdfRenderer({
     pdfFile,
     currentPdfPage,
     scale,
-    setScale,
+    onScaleChange,
     onDocumentLoadSuccess,
     onPageLoadSuccess,
 }: PdfRendererProps) {
@@ -51,15 +47,13 @@ export default function PdfRenderer({
             pageCanvasRef.current.getBoundingClientRect().width;
         const originalWidth = pdfViewPort.width;
         // parsefloat and round to 2 decimal places
-        const newScale = parseFloat((currentWidth / originalWidth).toFixed(2));
+        const newScale = parseFloat((currentWidth / originalWidth).toFixed(3));
 
         logger.debug(
             `Current width: ${currentWidth}, Original width: ${originalWidth}, Old scale ${scale},New scale: ${newScale}, Shall expect update annotation with new scale`
         );
 
-        if (newScale !== scale) {
-            setScale(newScale > 1 ? 1 : newScale);
-        }
+        onScaleChange(newScale);
     };
 
     useEffect(() => {

@@ -1,6 +1,5 @@
 import { createScopedLogger } from "@/utils/logger";
-import { AnnotateState, AnnotateStates } from "./hooks/useAutoCert";
-import { AutoCertTableColumn, AutoCertTableRow } from "./panel/AutoCertTable";
+import { AutoCertTableColumn, AutoCertTableRow } from "./panel/table/AutoCertTable";
 import Papa from "papaparse";
 import { nanoid } from "nanoid";
 

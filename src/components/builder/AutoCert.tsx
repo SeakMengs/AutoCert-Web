@@ -1,5 +1,5 @@
 import AutoCertPanel from "./panel/AutoCertPanel";
-import AutoCertTable from "./panel/AutoCertTable";
+import AutoCertTable from "./panel/table/AutoCertTable";
 ("./panel/AutoCertPanel");
 import AnnotateRenderer, {
     AnnotateRendererProps,
@@ -19,19 +19,21 @@ export default function AutoCert({
     previewMode,
     scale,
     selectedAnnotateId,
-    setScale,
+    onScaleChange,
     onDocumentLoadSuccess,
     onPageLoadSuccess,
     onDragStop,
     onResizeStop,
     onAnnotateSelect,
 }: AutoCertProps) {
+    console.log(`Using scale ${scale} to render in AutoCert`);
+
     return (
         <div className="flex">
             <div className="relative border border-gray-300">
                 <PdfRenderer
                     scale={scale}
-                    setScale={setScale}
+                    onScaleChange={onScaleChange}
                     currentPdfPage={currentPdfPage}
                     pdfFile={pdfFile}
                     onDocumentLoadSuccess={onDocumentLoadSuccess}

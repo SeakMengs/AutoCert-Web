@@ -12,7 +12,7 @@ export default function AutoCertSignatoryTool({
   return (
     <div>
       <Button type="dashed" onClick={onAddSignatureField}>
-        Add Text Field
+        Add Signature Placement
       </Button>
     </div>
   );
