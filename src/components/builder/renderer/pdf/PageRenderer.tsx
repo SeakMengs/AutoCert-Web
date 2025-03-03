@@ -45,37 +45,58 @@ export default function PageRenderer({
         height: 0,
     });
     const containerRef = useRef<HTMLDivElement>(null);
-    const pageCanvasRef = useRef<HTMLCanvasElement>(null);
 
-    // FIXME: For now it's okay to use this, it work on one page, however when enable multiple pages, it could potentially cause issue with annotate rendering. need to handle scale of each page separately
     const updateScale = () => {
-        if (!pageCanvasRef.current) return;
-        const currentWidth =
-            pageCanvasRef.current.getBoundingClientRect().width;
+        if (!containerRef.current) return;
+        const currentWidth = containerRef.current.getBoundingClientRect().width;
         const originalWidth = pdfViewPort.width;
         // parsefloat and round to 2 decimal places
-        const newScale = parseFloat((currentWidth / originalWidth).toFixed(3));
+        const newScale =
+            parseFloat((currentWidth / originalWidth).toFixed(3)) || 1;
 
-        logger.debug(
-            `Pdf page: ${currentPdfPage}, Current width: ${currentWidth}, Original width: ${originalWidth}, Old scale ${scale},New scale: ${newScale}, Shall expect update annotation with new scale`
-        );
+        // logger.debug(
+        //     `Pdf page: ${pageNumber}, Current width: ${currentWidth}, Original width: ${originalWidth}, Old scale ${scale},New scale: ${newScale}, Shall expect update annotation with new scale`
+        // );
 
         onScaleChange(newScale, pageNumber);
     };
 
-    // useEffect(() => {
-    //     updateScale();
-    // }, []);
+    useEffect(() => {
+        updateScale();
+    }, [pdfViewPort]);
+
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver(() => {
+            updateScale();
+        });
+
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        return () => {
+            if (containerRef.current) {
+                resizeObserver.unobserve(containerRef.current);
+            }
+        };
+    }, [pdfViewPort, containerRef, updateScale]);
 
     // useEffect(() => {
     //     window.addEventListener("resize", updateScale);
+    //     window.addEventListener("onAutoCertZoomTransformed", updateScale);
+
     //     return () => {
+    //         window.removeEventListener(
+    //             "onAutoCertZoomTransformed",
+    //             updateScale
+    //         );
     //         window.removeEventListener("resize", updateScale);
     //     };
     // }, [pdfViewPort]);
 
     return (
         <div
+            id={`autocert-pdf-page-${pageNumber}`}
             onClick={() => {
                 if (!selected) {
                     onPageClick(pageNumber);
@@ -85,29 +106,33 @@ export default function PageRenderer({
             className="relative"
             style={{
                 // Prevent canvas from going beyond the viewport
-                // maxWidth: pdfViewPort.width,
-                // maxHeight: pdfViewPort.height,
-
-                border:
-                    selected && !previewMode ? `1px solid ${colorPrimary}` : "",
+                maxWidth: pdfViewPort.width,
+                maxHeight: pdfViewPort.height,
             }}
         >
             <Page
-                canvasRef={pageCanvasRef}
                 _className="w-full h-auto object-cover"
                 onRenderSuccess={(page) => {
+                    // const viewport = page.getViewport({ scale: 1 });
                     logger.debug(
-                        `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf Scaled size ${page.width}x${page.height}`
+                        `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf current size ${page.width}x${page.height}`
                     );
-                    const viewport = page.getViewport({ scale: 1 });
                     setPdfViewPort({
-                        width: viewport.width,
-                        height: viewport.height,
+                        width: page.originalWidth,
+                        height: page.originalHeight,
                     });
                 }}
                 scale={1}
                 pageNumber={pageNumber}
                 className="pointer-events-none select-none"
+                canvasRef={(ref) => {
+                    // apply border
+                    if (ref) {
+                        ref.style.border = selected
+                            ? `1px solid ${colorPrimary}`
+                            : "";
+                    }
+                }}
             />
             <AnnotateRenderer
                 pageNumber={pageNumber}

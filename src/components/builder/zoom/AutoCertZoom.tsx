@@ -34,7 +34,7 @@ export default function AutoCertZoom({
             return;
         }
 
-        transformWrapperRef.current.zoomIn();
+        transformWrapperRef.current.zoomIn(0.1, 0);
     };
 
     const handleZoomOut = () => {
@@ -43,7 +43,7 @@ export default function AutoCertZoom({
             return;
         }
 
-        transformWrapperRef.current.zoomOut();
+        transformWrapperRef.current.zoomOut(0.1, 0);
     };
 
     const handleReset = () => {
@@ -52,7 +52,7 @@ export default function AutoCertZoom({
             return;
         }
 
-        transformWrapperRef.current.resetTransform();
+        transformWrapperRef.current.resetTransform(0);
     };
 
     const onTransformed = (
@@ -70,9 +70,11 @@ export default function AutoCertZoom({
         <div className="relative w-full h-full">
             <TransformWrapper
                 ref={transformWrapperRef}
-                panning={{
-                    disabled: true,
-                }}
+                panning={
+                    {
+                        // disabled: true,
+                    }
+                }
                 initialScale={1}
                 centerOnInit
                 centerZoomedOut
@@ -82,6 +84,10 @@ export default function AutoCertZoom({
                 wheel={{
                     wheelDisabled: true,
                 }}
+                zoomAnimation={{
+                    animationTime: 200,
+                }}
+                // disabled
             >
                 <TransformComponent
                     wrapperStyle={{

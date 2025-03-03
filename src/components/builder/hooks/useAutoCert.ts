@@ -173,8 +173,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         if (
             (Object.hasOwn(pagesScale, page) &&
                 newScale === pagesScale[page]) ||
-            newScale <= MIN_SCALE ||
-            newScale > 1
+            newScale <= MIN_SCALE 
         ) {
             logger.debug(
                 `Scale is the same as before or is lesser than minimum scale or is greater than maximum, skip update: ${newScale}`
@@ -303,7 +302,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         pageNumber: number
     ): void => {
         logger.debug(
-            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${pagesScale[pageNumber]}`
+            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, page scale: ${pagesScale[pageNumber]}`
         );
 
         setAnnotates((prev) => ({

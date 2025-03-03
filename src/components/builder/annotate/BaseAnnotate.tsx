@@ -75,15 +75,16 @@ export default function BaseAnnotate({
             // identifier for on select parent element (in AnnotateRenderer div onClick)
             className="annotation-rnd"
             scale={zoomScale}
-            // size={size}
-            // position={position}
             size={{
-                width: size.width * scale,
-                height: size.height * scale,
+                // ...size,
+                // apply de-zoom scale since we already apply canvas scale
+                width: (size.width * scale) / zoomScale,
+                height: (size.height * scale) / zoomScale,
             }}
             position={{
-                x: position.x * scale,
-                y: position.y * scale,
+                // ...position,
+                x: (position.x * scale) / zoomScale,
+                y: (position.y * scale) / zoomScale,
             }}
             onDragStart={(_e, _data) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
@@ -95,8 +96,8 @@ export default function BaseAnnotate({
                     _e,
                     {
                         ...position,
-                        x: position.x / scale,
-                        y: position.y / scale,
+                        x: (position.x / scale) * zoomScale,
+                        y: (position.y / scale) * zoomScale,
                     },
                     pageNumber
                 );
@@ -107,23 +108,19 @@ export default function BaseAnnotate({
             onResizeStop={(_e, _direction, ref, _delta, position) => {
                 onResizeStop(
                     id,
-                    // {
-                    //     width: Number(ref.style.width.replace("px", "")),
-                    //     height: Number(ref.style.height.replace("px", "")),
-                    // },
-                    // {
-                    //     x: position.x,
-                    //     y: position.y,
-                    // }
                     {
                         width:
-                            Number(ref.style.width.replace("px", "")) / scale,
+                            (Number(ref.style.width.replace("px", "")) /
+                                scale) *
+                            zoomScale,
                         height:
-                            Number(ref.style.height.replace("px", "")) / scale,
+                            (Number(ref.style.height.replace("px", "")) /
+                                scale) *
+                            zoomScale,
                     },
                     {
-                        x: position.x / scale,
-                        y: position.y / scale,
+                        x: (position.x / scale) * zoomScale,
+                        y: (position.y / scale) * zoomScale,
                     },
                     pageNumber
                 );
@@ -138,7 +135,6 @@ export default function BaseAnnotate({
                 }}
                 className="relative z-20 rounded cursor-text w-full h-full"
                 style={{
-                    // border: previewMode ? "" : `2px dashed ${color}`,
                     border: selected
                         ? `1px solid ${color}`
                         : `1px solid transparent`,

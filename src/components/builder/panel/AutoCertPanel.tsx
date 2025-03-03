@@ -6,7 +6,6 @@ import AutoCertSignatoryTool, {
     AutoCertSignatoryToolProps,
 } from "./tool/signatory/AutoCertSignatoryTool";
 import AutoCertTable, { AutoCertTableProps } from "./table/AutoCertTable";
-import { memo } from "react";
 
 export interface AutoCertPanelProps
     extends AutoCertTextToolProps,
@@ -15,7 +14,7 @@ export interface AutoCertPanelProps
 
 const { Title } = Typography;
 
-function AutoCertPanel({
+export default function AutoCertPanel({
     // Annotate
     selectedAnnotateId,
     currentPdfPage,
@@ -78,5 +77,3 @@ AutoCertPanelProps) {
         </Space>
     );
 }
-
-export default memo(AutoCertPanel);

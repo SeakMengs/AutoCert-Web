@@ -52,8 +52,6 @@ export default function PdfRenderer({
 }: PdfRendererProps) {
     const [pdfPages, setPdfPages] = useState<number>(0);
 
-    console.log(`Pages scale`, pagesScale)
-
     return (
         <Document
             file={pdfFile}

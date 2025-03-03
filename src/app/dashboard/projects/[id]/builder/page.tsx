@@ -24,8 +24,8 @@ export default function ProjectBuilderByID() {
     const {
         token: { colorBgLayout, colorSplit },
     } = theme.useToken();
-    // const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
-    const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
+    const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
+    // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
     const {
         annotates,
         textAnnotates,
@@ -86,7 +86,7 @@ export default function ProjectBuilderByID() {
                 }}
             >
                 <Flex
-                    className="w-full"
+                    className="w-full h-full"
                     justify="center"
                     align="center"
                     style={{
