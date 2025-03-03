@@ -36,7 +36,7 @@ export type TextFieldSchema = {
 export interface AutoCertTextToolProps {
     currentPdfPage: number;
     textAnnotates: TextAnnotateState[];
-    tableColumns: AutoCertTableColumn[];
+    columns: AutoCertTableColumn[];
     selectedAnnotateId: string | undefined;
     onAnnotateSelect: (id: string) => void;
     onAddTextField: (
@@ -59,7 +59,7 @@ export default function AutoCertTextTool({
     currentPdfPage,
     selectedAnnotateId,
     textAnnotates,
-    tableColumns,
+    columns,
     onAddTextField,
     onUpdateTextField,
     onDeleteTextField,
@@ -70,7 +70,7 @@ export default function AutoCertTextTool({
             <Add
                 currentPdfPage={currentPdfPage}
                 onAddTextField={onAddTextField}
-                tableColumns={tableColumns}
+                columns={columns}
             />
             <Space direction="vertical" className="w-full">
                 {textAnnotates.map((textAnnotate) => (
@@ -78,7 +78,7 @@ export default function AutoCertTextTool({
                         key={textAnnotate.id}
                         textAnnotate={textAnnotate}
                         selectedAnnotateId={selectedAnnotateId}
-                        tableColumns={tableColumns}
+                        columns={columns}
                         onUpdateTextField={onUpdateTextField}
                         onDeleteTextField={onDeleteTextField}
                         onAnnotateSelect={onAnnotateSelect}
@@ -92,7 +92,7 @@ export default function AutoCertTextTool({
 interface AutoCertTextToolAddProps
     extends Pick<
         AutoCertTextToolProps,
-        "onAddTextField" | "tableColumns" | "currentPdfPage"
+        "onAddTextField" | "columns" | "currentPdfPage"
     > {}
 
 const fontOptions = [
@@ -104,7 +104,7 @@ const fontOptions = [
 const { Option } = Select;
 function Add({
     currentPdfPage,
-    tableColumns,
+    columns,
     onAddTextField,
 }: AutoCertTextToolAddProps) {
     const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -112,7 +112,7 @@ function Add({
 
     const resetForm = () => {
         form.setFieldsValue({
-            value: tableColumns[0]?.title,
+            value: columns[0]?.title,
             fontName: "Arial",
             color: AnnotateColor,
         });
@@ -163,7 +163,7 @@ function Add({
                         ]}
                     >
                         <Select>
-                            {tableColumns.map((column) => (
+                            {columns.map((column) => (
                                 <Option key={column.title} value={column.title}>
                                     {column.title}
                                 </Option>
@@ -203,7 +203,7 @@ interface AutoCertTextToolListProps
     extends Pick<
         AutoCertTextToolProps,
         | "selectedAnnotateId"
-        | "tableColumns"
+        | "columns"
         | "onAnnotateSelect"
         | "onUpdateTextField"
         | "onDeleteTextField"
@@ -214,7 +214,7 @@ interface AutoCertTextToolListProps
 function AnnotateTextCard({
     textAnnotate,
     selectedAnnotateId,
-    tableColumns,
+    columns,
     onAnnotateSelect,
     onUpdateTextField,
     onDeleteTextField,
@@ -307,7 +307,7 @@ function AnnotateTextCard({
                         ]}
                     >
                         <Select>
-                            {tableColumns.map((column) => (
+                            {columns.map((column) => (
                                 <Option key={column.title} value={column.title}>
                                     {column.title}
                                 </Option>

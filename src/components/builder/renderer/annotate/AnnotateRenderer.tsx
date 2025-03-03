@@ -1,8 +1,8 @@
 import { ResizeEnable } from "react-rnd";
-import { BaseAnnotateProps } from "../annotate/BaseAnnotate";
-import SignatureAnnotate from "../annotate/SignatureAnnotate";
-import TextAnnotate from "../annotate/TextAnnotate";
-import { AnnotateStates } from "../hooks/useAutoCert";
+import { BaseAnnotateProps } from "../../annotate/BaseAnnotate";
+import SignatureAnnotate from "../../annotate/SignatureAnnotate";
+import TextAnnotate from "../../annotate/TextAnnotate";
+import { AnnotateState } from "../../hooks/useAutoCert";
 import { MouseEvent } from "react";
 
 export interface AnnotateRendererProps
@@ -14,9 +14,10 @@ export interface AnnotateRendererProps
         | "onAnnotateSelect"
         | "scale"
         | "zoomScale"
+        | "pageNumber"
     > {
     selectedAnnotateId: string | undefined;
-    annotates: AnnotateStates;
+    annotatesByPage: AnnotateState[];
     currentPdfPage: number;
 }
 
@@ -32,7 +33,7 @@ const TEXT_RESIZABLE = {
 } satisfies ResizeEnable;
 
 export default function AnnotateRenderer({
-    annotates,
+    annotatesByPage,
     currentPdfPage,
     selectedAnnotateId,
     ...restProps
@@ -46,8 +47,8 @@ export default function AnnotateRenderer({
     };
 
     const Annotates =
-        Array.isArray(annotates[currentPdfPage]) &&
-        annotates[currentPdfPage].map((annotate) => {
+        Array.isArray(annotatesByPage) &&
+        annotatesByPage.map((annotate) => {
             const selected = selectedAnnotateId === annotate.id;
             switch (annotate.type) {
                 case "text":

@@ -33,7 +33,8 @@ export default function TextAnnotate({
                 className={`text-center border-none bg-transparent outline-none resize-none`}
                 style={{
                     fontFamily: font.name,
-                    fontSize: `${font.size * restProps.scale}px`,
+                    // fontSize: `${font.size}px`,
+                    fontSize: `1.6vw`,
                     fontWeight: font.weight,
                     color: font.color,
                     lineHeight: "1.2",

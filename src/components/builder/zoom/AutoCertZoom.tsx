@@ -13,7 +13,7 @@ import {
 } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
 
-const logger = createScopedLogger("components:builder/AutoCertZoom");
+const logger = createScopedLogger("components:builder:zoom:AutoCertZoom");
 const { Text } = Typography;
 
 export interface AutoCertZoomProps {
@@ -33,6 +33,7 @@ export default function AutoCertZoom({
             logger.error("TransformWrapper ref is null");
             return;
         }
+
         transformWrapperRef.current.zoomIn();
     };
 
@@ -50,6 +51,7 @@ export default function AutoCertZoom({
             logger.error("TransformWrapper ref is null");
             return;
         }
+
         transformWrapperRef.current.resetTransform();
     };
 
@@ -69,7 +71,7 @@ export default function AutoCertZoom({
             <TransformWrapper
                 ref={transformWrapperRef}
                 panning={{
-                    // disabled: true,
+                    disabled: true,
                 }}
                 initialScale={1}
                 centerOnInit
@@ -77,6 +79,9 @@ export default function AutoCertZoom({
                 minScale={0.3}
                 maxScale={3}
                 onTransformed={onTransformed}
+                wheel={{
+                    wheelDisabled: true,
+                }}
             >
                 <TransformComponent
                     wrapperStyle={{
@@ -85,6 +90,8 @@ export default function AutoCertZoom({
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
+                        padding: 2,
+                        overflow: "auto",
                     }}
                     contentStyle={{
                         width: "100%",
@@ -97,7 +104,7 @@ export default function AutoCertZoom({
                     {children}
                 </TransformComponent>
             </TransformWrapper>
-            <div style={{ position: "absolute", bottom: 16, right: 16 }}>
+            <div className="absolute bottom-4 right-4">
                 <Space>
                     <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} />
                     <Text>{`${Math.round(zoomScale * 100)}%`}</Text>

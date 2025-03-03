@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { memo, useRef, useState } from "react";
 import {
     Button,
     Form,
@@ -27,7 +27,7 @@ import {
 } from "./EditableTable";
 import { parseCSV } from "../../utils";
 
-const logger = createScopedLogger("components:builder:panel:AutoCertTable");
+const logger = createScopedLogger("components:builder:panel:table:AutoCertTable");
 
 export type AutoCertTableColumn = {
     // Actual column name shown in the table header
@@ -69,7 +69,7 @@ export interface AutoCertTableProps {
     ) => void;
 }
 
-export default function AutoCertTable({
+function AutoCertTable({
     rows,
     columns,
     onColumnAdd,
@@ -384,3 +384,5 @@ export default function AutoCertTable({
         </Flex>
     );
 }
+
+export default memo(AutoCertTable);

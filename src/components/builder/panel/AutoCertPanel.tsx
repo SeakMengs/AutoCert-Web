@@ -1,28 +1,43 @@
-import { Collapse, CollapseProps, Typography } from "antd";
+import { Collapse, CollapseProps, Space, Typography } from "antd";
 import AutoCertTextTool, {
     AutoCertTextToolProps,
 } from "./tool/text/AutoCertTextTool";
 import AutoCertSignatoryTool, {
     AutoCertSignatoryToolProps,
 } from "./tool/signatory/AutoCertSignatoryTool";
+import AutoCertTable, { AutoCertTableProps } from "./table/AutoCertTable";
+import { memo } from "react";
 
 export interface AutoCertPanelProps
     extends AutoCertTextToolProps,
-        AutoCertSignatoryToolProps {}
+        AutoCertSignatoryToolProps,
+        AutoCertTableProps {}
 
 const { Title } = Typography;
 
-export default function AutoCertPanel({
-    tableColumns,
-    textAnnotates,
+function AutoCertPanel({
+    // Annotate
     selectedAnnotateId,
     currentPdfPage,
+    textAnnotates,
     onAnnotateSelect,
     onAddTextField,
     onUpdateTextField,
     onDeleteTextField,
     onAddSignatureField,
-}: AutoCertPanelProps) {
+
+    // Table,
+    columns,
+    ...autoCertTableProps
+}: // rows,
+// onColumnUpdate,
+// onColumnAdd,
+// onColumnDelete,
+// onImportFromCSV,
+// onRowAdd,
+// onRowUpdate,
+// onRowsDelete,
+AutoCertPanelProps) {
     const collapseItems: CollapseProps["items"] = [
         {
             key: "1",
@@ -32,7 +47,7 @@ export default function AutoCertPanel({
                     selectedAnnotateId={selectedAnnotateId}
                     textAnnotates={textAnnotates}
                     currentPdfPage={currentPdfPage}
-                    tableColumns={tableColumns}
+                    columns={columns}
                     onAddTextField={onAddTextField}
                     onUpdateTextField={onUpdateTextField}
                     onDeleteTextField={onDeleteTextField}
@@ -55,9 +70,13 @@ export default function AutoCertPanel({
     ];
 
     return (
-        <div className="w-96">
-            <Title level={3}>Tools</Title>
+        <Space direction="vertical" className="w-full">
+            <Title level={5}>Tools</Title>
             <Collapse items={collapseItems} />
-        </div>
+            <Title level={5}>Table management</Title>
+            <AutoCertTable columns={columns} {...autoCertTableProps} />
+        </Space>
     );
 }
+
+export default memo(AutoCertPanel);

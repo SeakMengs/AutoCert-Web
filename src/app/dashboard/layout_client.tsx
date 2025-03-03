@@ -24,7 +24,7 @@ import {
 import Image from "next/image";
 import { APP_NAME } from "@/utils";
 import { AuthUser } from "@/types/models";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("dashboard:layout_client");
@@ -58,7 +58,7 @@ export default function DashboardLayoutClient({
     };
 
     return (
-        <Layout style={{ minHeight: "100vh" }} hasSider>
+        <Layout className="h-screen overflow-hidden" hasSider>
             <LeftSideBar
                 toggleCollapse={toggleCollapse}
                 collapsed={collapsed}
@@ -135,6 +135,7 @@ function LeftSideBar({
     user: AuthUser;
 }) {
     const searchParams = useSearchParams();
+    const pathname = usePathname();
     const router = useRouter();
 
     const menuItems = [
@@ -151,6 +152,10 @@ function LeftSideBar({
             route: "/dashboard/signature-request",
         },
     ] satisfies Array<Required<MenuProps>["items"][number] & { route: string }>;
+
+    const selectedKey = menuItems.find((item) => {
+        return pathname.toLowerCase() === item.route.toLowerCase();
+    })?.key;
 
     const {
         token: { colorBgContainer, colorSplit },
@@ -180,8 +185,8 @@ function LeftSideBar({
                     <Logo collapsed={collapsed} />
                     <Menu
                         mode="inline"
-                        defaultSelectedKeys={["1"]}
                         items={menuItems}
+                        selectedKeys={[selectedKey ?? ""]}
                         style={{
                             background: colorBgContainer,
                             borderRight: "none",

@@ -28,11 +28,18 @@ export interface BaseAnnotateProps {
     color: string;
     scale: number;
     zoomScale: number;
-    onDragStop: (id: string, e: DraggableEvent, data: DraggableData) => void;
+    pageNumber: number;
+    onDragStop: (
+        id: string,
+        e: DraggableEvent,
+        data: DraggableData,
+        pageNumber: number
+    ) => void;
     onResizeStop: (
         id: string,
         numberSize: WHSize,
-        position: XYPosition
+        position: XYPosition,
+        pageNumber: number
     ) => void;
     onAnnotateSelect: (id: string | undefined) => void;
 }
@@ -48,6 +55,7 @@ export default function BaseAnnotate({
     color,
     scale,
     zoomScale,
+    pageNumber,
     onDragStop,
     onResizeStop,
     onAnnotateSelect,
@@ -82,11 +90,16 @@ export default function BaseAnnotate({
             }}
             onDragStop={(_e, position) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
-                onDragStop(id, _e, {
-                    ...position,
-                    x: position.x / scale,
-                    y: position.y / scale,
-                });
+                onDragStop(
+                    id,
+                    _e,
+                    {
+                        ...position,
+                        x: position.x / scale,
+                        y: position.y / scale,
+                    },
+                    pageNumber
+                );
             }}
             onResizeStart={(_e) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
@@ -111,7 +124,8 @@ export default function BaseAnnotate({
                     {
                         x: position.x / scale,
                         y: position.y / scale,
-                    }
+                    },
+                    pageNumber
                 );
             }}
             disableDragging={previewMode}
@@ -126,8 +140,8 @@ export default function BaseAnnotate({
                 style={{
                     // border: previewMode ? "" : `2px dashed ${color}`,
                     border: selected
-                        ? `1.5px solid ${color}`
-                        : `1.5px solid transparent`,
+                        ? `1px solid ${color}`
+                        : `1px solid transparent`,
                 }}
             >
                 <div

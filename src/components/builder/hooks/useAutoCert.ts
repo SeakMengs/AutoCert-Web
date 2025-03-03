@@ -14,6 +14,7 @@ import { IS_PRODUCTION } from "@/utils";
 import { TextFieldSchema } from "../panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { MIN_SCALE } from "../utils";
+import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -28,6 +29,7 @@ type BaseAnnotateState = Omit<
     | "selected"
     | "scale"
     | "zoomScale"
+    | "pageNumber"
 > & {
     type: "text" | "signature";
 };
@@ -47,6 +49,9 @@ export type AnnotateState = TextAnnotateState | SignatureAnnotateState;
 // Each page has a list of annotates
 export type AnnotateStates = Record<number, AnnotateState[]>;
 
+// Since each pdf page might have different scale
+export type PagesScale = Record<number, number>;
+
 const TextAnnotateWidth = 150;
 const TextAnnotateHeight = 40;
 
@@ -64,7 +69,7 @@ const newTextField = (): TextAnnotateState => {
     return {
         id: nanoid(),
         type: "text",
-        position: { x: 100, y: 100 },
+        position: { x: 0, y: 0 },
         value: "Enter Text",
         size: { width: TextAnnotateWidth, height: TextAnnotateHeight },
         font: {
@@ -81,7 +86,7 @@ const newSignatureField = (): SignatureAnnotateState => {
     return {
         id: nanoid(),
         type: "signature",
-        position: { x: 100, y: 100 },
+        position: { x: 0, y: 0 },
         signatureData: tempSignData,
         size: {
             width: SignatureAnnotateWidth,
@@ -92,6 +97,7 @@ const newSignatureField = (): SignatureAnnotateState => {
 };
 
 export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
+    // currently not use
     const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
     const [annotates, setAnnotates] = useState<AnnotateStates>({});
     const [textAnnotates, setTextAnnotates] = useState<TextAnnotateState[]>([]);
@@ -102,9 +108,12 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const [currentPdfPage, setCurrentPdfPage] =
         useState<number>(initialPdfPage);
     // Scale apply in annotate folder
-    const [scale, setScale] = useState<number>(1);
+    const [pagesScale, setPagesScale] = useState<PagesScale>({});
     // For zoom pan and pinch
     const [zoomScale, setZoomScale] = useState<number>(1);
+    const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(
+        null
+    );
 
     /**
      * Update text and signature annotates when annotates change
@@ -156,15 +165,27 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         return undefined;
     };
 
-    const onScaleChange = (newScale: number): void => {
-        if (newScale === scale && newScale <= MIN_SCALE) {
+    const onPageClick = (page: number): void => {
+        setCurrentPdfPage(page);
+    };
+
+    const onScaleChange = (newScale: number, page: number): void => {
+        if (
+            (Object.hasOwn(pagesScale, page) &&
+                newScale === pagesScale[page]) ||
+            newScale <= MIN_SCALE ||
+            newScale > 1
+        ) {
             logger.debug(
-                `Scale is the same as before or is lesser than minimum scale, skip update: ${newScale}`
+                `Scale is the same as before or is lesser than minimum scale or is greater than maximum, skip update: ${newScale}`
             );
             return;
         }
 
-        setScale(newScale);
+        setPagesScale({
+            ...pagesScale,
+            [page]: newScale,
+        });
     };
 
     const onZoomScaleChange = (newZoomScale: number): void => {
@@ -185,12 +206,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
             const height = page.view[3];
             logger.debug(`Pdf width: ${width}, height: ${height}`);
         }
-    };
-
-    const onPageLoadSuccess = async (page: PageCallback): Promise<void> => {
-        logger.debug(
-            `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf Scaled size ${page.width}x${page.height}`
-        );
     };
 
     const onAddTextField = (
@@ -284,15 +299,16 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const onAnnotateResizeStop = (
         id: string,
         size: WHSize,
-        position: XYPosition
+        position: XYPosition,
+        pageNumber: number
     ): void => {
         logger.debug(
-            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${scale}`
+            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, Autocert scale: ${pagesScale[pageNumber]}`
         );
 
         setAnnotates((prev) => ({
             ...prev,
-            [currentPdfPage]: (prev[currentPdfPage] || []).map((annotation) =>
+            [pageNumber]: (prev[pageNumber] || []).map((annotation) =>
                 annotation.id === id
                     ? { ...annotation, size, position }
                     : annotation
@@ -303,7 +319,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     const onAnnotateDragStop = (
         id: string,
         _e: any,
-        position: XYPosition
+        position: XYPosition,
+        pageNumber: number
     ): void => {
         logger.debug(
             `Drag annotation, Position: x:${position.x}, y:${position.y}`
@@ -311,7 +328,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
         setAnnotates((prev) => ({
             ...prev,
-            [currentPdfPage]: (prev[currentPdfPage] || []).map((annotation) =>
+            [pageNumber]: (prev[pageNumber] || []).map((annotation) =>
                 annotation.id === id ? { ...annotation, position } : annotation
             ),
         }));
@@ -369,12 +386,13 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         selectedAnnotateId,
         currentPdfPage,
         totalPdfPage,
-        scale,
+        transformWrapperRef,
+        pagesScale,
         zoomScale,
         onZoomScaleChange,
         onScaleChange,
         onDocumentLoadSuccess,
-        onPageLoadSuccess,
+        onPageClick,
         onAddTextField,
         onUpdateTextField,
         onDeleteTextField,

@@ -1,59 +1,42 @@
 "use client";
-import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
-import AutoCertZoom, { AutoCertZoomProps } from "./AutoCertZoom";
+import AutoCertZoom, { AutoCertZoomProps } from "./zoom/AutoCertZoom";
 import AutoCertPanel from "./panel/AutoCertPanel";
 import AutoCertTable from "./panel/table/AutoCertTable";
 ("./panel/AutoCertPanel");
 import AnnotateRenderer, {
     AnnotateRendererProps,
-} from "./renderer/AnnotateRenderer";
-import PdfRenderer, { PdfRendererProps } from "./renderer/PdfRenderer";
-import { useRef } from "react";
+} from "./renderer/annotate/AnnotateRenderer";
+import PdfRenderer, { PdfRendererProps } from "./renderer/pdf/PdfRenderer";
 import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("components:builder/AutoCert");
 
-export interface AutoCertProps
-    extends AnnotateRendererProps,
-        PdfRendererProps,
-        Omit<AutoCertZoomProps, "transformWrapperRef"> {}
+export interface AutoCertProps extends PdfRendererProps, AutoCertZoomProps {}
 
 export { AutoCertTable, AutoCertPanel, AutoCertZoom };
 
 export default function AutoCert({
-    annotates,
+    // share
     currentPdfPage,
-    pdfFile,
-    previewMode,
-    scale,
     zoomScale,
-    selectedAnnotateId,
+    // zoom
+    transformWrapperRef,
     onZoomScaleChange,
+    // pdf
+    pdfFile,
+    pagesScale,
     onScaleChange,
     onDocumentLoadSuccess,
-    onPageLoadSuccess,
+    onPageClick,
+    // Annotate
+    annotates,
+    selectedAnnotateId,
+    onAnnotateSelect,
     onDragStop,
     onResizeStop,
-    onAnnotateSelect,
+    previewMode,
 }: AutoCertProps) {
-    const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(
-        null
-    );
-
-    const onPageLoadSuccessResetTransform = (page: PageCallback) => {
-        if (!transformWrapperRef.current) {
-            logger.error("TransformWrapper ref is null");
-            return;
-        }
-
-        transformWrapperRef.current.resetTransform();
-
-        if (typeof onPageLoadSuccess === "function") {
-            onPageLoadSuccess(page);
-        }
-    };
-
     const onDocumentLoadSuccessResetTransform = (pdf: DocumentCallback) => {
         if (!transformWrapperRef.current) {
             logger.error("TransformWrapper ref is null");
@@ -77,27 +60,26 @@ export default function AutoCert({
             onZoomScaleChange={onZoomScaleChange}
         >
             <div className="flex">
-                <div className="relative border">
+                <div className="my-8 relative w-full h-full">
                     <PdfRenderer
-                        scale={scale}
-                        onScaleChange={onScaleChange}
+                        // share
+                        zoomScale={zoomScale}
+                        pagesScale={pagesScale}
                         currentPdfPage={currentPdfPage}
+                        // For pdf
+                        onScaleChange={onScaleChange}
                         pdfFile={pdfFile}
                         onDocumentLoadSuccess={
                             onDocumentLoadSuccessResetTransform
                         }
-                        onPageLoadSuccess={onPageLoadSuccessResetTransform}
-                    />
-                    <AnnotateRenderer
-                        zoomScale={zoomScale}
-                        scale={scale}
+                        // For annotates
                         previewMode={previewMode}
                         annotates={annotates}
                         selectedAnnotateId={selectedAnnotateId}
-                        currentPdfPage={currentPdfPage}
                         onDragStop={onDragStop}
                         onResizeStop={onResizeStop}
                         onAnnotateSelect={onAnnotateSelect}
+                        onPageClick={onPageClick}
                     />
                 </div>
             </div>

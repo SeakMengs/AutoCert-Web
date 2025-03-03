@@ -20,7 +20,7 @@ import { AutoCertTableColumn, AutoCertTableRow } from "./AutoCertTable";
 import React from "react";
 import { createScopedLogger } from "@/utils/logger";
 
-const logger = createScopedLogger("components:builder:panel:EditableTable");
+const logger = createScopedLogger("components:builder:panel:table:EditableTable");
 
 // Props of this function as passed by processedColumns onCell and onHeaderCell from AutoCertTable
 

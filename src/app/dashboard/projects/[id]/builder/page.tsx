@@ -24,15 +24,16 @@ export default function ProjectBuilderByID() {
     const {
         token: { colorBgLayout, colorSplit },
     } = theme.useToken();
+    // const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
     const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
     const {
         annotates,
         textAnnotates,
-        signatureAnnotates,
         currentPdfPage,
         selectedAnnotateId,
-        scale,
+        pagesScale,
         zoomScale,
+        transformWrapperRef,
         onZoomScaleChange,
         onScaleChange,
         onAddTextField,
@@ -43,8 +44,8 @@ export default function ProjectBuilderByID() {
         onAnnotateResizeStop,
         onAnnotateSelect,
         onDocumentLoadSuccess,
-        onPageLoadSuccess,
         onColumnTitleChange,
+        onPageClick,
         removeUnnecessaryAnnotates,
     } = useAutoCert({
         initialPdfPage: 1,
@@ -79,13 +80,13 @@ export default function ProjectBuilderByID() {
             <Flex
                 vertical={false}
                 // to reserve space for the header
-                className={`w-fulloverflow-hidden`}
+                className={`w-full overflow-hidden`}
                 style={{
                     height: `calc(100vh - ${BarSize}px)`,
                 }}
             >
                 <Flex
-                    className="w-full p-2"
+                    className="w-full"
                     justify="center"
                     align="center"
                     style={{
@@ -93,16 +94,17 @@ export default function ProjectBuilderByID() {
                     }}
                 >
                     <AutoCert
+                        transformWrapperRef={transformWrapperRef}
                         zoomScale={zoomScale}
                         onZoomScaleChange={onZoomScaleChange}
-                        scale={scale}
+                        onPageClick={onPageClick}
+                        pagesScale={pagesScale}
                         onScaleChange={onScaleChange}
                         previewMode={false}
                         annotates={annotates}
                         currentPdfPage={currentPdfPage}
                         selectedAnnotateId={selectedAnnotateId}
                         onDocumentLoadSuccess={onDocumentLoadSuccess}
-                        onPageLoadSuccess={onPageLoadSuccess}
                         onDragStop={onAnnotateDragStop}
                         onResizeStop={onAnnotateResizeStop}
                         onAnnotateSelect={onAnnotateSelect}
@@ -113,13 +115,16 @@ export default function ProjectBuilderByID() {
                     style={{
                         borderLeft: `1px solid ${colorSplit}`,
                     }}
-                    className="p-2"
+                    className="p-2 w-1/3 overflow-y-auto overflow-x-hidden"
                 >
                     <AutoCertPanel
+                        {...autoCertTableProps}
+                        columns={columns}
+                        onColumnUpdate={onAutoCertTableColumnTitleUpdate}
+                        // End of table props
                         currentPdfPage={currentPdfPage}
                         selectedAnnotateId={selectedAnnotateId}
                         textAnnotates={textAnnotates}
-                        tableColumns={columns}
                         onAddSignatureField={onAddSignatureField}
                         onAddTextField={onAddTextField}
                         onUpdateTextField={onUpdateTextField}
