@@ -1,5 +1,5 @@
 // import { createScopedLogger } from "@/utils/logger";
-import { MouseEvent } from "react";
+import { memo, MouseEvent } from "react";
 import { DraggableEvent, DraggableData } from "react-draggable";
 import { ResizeEnable, Rnd } from "react-rnd";
 
@@ -44,7 +44,7 @@ export interface BaseAnnotateProps {
     onAnnotateSelect: (id: string | undefined) => void;
 }
 
-export default function BaseAnnotate({
+function BaseAnnotate({
     id,
     position,
     size,
@@ -70,22 +70,25 @@ export default function BaseAnnotate({
         onAnnotateSelect(id);
     };
 
+    const deZoomScale = scale / zoomScale;
+
+    const scaledSize = {
+        width: size.width * deZoomScale,
+        height: size.height * deZoomScale,
+    } satisfies WHSize;
+
+    const scaledPosition = {
+        x: position.x * deZoomScale,
+        y: position.y * deZoomScale,
+    } satisfies XYPosition;
+
     return (
         <Rnd
             // identifier for on select parent element (in AnnotateRenderer div onClick)
             className="annotation-rnd"
             scale={zoomScale}
-            size={{
-                // ...size,
-                // apply de-zoom scale since we already apply canvas scale
-                width: (size.width * scale) / zoomScale,
-                height: (size.height * scale) / zoomScale,
-            }}
-            position={{
-                // ...position,
-                x: (position.x * scale) / zoomScale,
-                y: (position.y * scale) / zoomScale,
-            }}
+            size={scaledSize}
+            position={scaledPosition}
             onDragStart={(_e, _data) => {
                 onAnnotateSelectWithStopPropagation(id, _e);
             }}
@@ -96,8 +99,8 @@ export default function BaseAnnotate({
                     _e,
                     {
                         ...position,
-                        x: (position.x / scale) * zoomScale,
-                        y: (position.y / scale) * zoomScale,
+                        x: position.x / deZoomScale,
+                        y: position.y / deZoomScale,
                     },
                     pageNumber
                 );
@@ -110,17 +113,15 @@ export default function BaseAnnotate({
                     id,
                     {
                         width:
-                            (Number(ref.style.width.replace("px", "")) /
-                                scale) *
-                            zoomScale,
+                            Number(ref.style.width.replace("px", "")) /
+                            deZoomScale,
                         height:
-                            (Number(ref.style.height.replace("px", "")) /
-                                scale) *
-                            zoomScale,
+                            Number(ref.style.height.replace("px", "")) /
+                            deZoomScale,
                     },
                     {
-                        x: (position.x / scale) * zoomScale,
-                        y: (position.y / scale) * zoomScale,
+                        x: position.x / deZoomScale,
+                        y: position.y / deZoomScale,
                     },
                     pageNumber
                 );
@@ -153,3 +154,5 @@ export default function BaseAnnotate({
         </Rnd>
     );
 }
+
+export default memo(BaseAnnotate);

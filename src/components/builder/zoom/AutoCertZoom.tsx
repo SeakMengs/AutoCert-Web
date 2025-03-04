@@ -1,4 +1,10 @@
-import React, { PropsWithChildren, RefObject, useRef, useState } from "react";
+import React, {
+    PropsWithChildren,
+    RefObject,
+    useCallback,
+    useRef,
+    useState,
+} from "react";
 import {
     TransformWrapper,
     TransformComponent,
@@ -34,7 +40,7 @@ export default function AutoCertZoom({
             return;
         }
 
-        transformWrapperRef.current.zoomIn(0.1, 0);
+        transformWrapperRef.current.zoomIn();
     };
 
     const handleZoomOut = () => {
@@ -43,7 +49,7 @@ export default function AutoCertZoom({
             return;
         }
 
-        transformWrapperRef.current.zoomOut(0.1, 0);
+        transformWrapperRef.current.zoomOut();
     };
 
     const handleReset = () => {
@@ -52,7 +58,7 @@ export default function AutoCertZoom({
             return;
         }
 
-        transformWrapperRef.current.resetTransform(0);
+        transformWrapperRef.current.resetTransform();
     };
 
     const onTransformed = (
@@ -83,6 +89,8 @@ export default function AutoCertZoom({
                 onTransformed={onTransformed}
                 wheel={{
                     wheelDisabled: true,
+                    // FIXME: Currently disable zoom because flicker issue and laggy
+                    disabled: true,
                 }}
                 zoomAnimation={{
                     animationTime: 200,
@@ -110,7 +118,8 @@ export default function AutoCertZoom({
                     {children}
                 </TransformComponent>
             </TransformWrapper>
-            <div className="absolute bottom-4 right-4">
+            {/* FIXME: Currently disable zoom because flicker issue and laggy */}
+            {/* <div className="absolute bottom-4 right-4">
                 <Space>
                     <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} />
                     <Text>{`${Math.round(zoomScale * 100)}%`}</Text>
@@ -122,7 +131,7 @@ export default function AutoCertZoom({
                         Reset
                     </Button>
                 </Space>
-            </div>
+            </div> */}
         </div>
     );
 }

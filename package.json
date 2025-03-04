@@ -13,6 +13,7 @@
     "@ant-design/nextjs-registry": "^1.0.2",
     "antd": "5.23.3",
     "axios": "^1.7.9",
+    "babel-plugin-react-compiler": "^19.0.0-beta-40c6c23-20250301",
     "chalk": "^5.4.1",
     "clsx": "^2.1.1",
     "moment": "^2.30.1",

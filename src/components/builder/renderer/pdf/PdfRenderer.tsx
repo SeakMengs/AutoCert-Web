@@ -28,7 +28,7 @@ export interface PdfRendererProps
     currentPdfPage: number;
     zoomScale: number;
     pagesScale: PagesScale;
-    onDocumentLoadSuccess?: (pdf: DocumentCallback) => void;
+    onDocumentLoadSuccess: (pdf: DocumentCallback) => void;
 }
 
 export default function PdfRenderer({
@@ -51,16 +51,14 @@ export default function PdfRenderer({
     previewMode,
 }: PdfRendererProps) {
     const [pdfPages, setPdfPages] = useState<number>(0);
-
+    
     return (
         <Document
             file={pdfFile}
             onLoadSuccess={(pdf) => {
                 setPdfPages(pdf.numPages);
 
-                if (typeof onDocumentLoadSuccess === "function") {
-                    onDocumentLoadSuccess(pdf);
-                }
+                onDocumentLoadSuccess(pdf);
             }}
             loading={<Skeleton.Image active className="w-96 h-96" />}
         >

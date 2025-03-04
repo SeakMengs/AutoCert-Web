@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { WHSize } from "../../annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
@@ -8,6 +8,7 @@ import AnnotateRenderer, {
     AnnotateRendererProps,
 } from "../annotate/AnnotateRenderer";
 import { theme } from "antd";
+import { PageCallback } from "react-pdf/src/shared/types.js";
 
 const logger = createScopedLogger("components:builder:renderer:pdf:Page");
 
@@ -46,11 +47,29 @@ export default function PageRenderer({
     });
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const updateScale = () => {
+    const onPageRenderSuccess = (page: PageCallback) => {
+        // const viewport = page.getViewport({ scale: 1 });
+        logger.debug(
+            `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf current size ${page.width}x${page.height}`
+        );
+        setPdfViewPort({
+            width: page.originalWidth,
+            height: page.originalHeight,
+        });
+    };
+
+    const updateScale = useCallback(() => {
         if (!containerRef.current) return;
         const currentWidth = containerRef.current.getBoundingClientRect().width;
         const originalWidth = pdfViewPort.width;
-        // parsefloat and round to 2 decimal places
+
+        if (originalWidth === 0) {
+            logger.warn(
+                `Pdf page: ${pageNumber}, Original width is 0, skip scale update`
+            );
+            return;
+        }
+
         const newScale =
             parseFloat((currentWidth / originalWidth).toFixed(3)) || 1;
 
@@ -59,11 +78,14 @@ export default function PageRenderer({
         // );
 
         onScaleChange(newScale, pageNumber);
-    };
+    }, [pdfViewPort, onScaleChange, pageNumber]);
 
     useEffect(() => {
-        updateScale();
-    }, [pdfViewPort]);
+        if (pdfViewPort.width > 0) {
+            updateScale();
+        }
+        // when zoomScale change, check for scale update
+    }, [pdfViewPort.width, zoomScale]);
 
     useEffect(() => {
         const resizeObserver = new ResizeObserver(() => {
@@ -75,24 +97,9 @@ export default function PageRenderer({
         }
 
         return () => {
-            if (containerRef.current) {
-                resizeObserver.unobserve(containerRef.current);
-            }
+            resizeObserver.disconnect();
         };
-    }, [pdfViewPort, containerRef, updateScale]);
-
-    // useEffect(() => {
-    //     window.addEventListener("resize", updateScale);
-    //     window.addEventListener("onAutoCertZoomTransformed", updateScale);
-
-    //     return () => {
-    //         window.removeEventListener(
-    //             "onAutoCertZoomTransformed",
-    //             updateScale
-    //         );
-    //         window.removeEventListener("resize", updateScale);
-    //     };
-    // }, [pdfViewPort]);
+    }, [pdfViewPort.width, updateScale]);
 
     return (
         <div
@@ -112,21 +119,11 @@ export default function PageRenderer({
         >
             <Page
                 _className="w-full h-auto object-cover"
-                onRenderSuccess={(page) => {
-                    // const viewport = page.getViewport({ scale: 1 });
-                    logger.debug(
-                        `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf current size ${page.width}x${page.height}`
-                    );
-                    setPdfViewPort({
-                        width: page.originalWidth,
-                        height: page.originalHeight,
-                    });
-                }}
+                onRenderSuccess={onPageRenderSuccess}
                 scale={1}
                 pageNumber={pageNumber}
                 className="pointer-events-none select-none"
                 canvasRef={(ref) => {
-                    // apply border
                     if (ref) {
                         ref.style.border = selected
                             ? `1px solid ${colorPrimary}`
@@ -148,7 +145,7 @@ export default function PageRenderer({
             />
             {!IS_PRODUCTION && (
                 <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
-                    Scale: {scale}
+                    Scale: {scale}, Zoom: {zoomScale}
                 </div>
             )}
         </div>

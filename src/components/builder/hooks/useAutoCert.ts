@@ -302,7 +302,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
         pageNumber: number
     ): void => {
         logger.debug(
-            `Resize annotation, w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, page scale: ${pagesScale[pageNumber]}`
+            `Resize annotation (unscaled), w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, page scale: ${pagesScale[pageNumber]}, zoomScale: ${zoomScale}`
         );
 
         setAnnotates((prev) => ({

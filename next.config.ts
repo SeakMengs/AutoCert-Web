@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
                 canvas: "./empty-module.ts",
             },
         },
+        // reactCompiler: true,
     },
     devIndicators: false,
 };
