@@ -7,7 +7,7 @@ import AutoCert, {
 import { useAutoCertTable, useAutoCert } from "@/hooks/useAutoCert";
 import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
-import { Flex, theme, Typography } from "antd";
+import { Flex, Splitter, theme, Typography } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 
 const { Title } = Typography;
@@ -77,41 +77,44 @@ export default function ProjectBuilderByID() {
     return (
         <>
             <Header />
-            <Flex
-                vertical={false}
+            <Splitter
                 // to reserve space for the header
                 className={`w-full overflow-hidden`}
                 style={{
                     height: `calc(100vh - ${BarSize}px)`,
                 }}
             >
-                <Flex
-                    className="w-full h-full"
-                    justify="center"
-                    align="center"
-                    style={{
-                        background: colorBgLayout,
-                    }}
-                >
-                    <AutoCert
-                        transformWrapperRef={transformWrapperRef}
-                        zoomScale={zoomScale}
-                        onZoomScaleChange={onZoomScaleChange}
-                        onPageClick={onPageClick}
-                        pagesScale={pagesScale}
-                        onScaleChange={onScaleChange}
-                        previewMode={false}
-                        annotates={annotates}
-                        currentPdfPage={currentPdfPage}
-                        selectedAnnotateId={selectedAnnotateId}
-                        onDocumentLoadSuccess={onDocumentLoadSuccess}
-                        onDragStop={onAnnotateDragStop}
-                        onResizeStop={onAnnotateResizeStop}
-                        onAnnotateSelect={onAnnotateSelect}
-                        pdfFile={pdfFile}
-                    />
-                </Flex>
-                <div
+                <Splitter.Panel>
+                    <Flex
+                        className="w-full h-full"
+                        justify="center"
+                        align="center"
+                        style={{
+                            background: colorBgLayout,
+                        }}
+                    >
+                        <AutoCert
+                            transformWrapperRef={transformWrapperRef}
+                            zoomScale={zoomScale}
+                            onZoomScaleChange={onZoomScaleChange}
+                            onPageClick={onPageClick}
+                            pagesScale={pagesScale}
+                            onScaleChange={onScaleChange}
+                            previewMode={false}
+                            annotates={annotates}
+                            currentPdfPage={currentPdfPage}
+                            selectedAnnotateId={selectedAnnotateId}
+                            onDocumentLoadSuccess={onDocumentLoadSuccess}
+                            onDragStop={onAnnotateDragStop}
+                            onResizeStop={onAnnotateResizeStop}
+                            onAnnotateSelect={onAnnotateSelect}
+                            pdfFile={pdfFile}
+                        />
+                    </Flex>
+                </Splitter.Panel>
+                <Splitter.Panel
+                    defaultSize={window.innerWidth / 3}
+                    max={window.innerWidth / 2}
                     style={{
                         borderLeft: `1px solid ${colorSplit}`,
                     }}
@@ -131,8 +134,8 @@ export default function ProjectBuilderByID() {
                         onDeleteTextField={onDeleteTextField}
                         onAnnotateSelect={onAnnotateSelect}
                     />
-                </div>
-            </Flex>
+                </Splitter.Panel>
+            </Splitter>
         </>
     );
 }

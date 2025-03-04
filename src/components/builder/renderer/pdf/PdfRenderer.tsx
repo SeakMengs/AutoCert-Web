@@ -5,7 +5,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
-import { Skeleton, Space } from "antd";
+import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
 import { AnnotateStates, PagesScale } from "../../hooks/useAutoCert";
 
@@ -60,7 +60,8 @@ export default function PdfRenderer({
 
                 onDocumentLoadSuccess(pdf);
             }}
-            loading={<Skeleton.Image active className="w-96 h-96" />}
+            loading={<DocumentLoading />}
+            error={<DocumentError />}
         >
             <Space direction="vertical">
                 {Array.from({ length: pdfPages }, (_, index) => (
@@ -84,4 +85,16 @@ export default function PdfRenderer({
             </Space>
         </Document>
     );
+}
+
+function DocumentLoading() {
+    return <Skeleton.Image active className="w-96 h-96" />;
+}
+
+function DocumentError() {
+    return <Result
+        status="error"
+        title="Failed to load PDF"
+        subTitle="If you have download manager extension, please disable it and try again."
+    />;
 }

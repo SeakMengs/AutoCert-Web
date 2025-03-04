@@ -76,11 +76,6 @@ export default function AutoCertZoom({
         <div className="relative w-full h-full">
             <TransformWrapper
                 ref={transformWrapperRef}
-                panning={
-                    {
-                        // disabled: true,
-                    }
-                }
                 initialScale={1}
                 centerOnInit
                 centerZoomedOut
@@ -92,10 +87,18 @@ export default function AutoCertZoom({
                     // FIXME: Currently disable zoom because flicker issue and laggy
                     disabled: true,
                 }}
+                pinch={{
+                    disabled: true,
+                }}
+                panning={
+                    {
+                        // disabled: true,
+                    }
+                }
                 zoomAnimation={{
                     animationTime: 200,
                 }}
-                // disabled
+                disabled
             >
                 <TransformComponent
                     wrapperStyle={{
