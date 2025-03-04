@@ -39,10 +39,16 @@ export type TextAnnotateState = BaseAnnotateState &
     type: "text";
   };
 
+// page
+export type TextAnnotateStates = Record<number, TextAnnotateState[]>;
+
 export type SignatureAnnotateState = BaseAnnotateState &
   BaseSignatureAnnotate & {
     type: "signature";
   };
+
+// page
+export type SignatureAnnotateStates = Record<number, SignatureAnnotateState[]>;
 
 export type AnnotateState = TextAnnotateState | SignatureAnnotateState;
 
@@ -100,10 +106,9 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   // currently not use
   const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
   const [annotates, setAnnotates] = useState<AnnotateStates>({});
-  const [textAnnotates, setTextAnnotates] = useState<TextAnnotateState[]>([]);
-  const [signatureAnnotates, setSignatureAnnotates] = useState<
-    SignatureAnnotateState[]
-  >([]);
+  const [textAnnotates, setTextAnnotates] = useState<TextAnnotateStates>({});
+  const [signatureAnnotates, setSignatureAnnotates] =
+    useState<SignatureAnnotateStates>({});
   const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
   const [currentPdfPage, setCurrentPdfPage] = useState<number>(initialPdfPage);
   // Scale apply in annotate folder
@@ -117,22 +122,23 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
    *  Technically not efficient enough, however since we only handle a few annotates, it should be fine
    * */
   useEffect(() => {
-    const texts: TextAnnotateState[] = [];
-    const signatures: SignatureAnnotateState[] = [];
+    const texts: TextAnnotateStates = {};
+    const signatures: SignatureAnnotateStates = {};
     const pages = Object.keys(annotates);
 
     pages.forEach((p) => {
       annotates[Number(p)].forEach((a) => {
         switch (a.type) {
           case "text":
-            texts.push(a);
+            texts[Number(p)] = [...(texts[Number(p)] || []), a];
             break;
           case "signature":
-            signatures.push(a);
+            signatures[Number(p)] = [...(signatures[Number(p)] || []), a];
             break;
         }
       });
     });
+
     setTextAnnotates(texts);
     setSignatureAnnotates(signatures);
   }, [annotates]);

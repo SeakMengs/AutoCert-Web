@@ -1,34 +1,23 @@
 "use client";
-// Rename to avoid conflict with antd
-import AutoCert, {
-  AutoCertPanel,
-  AutoCertTable,
-} from "@/components/builder/AutoCert";
+import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
 import { useAutoCertTable, useAutoCert } from "@/hooks/useAutoCert";
 import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
 import { Flex, Splitter, theme, Typography } from "antd";
-import { BarSize } from "@/app/dashboard/layout_client";
+import { BarSize, headerStyle } from "@/app/dashboard/layout_client";
 
 const { Title } = Typography;
 
-const headerStyle: React.CSSProperties = {
-  position: "sticky",
-  top: 0,
-  zIndex: 1,
-  width: "100%",
-  alignItems: "center",
-};
-
 export default function ProjectBuilderByID() {
   const {
-    token: { colorBgLayout, colorSplit },
+    token: { colorSplit },
   } = theme.useToken();
   const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
   // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
   const {
     annotates,
     textAnnotates,
+    signatureAnnotates,
     currentPdfPage,
     selectedAnnotateId,
     pagesScale,
@@ -74,22 +63,21 @@ export default function ProjectBuilderByID() {
 
   return (
     <>
-      <Header />
       <Splitter
         // to reserve space for the header
         className={`w-full overflow-hidden`}
-        style={{
-          height: `calc(100vh - ${BarSize}px)`,
-        }}
+        style={
+          {
+            // height: `calc(100vh - ${BarSize}px)`,
+          }
+        }
       >
-        <Splitter.Panel>
+        <Splitter.Panel className="p-0 overflow-hidden">
+          <Header />
           <Flex
-            className="w-full h-full"
+            className="w-full h-full p-2 overflow-auto scrollbar-hide"
             justify="center"
             align="center"
-            style={{
-              background: colorBgLayout,
-            }}
           >
             <AutoCert
               transformWrapperRef={transformWrapperRef}
@@ -111,15 +99,17 @@ export default function ProjectBuilderByID() {
           </Flex>
         </Splitter.Panel>
         <Splitter.Panel
-          defaultSize={window.innerWidth / 3}
+          defaultSize={window.innerWidth / 5}
           max={window.innerWidth / 2}
           style={{
             borderLeft: `1px solid ${colorSplit}`,
           }}
-          className="p-2 w-1/3 overflow-y-auto overflow-x-hidden"
+          className="w-1/5 overflow-y-auto overflow-x-hidden"
+          collapsible
         >
           <AutoCertPanel
             {...autoCertTableProps}
+            signatureAnnotates={signatureAnnotates}
             columns={columns}
             onColumnUpdate={onAutoCertTableColumnTitleUpdate}
             // End of table props

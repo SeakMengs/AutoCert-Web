@@ -1,26 +1,13 @@
-import React, {
-  PropsWithChildren,
-  RefObject,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import React, { PropsWithChildren, RefObject } from "react";
 import {
   TransformWrapper,
   TransformComponent,
   ReactZoomPanPinchContentRef,
   ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
-import { Button, Space, Typography } from "antd";
-import {
-  ZoomInOutlined,
-  ZoomOutOutlined,
-  UndoOutlined,
-} from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("components:builder:zoom:AutoCertZoom");
-const { Text } = Typography;
 
 export interface AutoCertZoomProps {
   transformWrapperRef: RefObject<ReactZoomPanPinchContentRef | null>;
@@ -108,7 +95,7 @@ export default function AutoCertZoom({
             justifyContent: "center",
             alignItems: "center",
             padding: 2,
-            overflow: "auto",
+            overflow: "inherit",
           }}
           contentStyle={{
             width: "100%",

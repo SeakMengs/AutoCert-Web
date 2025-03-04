@@ -30,7 +30,7 @@ const initialAuthState = {
 } satisfies AuthState;
 
 export type AuthContextValue = AuthState & {
-  revalidate: () => Promise<void>;
+  revalidate: () => Promise<JwtTokenValidationResult>;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
@@ -56,22 +56,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const fetchAuthState = async (): Promise<void> => {
+  const fetchAuthState = async (): Promise<JwtTokenValidationResult> => {
     try {
       const result: JwtTokenValidationResult = await validateAccessToken();
       setAuthState({
         ...result,
         loading: false,
       });
+
+      clientRevalidatePath(pathname);
+      return result;
     } catch (error: any) {
-      setAuthState({
+      const failAuthState = {
         ...initialAuthState,
         loading: false,
         error: error instanceof Error ? error.message : String(error),
-      });
-    }
+      };
 
-    clientRevalidatePath(pathname);
+      setAuthState(failAuthState);
+      return failAuthState;
+    }
   };
 
   async function clientRefreshAccessToken(
@@ -83,10 +87,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     try {
       const refreshed = await refreshAccessToken();
-      await fetchAuthState();
+      // Revalidate auth state
+      const result = await fetchAuthState();
 
-      if (!refreshed) {
-        logger.error("Failed to refresh access token");
+      // If refresh failed, check if the token is valid because other browser tabs may have already refreshed the token
+      if (!refreshed || !result.isAuthenticated) {
+        logger.error(`Failed to refresh access token, after fetch auth state isAuthenticated: ${result.isAuthenticated}`);
         router.push("/?error=Failed to reauthenticate");
 
         if (pathname === "/") {

@@ -1,4 +1,11 @@
-import { Collapse, CollapseProps, Space, Typography } from "antd";
+import {
+  Collapse,
+  CollapseProps,
+  Space,
+  Tabs,
+  TabsProps,
+  Typography,
+} from "antd";
 import AutoCertTextTool, {
   AutoCertTextToolProps,
 } from "./tool/text/AutoCertTextTool";
@@ -6,6 +13,14 @@ import AutoCertSignatoryTool, {
   AutoCertSignatoryToolProps,
 } from "./tool/signatory/AutoCertSignatoryTool";
 import AutoCertTable, { AutoCertTableProps } from "./table/AutoCertTable";
+import {
+  AppstoreOutlined,
+  FontSizeOutlined,
+  FormOutlined,
+  TableOutlined,
+  ToolOutlined,
+} from "@ant-design/icons";
+import { BarSize, headerStyle } from "@/app/dashboard/layout_client";
 
 export interface AutoCertPanelProps
   extends AutoCertTextToolProps,
@@ -19,6 +34,7 @@ export default function AutoCertPanel({
   selectedAnnotateId,
   currentPdfPage,
   textAnnotates,
+  signatureAnnotates,
   onAnnotateSelect,
   onAddTextField,
   onUpdateTextField,
@@ -28,19 +44,15 @@ export default function AutoCertPanel({
   // Table,
   columns,
   ...autoCertTableProps
-}: // rows,
-// onColumnUpdate,
-// onColumnAdd,
-// onColumnDelete,
-// onImportFromCSV,
-// onRowAdd,
-// onRowUpdate,
-// onRowsDelete,
-AutoCertPanelProps) {
+}: AutoCertPanelProps) {
   const collapseItems: CollapseProps["items"] = [
     {
       key: "1",
-      label: "Text fields",
+      label: (
+        <span>
+          <FontSizeOutlined /> Text Fields
+        </span>
+      ),
       children: (
         <AutoCertTextTool
           selectedAnnotateId={selectedAnnotateId}
@@ -57,9 +69,16 @@ AutoCertPanelProps) {
     },
     {
       key: "2",
-      label: "Signatories",
+      label: (
+        <span>
+          <FormOutlined /> Signatories
+        </span>
+      ),
       children: (
         <AutoCertSignatoryTool
+          currentPdfPage={currentPdfPage}
+          signatureAnnotates={signatureAnnotates}
+          onAnnotateSelect={onAnnotateSelect}
           onAddSignatureField={onAddSignatureField}
           selectedAnnotateId={selectedAnnotateId}
         />
@@ -68,12 +87,50 @@ AutoCertPanelProps) {
     },
   ];
 
+  const tabs = [
+    {
+      key: "1",
+      label: (
+        <span>
+          <ToolOutlined /> Tools
+        </span>
+      ),
+      children: (
+        <div className="px-2">
+          <Collapse
+            defaultActiveKey={["1", "2"]}
+            items={collapseItems}
+            bordered={false}
+            expandIconPosition="end"
+          />
+        </div>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <span>
+          <TableOutlined /> Data
+        </span>
+      ),
+      children: (
+        <div className="px-2">
+          <AutoCertTable columns={columns} {...autoCertTableProps} />
+        </div>
+      ),
+    },
+  ] satisfies TabsProps["items"];
+
   return (
-    <Space direction="vertical" className="w-full">
-      <Title level={5}>Tools</Title>
-      <Collapse items={collapseItems} />
-      <Title level={5}>Table management</Title>
-      <AutoCertTable columns={columns} {...autoCertTableProps} />
-    </Space>
+    <Tabs
+      centered
+      defaultActiveKey="1"
+      items={tabs}
+      // TODO: fix tab bar scroll
+      tabBarStyle={{
+        // ...headerStyle,
+        height: BarSize,
+      }}
+    />
   );
 }

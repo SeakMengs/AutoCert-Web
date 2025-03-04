@@ -28,10 +28,18 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("dashboard:layout_client");
-const { Header, Sider, Content } = Layout;
+const {  Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
 export const BarSize = 56;
+
+export const headerStyle: React.CSSProperties = {
+  position: "sticky",
+  top: 0,
+  zIndex: 1,
+  width: "100%",
+  alignItems: "center",
+};
 
 export default function DashboardLayoutClient({
   user,

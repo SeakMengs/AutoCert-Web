@@ -30,8 +30,8 @@ describe("useAutoCert", () => {
     expect(result.current.totalPdfPage).toBe(0);
     expect(result.current.pagesScale).toEqual({});
     expect(result.current.annotates).toEqual({});
-    expect(result.current.textAnnotates).toEqual([]);
-    expect(result.current.signatureAnnotates).toEqual([]);
+    expect(result.current.textAnnotates).toEqual({});
+    expect(result.current.signatureAnnotates).toEqual({});
     expect(result.current.zoomScale).toBe(1);
     expect(result.current.selectedAnnotateId).toBe(undefined);
   });
@@ -70,7 +70,7 @@ describe("useAutoCert", () => {
     });
 
     expect(result.current.annotates[initialPdfPage]).toHaveLength(1);
-    expect(result.current.textAnnotates).toHaveLength(1);
+    expect(result.current.textAnnotates[initialPdfPage]).toHaveLength(1);
 
     const textAnnotate = result.current.annotates[initialPdfPage][0];
     expect(textAnnotate.type).toBe("text");
@@ -92,7 +92,7 @@ describe("useAutoCert", () => {
     });
 
     expect(result.current.annotates[initialPdfPage]).toHaveLength(1);
-    expect(result.current.signatureAnnotates).toHaveLength(1);
+    expect(result.current.signatureAnnotates[initialPdfPage]).toHaveLength(1);
 
     const signatureAnnotate = result.current.annotates[initialPdfPage][0];
     expect(signatureAnnotate.type).toBe("signature");
@@ -152,7 +152,7 @@ describe("useAutoCert", () => {
     });
 
     expect(result.current.annotates[initialPdfPage]).toHaveLength(0);
-    expect(result.current.textAnnotates).toHaveLength(0);
+    expect(result.current.textAnnotates[initialPdfPage]).toBeUndefined();
   });
 
   it("should handle annotation selection", () => {
@@ -329,7 +329,7 @@ describe("useAutoCert", () => {
     }
 
     expect(annotates[0].value).toBe("KeepThis");
-    expect(result.current.textAnnotates).toHaveLength(1);
-    expect(result.current.signatureAnnotates).toHaveLength(0);
+    expect(result.current.textAnnotates[initialPdfPage]).toHaveLength(1);
+    expect(result.current.signatureAnnotates[initialPdfPage]).toBeUndefined();
   });
 });
