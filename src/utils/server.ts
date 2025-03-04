@@ -9,9 +9,7 @@ export async function getProtocol(): Promise<string> {
 
   if (!protocol) {
     const h = await headers();
-    protocol =
-      h.get("x-forwarded-proto") ||
-      (IS_PRODUCTION ? "https" : "http");
+    protocol = h.get("x-forwarded-proto") || (IS_PRODUCTION ? "https" : "http");
   }
 
   return protocol;

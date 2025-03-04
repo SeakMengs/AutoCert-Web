@@ -1,9 +1,9 @@
 "use client";
 import { AccessTokenCookie, RefreshTokenCookie } from "@/utils";
 import {
-    JwtTokenValidationResult,
-    refreshAccessToken,
-    validateAccessToken,
+  JwtTokenValidationResult,
+  refreshAccessToken,
+  validateAccessToken,
 } from "@/utils/auth";
 import { createScopedLogger } from "@/utils/logger";
 import { clientRevalidatePath } from "@/utils/server";
@@ -16,172 +16,161 @@ import { createContext, ReactNode, useEffect, useState } from "react";
 const logger = createScopedLogger("app:auth_provider");
 
 type AuthState = JwtTokenValidationResult & {
-    loading: boolean;
+  loading: boolean;
 };
 
 const initialAuthState = {
-    isAuthenticated: false,
-    user: null,
-    accessToken: null,
-    loading: true,
-    error: null,
-    exp: null,
-    iat: null,
+  isAuthenticated: false,
+  user: null,
+  accessToken: null,
+  loading: true,
+  error: null,
+  exp: null,
+  iat: null,
 } satisfies AuthState;
 
 export type AuthContextValue = AuthState & {
-    revalidate: () => Promise<void>;
+  revalidate: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
-    undefined
+  undefined,
 );
 
 type AuthProviderProps = {
-    children: Readonly<ReactNode>;
+  children: Readonly<ReactNode>;
 };
 
 const RefreshTokenType = {
-    TokenExpire: "TokenExpire",
-    Timer: "Timer",
-    MissingAccessToken: "MissingAccessToken",
+  TokenExpire: "TokenExpire",
+  Timer: "Timer",
+  MissingAccessToken: "MissingAccessToken",
 } as const;
 
 // Path that should not trigger refresh token
 const ExcludePath = ["/authenticating"];
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const [messageApi, contextHolder] = message.useMessage();
-    const [authState, setAuthState] = useState<AuthState>(initialAuthState);
-    const pathname = usePathname();
-    const router = useRouter();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [authState, setAuthState] = useState<AuthState>(initialAuthState);
+  const pathname = usePathname();
+  const router = useRouter();
 
-    const fetchAuthState = async (): Promise<void> => {
-        try {
-            const result: JwtTokenValidationResult =
-                await validateAccessToken();
-            setAuthState({
-                ...result,
-                loading: false,
-            });
-        } catch (error: any) {
-            setAuthState({
-                ...initialAuthState,
-                loading: false,
-                error: error instanceof Error ? error.message : String(error),
-            });
-        }
-
-        clientRevalidatePath(pathname);
-    };
-
-    async function clientRefreshAccessToken(
-        type: keyof typeof RefreshTokenType
-    ): Promise<void> {
-        if (ExcludePath.includes(pathname)) {
-            return;
-        }
-
-        try {
-            const refreshed = await refreshAccessToken();
-            await fetchAuthState();
-
-            if (!refreshed) {
-                logger.error("Failed to refresh access token");
-                router.push("/?error=Failed to reauthenticate");
-
-                if (pathname === "/") {
-                    const refreshToken = await getCookie(RefreshTokenCookie);
-
-                    const errorMsg = !refreshToken
-                        ? "Failed to authenticate"
-                        : "Failed to reauthenticate";
-
-                    messageApi.open({
-                        type: "error",
-                        content: errorMsg,
-                    });
-                }
-                return;
-            }
-        } catch (error: any) {
-            switch (type) {
-                case RefreshTokenType.MissingAccessToken:
-                    logger.error(
-                        "MissingAccessToken: Immediate refresh failed:",
-                        error
-                    );
-                    break;
-                case RefreshTokenType.TokenExpire:
-                    logger.error(
-                        "TokenExpire: Immediate refresh failed:",
-                        error
-                    );
-                    break;
-                case RefreshTokenType.Timer:
-                    logger.error("Timer: Scheduled refresh failed:", error);
-                    break;
-            }
-        }
+  const fetchAuthState = async (): Promise<void> => {
+    try {
+      const result: JwtTokenValidationResult = await validateAccessToken();
+      setAuthState({
+        ...result,
+        loading: false,
+      });
+    } catch (error: any) {
+      setAuthState({
+        ...initialAuthState,
+        loading: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
-    useEffect(() => {
-        getCookie(AccessTokenCookie).then(async (token) => {
-            if (!token) {
-                await clientRefreshAccessToken(
-                    RefreshTokenType.MissingAccessToken
-                );
-                return;
-            }
-        });
-    }, [pathname]);
+    clientRevalidatePath(pathname);
+  };
 
-    // Access token rotation
-    useEffect(() => {
-        // If user isn't authenticated or we don't have an expiration time, skip scheduling.
-        if (!authState.isAuthenticated || !authState.exp) {
-            return;
+  async function clientRefreshAccessToken(
+    type: keyof typeof RefreshTokenType,
+  ): Promise<void> {
+    if (ExcludePath.includes(pathname)) {
+      return;
+    }
+
+    try {
+      const refreshed = await refreshAccessToken();
+      await fetchAuthState();
+
+      if (!refreshed) {
+        logger.error("Failed to refresh access token");
+        router.push("/?error=Failed to reauthenticate");
+
+        if (pathname === "/") {
+          const refreshToken = await getCookie(RefreshTokenCookie);
+
+          const errorMsg = !refreshToken
+            ? "Failed to authenticate"
+            : "Failed to reauthenticate";
+
+          messageApi.open({
+            type: "error",
+            content: errorMsg,
+          });
         }
+        return;
+      }
+    } catch (error: any) {
+      switch (type) {
+        case RefreshTokenType.MissingAccessToken:
+          logger.error("MissingAccessToken: Immediate refresh failed:", error);
+          break;
+        case RefreshTokenType.TokenExpire:
+          logger.error("TokenExpire: Immediate refresh failed:", error);
+          break;
+        case RefreshTokenType.Timer:
+          logger.error("Timer: Scheduled refresh failed:", error);
+          break;
+      }
+    }
+  }
 
-        const now = moment();
-        // `exp` is in seconds
-        const expMs = moment.unix(authState.exp);
-        // Refresh token 30 seconds before it expires.
-        const refreshMsBeforeExp = moment.duration(30, "seconds");
-        const timeUntilRefresh =
-            expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
-        const tokenExpired = timeUntilRefresh <= 0;
+  useEffect(() => {
+    getCookie(AccessTokenCookie).then(async (token) => {
+      if (!token) {
+        await clientRefreshAccessToken(RefreshTokenType.MissingAccessToken);
+        return;
+      }
+    });
+  }, [pathname]);
 
-        logger.debug(`Time until refresh ${moment
-            .duration(timeUntilRefresh)
-            .asMinutes()} minutes, \n 
+  // Access token rotation
+  useEffect(() => {
+    // If user isn't authenticated or we don't have an expiration time, skip scheduling.
+    if (!authState.isAuthenticated || !authState.exp) {
+      return;
+    }
+
+    const now = moment();
+    // `exp` is in seconds
+    const expMs = moment.unix(authState.exp);
+    // Refresh token 30 seconds before it expires.
+    const refreshMsBeforeExp = moment.duration(30, "seconds");
+    const timeUntilRefresh =
+      expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
+    const tokenExpired = timeUntilRefresh <= 0;
+
+    logger.debug(`Time until refresh ${moment
+      .duration(timeUntilRefresh)
+      .asMinutes()} minutes, \n 
         refresh at ${now.add(timeUntilRefresh, "milliseconds").toDate()} \n
         token expire date ${expMs.toDate()} \n
         token expired: ${tokenExpired} \n
         `);
 
-        if (tokenExpired) {
-            clientRefreshAccessToken(RefreshTokenType.TokenExpire);
-            return;
-        }
+    if (tokenExpired) {
+      clientRefreshAccessToken(RefreshTokenType.TokenExpire);
+      return;
+    }
 
-        const refreshTimer = setTimeout(async () => {
-            await clientRefreshAccessToken(RefreshTokenType.Timer);
-        }, timeUntilRefresh);
+    const refreshTimer = setTimeout(async () => {
+      await clientRefreshAccessToken(RefreshTokenType.Timer);
+    }, timeUntilRefresh);
 
-        return () => clearTimeout(refreshTimer);
-    }, [authState.isAuthenticated, authState.exp]);
+    return () => clearTimeout(refreshTimer);
+  }, [authState.isAuthenticated, authState.exp]);
 
-    useEffect(() => {
-        fetchAuthState();
-    }, []);
+  useEffect(() => {
+    fetchAuthState();
+  }, []);
 
-    return (
-        <AuthContext.Provider
-            value={{ ...authState, revalidate: fetchAuthState }}
-        >
-            {contextHolder}
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ ...authState, revalidate: fetchAuthState }}>
+      {contextHolder}
+      {children}
+    </AuthContext.Provider>
+  );
 };

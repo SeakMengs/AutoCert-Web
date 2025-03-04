@@ -1,7 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useRef } from "react"
-import { Layout, Menu, Button, Tabs, Card, Row, Col, Divider, Space, Typography, Upload } from "antd"
+import { useState, useRef } from "react";
+import {
+  Layout,
+  Menu,
+  Button,
+  Tabs,
+  Card,
+  Row,
+  Col,
+  Divider,
+  Space,
+  Typography,
+  Upload,
+} from "antd";
 import {
   SaveOutlined,
   ExportOutlined,
@@ -18,27 +30,48 @@ import {
   FontSizeOutlined,
   PictureOutlined,
   EditOutlined,
-} from "@ant-design/icons"
-import { TransformWrapper, TransformComponent, ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch"
+} from "@ant-design/icons";
+import {
+  TransformWrapper,
+  TransformComponent,
+  ReactZoomPanPinchContentRef,
+} from "react-zoom-pan-pinch";
 
-const { Header, Sider, Content } = Layout
-const { Title } = Typography
+const { Header, Sider, Content } = Layout;
+const { Title } = Typography;
 
 const CertificateBuilder = () => {
-  const [collapsed, setCollapsed] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(2)
-  const [selectedTemplate, setSelectedTemplate] = useState("classic")
-  const transformComponentRef = useRef<ReactZoomPanPinchContentRef>(null)
+  const [collapsed, setCollapsed] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(2);
+  const [selectedTemplate, setSelectedTemplate] = useState("classic");
+  const transformComponentRef = useRef<ReactZoomPanPinchContentRef>(null);
 
-  const certificateImage = "https://www.pngplay.com/wp-content/uploads/6/Training-Course-Certificate-PNG-HD-Quality.png"
+  const certificateImage =
+    "https://www.pngplay.com/wp-content/uploads/6/Training-Course-Certificate-PNG-HD-Quality.png";
 
   const templates = [
-    { key: "classic", name: "Classic", image: "/placeholder.svg?height=100&width=100" },
-    { key: "modern", name: "Modern", image: "/placeholder.svg?height=100&width=100" },
-    { key: "elegant", name: "Elegant", image: "/placeholder.svg?height=100&width=100" },
-    { key: "minimal", name: "Minimal", image: "/placeholder.svg?height=100&width=100" },
-  ]
+    {
+      key: "classic",
+      name: "Classic",
+      image: "/placeholder.svg?height=100&width=100",
+    },
+    {
+      key: "modern",
+      name: "Modern",
+      image: "/placeholder.svg?height=100&width=100",
+    },
+    {
+      key: "elegant",
+      name: "Elegant",
+      image: "/placeholder.svg?height=100&width=100",
+    },
+    {
+      key: "minimal",
+      name: "Minimal",
+      image: "/placeholder.svg?height=100&width=100",
+    },
+  ];
 
   const colorOptions = [
     "#1890ff", // Blue
@@ -46,25 +79,25 @@ const CertificateBuilder = () => {
     "#722ed1", // Purple
     "#faad14", // Yellow
     "#f5222d", // Red
-  ]
+  ];
 
   const handleZoomIn = () => {
     if (transformComponentRef.current) {
-      transformComponentRef.current.zoomIn()
+      transformComponentRef.current.zoomIn();
     }
-  }
+  };
 
   const handleZoomOut = () => {
     if (transformComponentRef.current) {
-      transformComponentRef.current.zoomOut()
+      transformComponentRef.current.zoomOut();
     }
-  }
+  };
 
   const handleReset = () => {
     if (transformComponentRef.current) {
-      transformComponentRef.current.resetTransform()
+      transformComponentRef.current.resetTransform();
     }
-  }
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -148,7 +181,13 @@ const CertificateBuilder = () => {
             </Button>
           </Space>
         </Header>
-        <Content style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)" }}>
+        <Content
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "calc(100vh - 64px)",
+          }}
+        >
           <div
             style={{
               display: "flex",
@@ -172,11 +211,16 @@ const CertificateBuilder = () => {
               <Button
                 icon={<RightOutlined />}
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
               >
                 Next
               </Button>
-              <Button icon={<PlusOutlined />} onClick={() => setTotalPages((p) => p + 1)}>
+              <Button
+                icon={<PlusOutlined />}
+                onClick={() => setTotalPages((p) => p + 1)}
+              >
                 Add Page
               </Button>
             </Space>
@@ -306,7 +350,9 @@ const CertificateBuilder = () => {
                                     >
                                       <img
                                         alt={template.name}
-                                        src={template.image || "/placeholder.svg"}
+                                        src={
+                                          template.image || "/placeholder.svg"
+                                        }
                                         style={{
                                           maxHeight: "100%",
                                           maxWidth: "100%",
@@ -317,13 +363,21 @@ const CertificateBuilder = () => {
                                   }
                                   style={{
                                     border:
-                                      selectedTemplate === template.key ? "2px solid #1890ff" : "1px solid #f0f0f0",
+                                      selectedTemplate === template.key
+                                        ? "2px solid #1890ff"
+                                        : "1px solid #f0f0f0",
                                   }}
-                                  onClick={() => setSelectedTemplate(template.key)}
+                                  onClick={() =>
+                                    setSelectedTemplate(template.key)
+                                  }
                                 >
                                   <Card.Meta
                                     title={template.name}
-                                    style={{ textAlign: "center", margin: 0, padding: 0 }}
+                                    style={{
+                                      textAlign: "center",
+                                      margin: 0,
+                                      padding: 0,
+                                    }}
                                   />
                                 </Card>
                               </Col>
@@ -333,7 +387,11 @@ const CertificateBuilder = () => {
                           <Divider style={{ margin: "24px 0 16px" }} />
 
                           <Title level={5}>Upload Certificate Image</Title>
-                          <Upload.Dragger maxCount={1} showUploadList={false} style={{ padding: "10px" }}>
+                          <Upload.Dragger
+                            maxCount={1}
+                            showUploadList={false}
+                            style={{ padding: "10px" }}
+                          >
                             <div style={{ padding: "16px 0" }}>
                               <p style={{ marginBottom: "8px" }}>
                                 <UploadOutlined style={{ fontSize: "24px" }} />
@@ -345,7 +403,13 @@ const CertificateBuilder = () => {
                           <Divider style={{ margin: "24px 0 16px" }} />
 
                           <Title level={5}>Colors</Title>
-                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "8px",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {colorOptions.map((color) => (
                               <div
                                 key={color}
@@ -365,13 +429,25 @@ const CertificateBuilder = () => {
 
                           <Title level={5}>Elements</Title>
                           <Space direction="vertical" style={{ width: "100%" }}>
-                            <Button icon={<FontSizeOutlined />} block style={{ display: "flex", alignItems: "center" }}>
+                            <Button
+                              icon={<FontSizeOutlined />}
+                              block
+                              style={{ display: "flex", alignItems: "center" }}
+                            >
                               Add Text
                             </Button>
-                            <Button icon={<PictureOutlined />} block style={{ display: "flex", alignItems: "center" }}>
+                            <Button
+                              icon={<PictureOutlined />}
+                              block
+                              style={{ display: "flex", alignItems: "center" }}
+                            >
                               Add Image
                             </Button>
-                            <Button icon={<EditOutlined />} block style={{ display: "flex", alignItems: "center" }}>
+                            <Button
+                              icon={<EditOutlined />}
+                              block
+                              style={{ display: "flex", alignItems: "center" }}
+                            >
                               Add Signature
                             </Button>
                           </Space>
@@ -404,8 +480,7 @@ const CertificateBuilder = () => {
         </Content>
       </Layout>
     </Layout>
-  )
-}
+  );
+};
 
-export default CertificateBuilder
-
+export default CertificateBuilder;

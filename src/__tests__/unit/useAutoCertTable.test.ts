@@ -1,153 +1,153 @@
 import {
-    AutoCertTableRow,
-    AutoCertTableColumn,
+  AutoCertTableRow,
+  AutoCertTableColumn,
 } from "@/components/builder/panel/table/AutoCertTable";
 import { useAutoCertTable } from "@/hooks/useAutoCert";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 
 describe("useAutoCertTable", () => {
-    const initialRows: AutoCertTableRow[] = [
-        { key: "1", name: "Row 1" },
-        { key: "2", name: "Row 2" },
-    ];
-    const initialColumns: AutoCertTableColumn[] = [
-        { title: "name", dataIndex: "name", editable: true },
-    ];
+  const initialRows: AutoCertTableRow[] = [
+    { key: "1", name: "Row 1" },
+    { key: "2", name: "Row 2" },
+  ];
+  const initialColumns: AutoCertTableColumn[] = [
+    { title: "name", dataIndex: "name", editable: true },
+  ];
 
-    it("should initialize with given rows and columns", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+  it("should initialize with given rows and columns", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        expect(result.current.rows).toEqual(initialRows);
-        expect(result.current.columns).toEqual(initialColumns);
+    expect(result.current.rows).toEqual(initialRows);
+    expect(result.current.columns).toEqual(initialColumns);
+  });
+
+  it("should add a new row", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
+
+    const newRow = {
+      key: "3",
+      name: "Row 3",
+    } satisfies AutoCertTableRow;
+
+    act(() => {
+      result.current.onRowAdd(newRow);
     });
 
-    it("should add a new row", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+    expect(result.current.rows).toHaveLength(3);
+    expect(result.current.rows[2]).toEqual(newRow);
+  });
 
-        const newRow = {
-            key: "3",
-            name: "Row 3",
-        } satisfies AutoCertTableRow;
+  it("should update an existing row", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        act(() => {
-            result.current.onRowAdd(newRow);
-        });
+    const updatedRow = {
+      key: "1",
+      name: "Updated Row 1",
+    } satisfies AutoCertTableRow;
 
-        expect(result.current.rows).toHaveLength(3);
-        expect(result.current.rows[2]).toEqual(newRow);
+    act(() => {
+      result.current.onRowUpdate(updatedRow);
     });
 
-    it("should update an existing row", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+    expect(result.current.rows[0]).toEqual(updatedRow);
+  });
 
-        const updatedRow = {
-            key: "1",
-            name: "Updated Row 1",
-        } satisfies AutoCertTableRow;
+  it("should add a new column", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        act(() => {
-            result.current.onRowUpdate(updatedRow);
-        });
+    const newColumn = {
+      title: "age",
+      dataIndex: "age",
+      editable: true,
+    } satisfies AutoCertTableColumn;
 
-        expect(result.current.rows[0]).toEqual(updatedRow);
+    act(() => {
+      result.current.onColumnAdd(newColumn);
     });
 
-    it("should add a new column", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+    expect(result.current.columns).toHaveLength(2);
+    expect(result.current.columns[1]).toEqual(newColumn);
+    expect(result.current.rows[0]).toHaveProperty("age", "");
+  });
 
-        const newColumn = {
-            title: "age",
-            dataIndex: "age",
-            editable: true,
-        } satisfies AutoCertTableColumn;
+  it("should delete a column", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        act(() => {
-            result.current.onColumnAdd(newColumn);
-        });
+    const columnTitle = "name";
 
-        expect(result.current.columns).toHaveLength(2);
-        expect(result.current.columns[1]).toEqual(newColumn);
-        expect(result.current.rows[0]).toHaveProperty("age", "");
+    act(() => {
+      result.current.onColumnDelete(columnTitle);
     });
 
-    it("should delete a column", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+    expect(result.current.columns).toHaveLength(0);
+    expect(result.current.rows[0]).not.toHaveProperty(columnTitle);
+  });
 
-        const columnTitle = "name";
+  it("should update a column title", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        act(() => {
-            result.current.onColumnDelete(columnTitle);
-        });
+    const oldTitle = "name";
+    const newTitle = "fullName";
 
-        expect(result.current.columns).toHaveLength(0);
-        expect(result.current.rows[0]).not.toHaveProperty(columnTitle);
+    act(() => {
+      result.current.onColumnUpdate(oldTitle, newTitle);
     });
 
-    it("should update a column title", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+    expect(result.current.columns[0]).toEqual({
+      title: newTitle,
+      dataIndex: newTitle,
+      editable: true,
+    } satisfies AutoCertTableColumn);
+    expect(result.current.rows[0]).toHaveProperty(newTitle, "Row 1");
+  });
 
-        const oldTitle = "name";
-        const newTitle = "fullName";
+  it("should delete selected rows", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        act(() => {
-            result.current.onColumnUpdate(oldTitle, newTitle);
-        });
+    const selectedRowKeys = [initialRows[0].key];
 
-        expect(result.current.columns[0]).toEqual({
-            title: newTitle,
-            dataIndex: newTitle,
-            editable: true,
-        } satisfies AutoCertTableColumn);
-        expect(result.current.rows[0]).toHaveProperty(newTitle, "Row 1");
+    act(() => {
+      result.current.onRowsDelete(selectedRowKeys);
     });
 
-    it("should delete selected rows", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
+    expect(result.current.rows).toHaveLength(1);
+    expect(result.current.rows[0]).toEqual(initialRows[1]);
+  });
 
-        const selectedRowKeys = [initialRows[0].key];
+  it("should override state with new rows and columns from CSV", () => {
+    const { result } = renderHook(() =>
+      useAutoCertTable({ initialRows, initialColumns }),
+    );
 
-        act(() => {
-            result.current.onRowsDelete(selectedRowKeys);
-        });
+    const newRows = [
+      { key: "3", name: "Row 3" },
+      { key: "4", name: "Row 4" },
+    ] satisfies AutoCertTableRow[];
+    const newColumns = [
+      { title: "name", dataIndex: "name", editable: true },
+      { title: "age", dataIndex: "age", editable: true },
+    ] satisfies AutoCertTableColumn[];
 
-        expect(result.current.rows).toHaveLength(1);
-        expect(result.current.rows[0]).toEqual(initialRows[1]);
+    act(() => {
+      result.current.onImportFromCSV(newRows, newColumns);
     });
 
-    it("should override state with new rows and columns from CSV", () => {
-        const { result } = renderHook(() =>
-            useAutoCertTable({ initialRows, initialColumns })
-        );
-
-        const newRows = [
-            { key: "3", name: "Row 3" },
-            { key: "4", name: "Row 4" },
-        ] satisfies AutoCertTableRow[];
-        const newColumns = [
-            { title: "name", dataIndex: "name", editable: true },
-            { title: "age", dataIndex: "age", editable: true },
-        ] satisfies AutoCertTableColumn[];
-
-        act(() => {
-            result.current.onImportFromCSV(newRows, newColumns);
-        });
-
-        expect(result.current.rows).toEqual(newRows);
-        expect(result.current.columns).toEqual(newColumns);
-    });
+    expect(result.current.rows).toEqual(newRows);
+    expect(result.current.columns).toEqual(newColumns);
+  });
 });

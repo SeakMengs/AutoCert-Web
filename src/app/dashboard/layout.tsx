@@ -6,18 +6,16 @@ import FullScreenSpin from "@/components/loading/FullScreenSpin";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
-    children,
+  children,
 }: {
-    children: Readonly<ReactNode>;
+  children: Readonly<ReactNode>;
 }) {
-    const result = await validateAccessToken();
-    if (!result.isAuthenticated) {
-        return <FullScreenSpin />;
-    }
+  const result = await validateAccessToken();
+  if (!result.isAuthenticated) {
+    return <FullScreenSpin />;
+  }
 
-    return (
-        <DashboardLayoutClient user={result.user}>
-            {children}
-        </DashboardLayoutClient>
-    );
+  return (
+    <DashboardLayoutClient user={result.user}>{children}</DashboardLayoutClient>
+  );
 }

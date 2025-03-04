@@ -17,8 +17,7 @@ interface Logger {
   setLevel: (level: DebugLevel) => void;
 }
 
-let currentLevel: DebugLevel =
-!IS_PRODUCTION ? "debug" : "info";
+let currentLevel: DebugLevel = !IS_PRODUCTION ? "debug" : "info";
 
 export const logger: Logger = {
   trace: (...messages: any[]) => log("trace", undefined, messages),

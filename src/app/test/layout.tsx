@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
 export default function TestLayout({
-    children,
+  children,
 }: {
-    children: Readonly<ReactNode>;
+  children: Readonly<ReactNode>;
 }) {
-    if (IS_PRODUCTION) {
-        redirect("/");
-    }
+  if (IS_PRODUCTION) {
+    redirect("/");
+  }
 
-    return children;
+  return children;
 }
