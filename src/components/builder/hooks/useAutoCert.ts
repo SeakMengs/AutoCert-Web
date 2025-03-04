@@ -209,12 +209,13 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   ): void => {
     logger.debug("Adding text field");
 
-    const newTF = {
-      ...newTextField(),
+    let newTF = newTextField();
+    newTF = {
+      ...newTF,
       value,
       color,
       font: {
-        ...newTextField().font,
+        ...newTF.font,
         name: fontName,
       },
     };

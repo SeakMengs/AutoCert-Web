@@ -33,14 +33,6 @@ const { Title, Text } = Typography;
 
 export const BarSize = 56;
 
-// const headerStyle: React.CSSProperties = {
-//     position: "sticky",
-//     top: 0,
-//     zIndex: 1,
-//     width: "100%",
-//     alignItems: "center",
-// };
-
 export default function DashboardLayoutClient({
   user,
   children,
@@ -50,7 +42,7 @@ export default function DashboardLayoutClient({
 }) {
   const [collapsed, setCollapsed] = useState<boolean>(true);
   const {
-    token: { colorBgContainer, colorSplit },
+    token: { colorBgContainer },
   } = theme.useToken();
 
   const toggleCollapse = (): void => {
@@ -66,41 +58,6 @@ export default function DashboardLayoutClient({
       />
 
       <Layout>
-        {/* <Header
-                    style={{
-                        ...headerStyle,
-                        padding: 0,
-                        background: colorBgContainer,
-                        height: BarSize,
-                        borderBottom: `1px solid ${colorSplit}`,
-                    }}
-                >
-                    <Flex
-                        justify="space-between"
-                        align="center"
-                        style={{ height: "100%" }}
-                    >
-                        <Button
-                            size="small"
-                            type="text"
-                            icon={
-                                collapsed ? (
-                                    <DoubleRightOutlined />
-                                ) : (
-                                    <DoubleLeftOutlined />
-                                )
-                            }
-                            onClick={() => setCollapsed(!collapsed)}
-                        />
-                        <Space
-                            style={{
-                                marginRight: 24,
-                            }}
-                        >
-                            <UserNameAndAvatar collapsed user={user} />
-                        </Space>
-                    </Flex>
-                </Header> */}
         <Content
           className="drop-shadow-sm overflow-auto"
           style={{
@@ -174,6 +131,7 @@ function LeftSideBar({
       collapsible
       collapsed={collapsed}
       collapsedWidth={BarSize}
+      className="z-50"
       style={{
         ...siderStyle,
         background: colorBgContainer,
@@ -199,11 +157,12 @@ function LeftSideBar({
         </div>
       </Flex>
       <Button
+        shape="circle"
         size="small"
         type="text"
         icon={collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
         onClick={toggleCollapse}
-        className="absolute top-1/2 right-[-10px] z-50"
+        className="absolute top-1/2 right-[-10px] shadow-sm"
       />
     </Sider>
   );
