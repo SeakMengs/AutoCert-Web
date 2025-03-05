@@ -53,7 +53,7 @@ export default function AutoCertPanel({
     token: { colorBgContainer },
   } = theme.useToken();
 
-  const collapseItems: CollapseProps["items"] = [
+  const collapseItems = [
     {
       key: "1",
       label: (
@@ -93,7 +93,7 @@ export default function AutoCertPanel({
         />
       ),
     },
-  ];
+  ] satisfies CollapseProps["items"];
 
   const tabs = [
     {

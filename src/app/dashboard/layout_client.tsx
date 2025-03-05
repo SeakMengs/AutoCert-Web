@@ -28,8 +28,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("dashboard:layout_client");
-const {  Sider, Content } = Layout;
-const { Title, Text } = Typography;
+const { Sider, Content } = Layout;
+const { Text } = Typography;
 
 export const BarSize = 56;
 
@@ -184,16 +184,24 @@ function Logo({ collapsed }: { collapsed: boolean }) {
       justify="center"
       align="center"
       style={{ height: BarSize, borderBottom: `1px solid ${colorSplit}` }}
-      gap={4}
+      // gap={4}
     >
-      <Image src="/logo.png" alt="logo" width={32} height={32} />
-      <Title
+      <Image src="/logo.svg" alt="logo" width={48} height={48} />
+      <h1
         className="motion-preset-blur-right"
-        level={4}
-        style={{ margin: 0, display: collapsed ? "none" : "block" }}
+        style={{
+          margin: 0,
+          // Artificially center the text because the actual look doesn't feel centered
+          marginTop: "5px",
+          padding: 0,
+          display: collapsed ? "none" : "block",
+          fontFamily: "Code Pro",
+          color: "#0D0E21",
+          fontSize: "1.25rem",
+        }}
       >
         {APP_NAME}
-      </Title>
+      </h1>
     </Flex>
   );
 }
