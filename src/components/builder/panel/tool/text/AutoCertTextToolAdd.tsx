@@ -66,7 +66,7 @@ export default function AutoCertTextToolAdd({
         Text Field
       </Button>
       <Modal
-        title="Add New Field"
+        title="Add Text Field"
         open={modalOpen}
         onCancel={onModalCancel}
         onOk={handleAddField}

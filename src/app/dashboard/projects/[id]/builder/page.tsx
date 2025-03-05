@@ -29,6 +29,8 @@ export default function ProjectBuilderByID() {
     onTextAnnotateUpdate,
     onTextAnnotateRemove,
     onSignatureAnnotateAdd,
+    onSignatureAnnotateRemove,
+    onSignatureAnnotateInvite,
     onAnnotateDragStop,
     onAnnotateResizeStop,
     onAnnotateSelect,
@@ -116,10 +118,12 @@ export default function ProjectBuilderByID() {
             currentPdfPage={currentPdfPage}
             selectedAnnotateId={selectedAnnotateId}
             textAnnotates={textAnnotates}
-            onSignatureAnnotateAdd={onSignatureAnnotateAdd}
             onTextAnnotateAdd={onTextAnnotateAdd}
             onTextAnnotateUpdate={onTextAnnotateUpdate}
             onTextAnnotateRemove={onTextAnnotateRemove}
+            onSignatureAnnotateAdd={onSignatureAnnotateAdd}
+            onSignatureAnnotateRemove={onSignatureAnnotateRemove}
+            onSignatureAnnotateInvite={onSignatureAnnotateInvite}
             onAnnotateSelect={onAnnotateSelect}
           />
         </Splitter.Panel>

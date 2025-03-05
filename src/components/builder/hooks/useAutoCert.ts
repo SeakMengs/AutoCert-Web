@@ -15,6 +15,7 @@ import { TextAnnotateFormSchema } from "../panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { MIN_SCALE } from "../utils";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
+import { SignatureAnnotateFormSchema } from "../panel/tool/signatory/AutoCertSignatoryTool";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -215,7 +216,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     page: number,
     { value, color, fontName }: TextAnnotateFormSchema,
   ): void => {
-    logger.debug("Adding text field");
+    logger.debug("Adding text annotate");
 
     let newTA = newTextAnnotate();
     newTA = {
@@ -237,19 +238,19 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
   const onTextAnnotateUpdate = (
     id: string,
-    { value, fontName, color }: TextAnnotateFormSchema,
+    data: TextAnnotateFormSchema,
   ): void => {
-    logger.debug(`Update text field with id ${id}`);
+    logger.debug(`Update text annotate with id ${id}`);
 
     const existingAnnotate = findAnnotateById(id);
     if (!existingAnnotate) {
-      logger.warn(`Text field with id ${id} not found`);
+      logger.warn(`Text annotate with id ${id} not found`);
       return;
     }
 
     const { annotate, page } = existingAnnotate;
     if (annotate.type !== "text") {
-      logger.warn(`Text field with id ${id} not found`);
+      logger.warn(`Text annotate with id ${id} found, but not a text annotate`);
       return;
     }
 
@@ -257,10 +258,10 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       ...annotate,
       font: {
         ...annotate.font,
-        name: fontName,
+        name: data.fontName,
       },
-      value,
-      color,
+      value: data.value,
+      color: data.color,
     } satisfies TextAnnotateState;
 
     setAnnotates((prev) => ({
@@ -271,15 +272,19 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   };
 
   const onTextAnnotateRemove = (id: string): void => {
-    logger.debug(`Remove text field with id ${id}`);
+    logger.debug(`Remove text annotate with id ${id}`);
 
     const existingAnnotate = findAnnotateById(id);
     if (!existingAnnotate) {
-      logger.warn(`Text field with id ${id} not found`);
+      logger.warn(`Text annotate with id ${id} not found`);
       return;
     }
 
-    const { page } = existingAnnotate;
+    const { page, annotate } = existingAnnotate;
+    if (annotate.type !== "text") {
+      logger.warn(`Text annotate with id ${id} found, but not a text annotate`);
+      return;
+    }
 
     setAnnotates((prev) => ({
       ...prev,
@@ -287,16 +292,73 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     }));
   };
 
-  const onSignatureAnnotateAdd = (): void => {
-    logger.debug("Adding signature field");
+  const onSignatureAnnotateAdd = (
+    page: number,
+    data: SignatureAnnotateFormSchema,
+  ): void => {
+    logger.debug("Adding signature annotate");
 
-    // Since it has not scaled before, we can pass scale as scale ratio
-    const newSA = newSignatureAnnotate();
+    let newSA = newSignatureAnnotate();
+    newSA = {
+      ...newSA,
+      email: data.email,
+      status: "not_invited",
+    };
 
     setAnnotates((prev) => ({
       ...prev,
-      // Add the new signature field to the current page
-      [currentPdfPage]: [...(prev[currentPdfPage] || []), newSA],
+      [page]: [...(prev[page] || []), newSA],
+    }));
+    setSelectedAnnotateId(newSA.id);
+  };
+
+  const onSignatureAnnotateRemove = (id: string): void => {
+    logger.debug(`Remove signature annotate with id ${id}`);
+    const existingAnnotate = findAnnotateById(id);
+    if (!existingAnnotate) {
+      logger.warn(`Signature annotate with id ${id} not found`);
+      return;
+    }
+
+    const { page, annotate } = existingAnnotate;
+
+    if (annotate.type !== "signature") {
+      logger.warn(
+        `Signature annotate with id ${id} found, but not a signature`,
+      );
+      return;
+    }
+
+    setAnnotates((prev) => ({
+      ...prev,
+      [page]: prev[page].filter((annotation) => annotation.id !== id),
+    }));
+    setSelectedAnnotateId(undefined);
+  };
+
+  const onSignatureAnnotateInvite = (id: string): void => {
+    logger.debug(`Invite signature annotate with id ${id}`);
+    const existingAnnotate = findAnnotateById(id);
+    if (!existingAnnotate) {
+      logger.warn(`Signature annotate with id ${id} not found`);
+      return;
+    }
+    const { annotate, page } = existingAnnotate;
+
+    if (annotate.type !== "signature") {
+      logger.warn(
+        `Signature annotate with id ${id} found, but not a signature`,
+      );
+      return;
+    }
+
+    setAnnotates((prev) => ({
+      ...prev,
+      [page]: prev[page].map((annotation) =>
+        annotation.id === id
+          ? { ...annotation, status: "invited" }
+          : annotation,
+      ),
     }));
   };
 
@@ -395,6 +457,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onTextAnnotateUpdate,
     onTextAnnotateRemove,
     onSignatureAnnotateAdd,
+    onSignatureAnnotateRemove,
+    onSignatureAnnotateInvite,
     onAnnotateResizeStop,
     onAnnotateDragStop,
     onAnnotateSelect,

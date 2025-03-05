@@ -1,6 +1,8 @@
 import {
+  Button,
   Collapse,
   CollapseProps,
+  Flex,
   Space,
   Tabs,
   TabsProps,
@@ -41,7 +43,8 @@ export default function AutoCertPanel({
   onTextAnnotateUpdate,
   onTextAnnotateRemove,
   onSignatureAnnotateAdd,
-
+  onSignatureAnnotateRemove,
+  onSignatureAnnotateInvite,
   // Table,
   columns,
   ...autoCertTableProps
@@ -70,7 +73,6 @@ export default function AutoCertPanel({
           onAnnotateSelect={onAnnotateSelect}
         />
       ),
-      // extra: <PlusOutlined onClick={addTextField} />,
     },
     {
       key: "2",
@@ -85,10 +87,11 @@ export default function AutoCertPanel({
           signatureAnnotates={signatureAnnotates}
           onAnnotateSelect={onAnnotateSelect}
           onSignatureAnnotateAdd={onSignatureAnnotateAdd}
+          onSignatureAnnotateRemove={onSignatureAnnotateRemove}
+          onSignatureAnnotateInvite={onSignatureAnnotateInvite}
           selectedAnnotateId={selectedAnnotateId}
         />
       ),
-      // extra: <PlusOutlined onClick={addSignatureField} />,
     },
   ];
 
@@ -101,14 +104,14 @@ export default function AutoCertPanel({
         </span>
       ),
       children: (
-        <div className="px-2">
+        <Layout>
           <Collapse
             defaultActiveKey={["1", "2"]}
             items={collapseItems}
             bordered={false}
             expandIconPosition="end"
           />
-        </div>
+        </Layout>
       ),
     },
     {
@@ -119,9 +122,9 @@ export default function AutoCertPanel({
         </span>
       ),
       children: (
-        <div className="px-2">
+        <Layout>
           <AutoCertTable columns={columns} {...autoCertTableProps} />
-        </div>
+        </Layout>
       ),
     },
   ] satisfies TabsProps["items"];
@@ -151,8 +154,34 @@ export default function AutoCertPanel({
           // ...headerStyle,
           height: BarSize,
           background: colorBgContainer,
+          margin: 0,
         }}
       />
     </>
+  );
+}
+
+function Layout({ children }: { children: React.ReactNode }) {
+  const {
+    token: { colorSplit },
+  } = theme.useToken();
+
+  return (
+    <Flex
+      vertical
+      justify="space-between"
+      style={{
+        height: `calc(100vh - ${BarSize}px)`,
+      }}
+    >
+      <div className="overflow-auto">
+        <div className="m-2">{children}</div>
+      </div>
+      <div style={{ borderTop: `1px solid ${colorSplit}` }}>
+        <Flex className="m-2" justify="center">
+          <Button type="primary">Generate certificates</Button>
+        </Flex>
+      </div>
+    </Flex>
   );
 }

@@ -31,14 +31,8 @@ export interface AutoCertTextToolProps {
   columns: AutoCertTableColumn[];
   selectedAnnotateId: string | undefined;
   onAnnotateSelect: (id: string) => void;
-  onTextAnnotateAdd: (
-    page: number,
-    { value, fontName, color }: TextAnnotateFormSchema,
-  ) => void;
-  onTextAnnotateUpdate: (
-    id: string,
-    { value, fontName, color }: TextAnnotateFormSchema,
-  ) => void;
+  onTextAnnotateAdd: (page: number, data: TextAnnotateFormSchema) => void;
+  onTextAnnotateUpdate: (id: string, data: TextAnnotateFormSchema) => void;
   onTextAnnotateRemove: (id: string) => void;
 }
 

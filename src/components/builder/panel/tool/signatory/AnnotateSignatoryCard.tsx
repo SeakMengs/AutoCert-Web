@@ -14,26 +14,28 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { AutoCertSignatoryToolProps } from "./AutoCertSignatoryTool";
 import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
 
-// TODO: update this, currently is temporary
-
 interface AnnotateSignatoryCardProps
   extends Pick<
     AutoCertSignatoryToolProps,
-    "selectedAnnotateId" | "onAnnotateSelect"
+    | "selectedAnnotateId"
+    | "onAnnotateSelect"
+    | "onSignatureAnnotateRemove"
+    | "onSignatureAnnotateInvite"
   > {
   signatureAnnotate: SignatureAnnotateState;
-  onSignatoryInvite: (id: string) => void;
-  onSignatoryRemove: (id: string) => void;
+  pageNumber: number;
 }
 
 const { Text } = Typography;
 
 export default function AnnotateSignatoryCard({
+  pageNumber,
   signatureAnnotate,
   selectedAnnotateId,
   onAnnotateSelect,
-  onSignatoryInvite,
-  onSignatoryRemove,
+  // Invite signatory to sign
+  onSignatureAnnotateInvite,
+  onSignatureAnnotateRemove,
 }: AnnotateSignatoryCardProps) {
   const {
     token: { colorPrimary },
@@ -52,7 +54,7 @@ export default function AnnotateSignatoryCard({
     }
   };
 
-  const getInitials = (email: string) => {
+  const getInitialEmail = (email: string) => {
     return email.split("@")[0].slice(0, 2).toUpperCase();
   };
 
@@ -64,7 +66,7 @@ export default function AnnotateSignatoryCard({
             <Button
               type="primary"
               size="small"
-              onClick={() => onSignatoryInvite(signatureAnnotate.id)}
+              onClick={() => onSignatureAnnotateInvite(signatureAnnotate.id)}
             >
               Invite
             </Button>
@@ -76,6 +78,20 @@ export default function AnnotateSignatoryCard({
         return null;
       default:
         return null;
+    }
+  };
+
+  const getRemoveConfirmMessage = () => {
+    const prefix = "Are you sure you want to remove this signatory?";
+    switch (signatureAnnotate.status) {
+      case "not_invited":
+        return prefix;
+      case "invited":
+        return `${prefix} They will no longer be able to sign this certificate.`;
+      case "signed":
+        return `${prefix} The signature will be removed from the certificate.`;
+      default:
+        return prefix;
     }
   };
 
@@ -94,19 +110,26 @@ export default function AnnotateSignatoryCard({
     >
       <Flex justify="center" align="center" gap={12}>
         <Avatar className="whitespace-nowrap">
-          {getInitials(signatureAnnotate.email)}
+          {getInitialEmail(signatureAnnotate.email)}
         </Avatar>
 
-        <div style={{ flex: 1 }}>
+        <Flex style={{ flex: 1 }} vertical>
           <Text>{signatureAnnotate.email}</Text>
-          {getStatusTag()}
-        </div>
+          <div
+            style={{
+              flex: 0,
+            }}
+          >
+            {getStatusTag()}
+            <Text type="secondary" className="text-xs">Page: {pageNumber}</Text>
+          </div>
+        </Flex>
 
         <Space size={8}>
           {getActionButton()}
           <Popconfirm
-            title="Are you sure you want to remove this signatory?"
-            onConfirm={() => onSignatoryRemove(signatureAnnotate.id)}
+            title={getRemoveConfirmMessage()}
+            onConfirm={() => onSignatureAnnotateRemove(signatureAnnotate.id)}
           >
             <Tooltip title="Delete">
               <Button

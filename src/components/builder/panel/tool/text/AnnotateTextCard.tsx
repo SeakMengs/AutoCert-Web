@@ -101,7 +101,9 @@ export default function AnnotateTextCard({
             <Tooltip title="Table column">
               <Tag>{textAnnotate.value}</Tag>
             </Tooltip>
-            <Text type="secondary">Page: {pageNumber}</Text>
+            <Text type="secondary" className="text-xs">
+              Page: {pageNumber}
+            </Text>
           </Space>
           <Space>
             <Tooltip title="Edit">
