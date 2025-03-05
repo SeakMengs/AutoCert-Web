@@ -1,12 +1,21 @@
 "use client";
-import { Avatar, Badge, Card, Flex, Skeleton, Tag, Tooltip } from "antd";
+import {
+  Avatar,
+  Badge,
+  Card,
+  CardProps,
+  Flex,
+  Skeleton,
+  Tag,
+  Tooltip,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import {
   CheckCircleFilled,
   CloseCircleFilled,
-  DeleteOutlined,
-  EditOutlined,
   EyeOutlined,
+  SignatureOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import moment from "moment";
@@ -29,6 +38,7 @@ export type ProjectCardProps = {
   status: (typeof ProjectStatus)[keyof typeof ProjectStatus];
   createdAt: Date | string;
   signatories: ProjectSignatory[];
+  userRole: "owner" | "signatory";
 };
 
 export const ProjectStatus = {
@@ -55,8 +65,29 @@ export default function ProjectCard({
   status,
   createdAt,
   signatories,
+  userRole,
 }: ProjectCardProps) {
   const [loading, setLoading] = useState<boolean>(true);
+
+  const getActions = (): CardProps["actions"] => {
+    switch (userRole) {
+      case "owner":
+        return [
+          <EyeOutlined disabled={status != ProjectStatus.Completed} />,
+          <Link href={`/dashboard/projects/${id}/builder`}>
+            <ToolOutlined />
+          </Link>,
+          // <DeleteOutlined className="hover:text-red-500" />,
+        ];
+      case "signatory":
+        return [
+          <EyeOutlined disabled={status != ProjectStatus.Completed} />,
+          <Link href={`/dashboard/projects/${id}/sign`}>
+            <SignatureOutlined />
+          </Link>,
+        ];
+    }
+  };
 
   useEffect(() => {
     // delay loading state for 1 second
@@ -87,13 +118,7 @@ export default function ProjectCard({
           />
         )
       }
-      actions={[
-        <EyeOutlined disabled={status != ProjectStatus.Completed} />,
-        <Link href={`/dashboard/projects/${id}/builder`}>
-          <EditOutlined />
-        </Link>,
-        <DeleteOutlined className="hover:text-red-500" />,
-      ]}
+      actions={getActions()}
     >
       <Meta
         title={<Tooltip title={`Project title: ${title}`}>{title}</Tooltip>}
