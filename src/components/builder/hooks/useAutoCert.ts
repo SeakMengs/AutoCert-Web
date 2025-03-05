@@ -6,12 +6,12 @@ import {
 import { createScopedLogger } from "@/utils/logger";
 import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
-import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
+import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { tempSignData } from "./temp";
 import { BaseTextAnnotate } from "../annotate/TextAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION } from "@/utils";
-import { TextFieldSchema } from "../panel/tool/text/AutoCertTextTool";
+import { TextAnnotateFormSchema } from "../panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { MIN_SCALE } from "../utils";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
@@ -71,7 +71,7 @@ export interface UseAutoCertProps {
   initialPdfPage: number;
 }
 
-const newTextField = (): TextAnnotateState => {
+const newTextAnnotate = (): TextAnnotateState => {
   return {
     id: nanoid(),
     type: "text",
@@ -88,12 +88,14 @@ const newTextField = (): TextAnnotateState => {
   };
 };
 
-const newSignatureField = (): SignatureAnnotateState => {
+const newSignatureAnnotate = (): SignatureAnnotateState => {
   return {
     id: nanoid(),
     type: "signature",
     position: { x: 0, y: 0 },
     signatureData: tempSignData,
+    email: "",
+    status: "not_invited",
     size: {
       width: SignatureAnnotateWidth,
       height: SignatureAnnotateHeight,
@@ -209,33 +211,33 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     }
   };
 
-  const onAddTextField = (
+  const onTextAnnotateAdd = (
     page: number,
-    { value, color, fontName }: TextFieldSchema,
+    { value, color, fontName }: TextAnnotateFormSchema,
   ): void => {
     logger.debug("Adding text field");
 
-    let newTF = newTextField();
-    newTF = {
-      ...newTF,
+    let newTA = newTextAnnotate();
+    newTA = {
+      ...newTA,
       value,
       color,
       font: {
-        ...newTF.font,
+        ...newTA.font,
         name: fontName,
       },
     };
 
     setAnnotates((prev) => ({
       ...prev,
-      [page]: [...(prev[page] || []), newTF],
+      [page]: [...(prev[page] || []), newTA],
     }));
-    setSelectedAnnotateId(newTF.id);
+    setSelectedAnnotateId(newTA.id);
   };
 
-  const onUpdateTextField = (
+  const onTextAnnotateUpdate = (
     id: string,
-    { value, fontName, color }: TextFieldSchema,
+    { value, fontName, color }: TextAnnotateFormSchema,
   ): void => {
     logger.debug(`Update text field with id ${id}`);
 
@@ -268,7 +270,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     setSelectedAnnotateId(updatedAnnotate.id);
   };
 
-  const onDeleteTextField = (id: string): void => {
+  const onTextAnnotateRemove = (id: string): void => {
     logger.debug(`Remove text field with id ${id}`);
 
     const existingAnnotate = findAnnotateById(id);
@@ -285,16 +287,16 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     }));
   };
 
-  const onAddSignatureField = (): void => {
+  const onSignatureAnnotateAdd = (): void => {
     logger.debug("Adding signature field");
 
     // Since it has not scaled before, we can pass scale as scale ratio
-    const newSF = newSignatureField();
+    const newSA = newSignatureAnnotate();
 
     setAnnotates((prev) => ({
       ...prev,
       // Add the new signature field to the current page
-      [currentPdfPage]: [...(prev[currentPdfPage] || []), newSF],
+      [currentPdfPage]: [...(prev[currentPdfPage] || []), newSA],
     }));
   };
 
@@ -389,10 +391,10 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onScaleChange,
     onDocumentLoadSuccess,
     onPageClick,
-    onAddTextField,
-    onUpdateTextField,
-    onDeleteTextField,
-    onAddSignatureField,
+    onTextAnnotateAdd,
+    onTextAnnotateUpdate,
+    onTextAnnotateRemove,
+    onSignatureAnnotateAdd,
     onAnnotateResizeStop,
     onAnnotateDragStop,
     onAnnotateSelect,

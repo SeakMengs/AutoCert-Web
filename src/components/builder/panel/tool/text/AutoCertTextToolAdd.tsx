@@ -5,26 +5,25 @@ import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
 import {
   AutoCertTextToolProps,
-  FontOption,
   fontOptions,
-  TextFieldSchema,
+  TextAnnotateFormSchema,
 } from "./AutoCertTextTool";
 import { PlusOutlined } from "@ant-design/icons";
 
 interface AutoCertTextToolAddProps
   extends Pick<
     AutoCertTextToolProps,
-    "onAddTextField" | "columns" | "currentPdfPage"
+    "onTextAnnotateAdd" | "columns" | "currentPdfPage"
   > {}
 
 const { Option } = Select;
 export default function AutoCertTextToolAdd({
   currentPdfPage,
   columns,
-  onAddTextField,
+  onTextAnnotateAdd,
 }: AutoCertTextToolAddProps) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [form] = Form.useForm<TextFieldSchema>();
+  const [form] = Form.useForm<TextAnnotateFormSchema>();
 
   const resetForm = () => {
     form.setFieldsValue({
@@ -49,7 +48,7 @@ export default function AutoCertTextToolAdd({
 
     try {
       const values = await form.validateFields();
-      onAddTextField(currentPdfPage, values);
+      onTextAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
     } catch (error) {
       logger.error("AutoCert add text field failed", error);

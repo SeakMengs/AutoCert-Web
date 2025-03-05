@@ -25,10 +25,10 @@ export default function ProjectBuilderByID() {
     transformWrapperRef,
     onZoomScaleChange,
     onScaleChange,
-    onAddTextField,
-    onUpdateTextField,
-    onDeleteTextField,
-    onAddSignatureField,
+    onTextAnnotateAdd,
+    onTextAnnotateUpdate,
+    onTextAnnotateRemove,
+    onSignatureAnnotateAdd,
     onAnnotateDragStop,
     onAnnotateResizeStop,
     onAnnotateSelect,
@@ -104,7 +104,7 @@ export default function ProjectBuilderByID() {
           style={{
             borderLeft: `1px solid ${colorSplit}`,
           }}
-          className="w-1/5 overflow-y-auto overflow-x-hidden"
+          className="w-1/5"
           collapsible
         >
           <AutoCertPanel
@@ -116,10 +116,10 @@ export default function ProjectBuilderByID() {
             currentPdfPage={currentPdfPage}
             selectedAnnotateId={selectedAnnotateId}
             textAnnotates={textAnnotates}
-            onAddSignatureField={onAddSignatureField}
-            onAddTextField={onAddTextField}
-            onUpdateTextField={onUpdateTextField}
-            onDeleteTextField={onDeleteTextField}
+            onSignatureAnnotateAdd={onSignatureAnnotateAdd}
+            onTextAnnotateAdd={onTextAnnotateAdd}
+            onTextAnnotateUpdate={onTextAnnotateUpdate}
+            onTextAnnotateRemove={onTextAnnotateRemove}
             onAnnotateSelect={onAnnotateSelect}
           />
         </Splitter.Panel>

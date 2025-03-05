@@ -37,8 +37,6 @@ export const headerStyle: React.CSSProperties = {
   position: "sticky",
   top: 0,
   zIndex: 1,
-  width: "100%",
-  alignItems: "center",
 };
 
 export default function DashboardLayoutClient({

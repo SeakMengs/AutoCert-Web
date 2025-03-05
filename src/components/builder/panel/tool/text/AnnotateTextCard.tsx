@@ -17,7 +17,11 @@ import {
 } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
-import { AutoCertTextToolProps, fontOptions, TextFieldSchema } from "./AutoCertTextTool";
+import {
+  AutoCertTextToolProps,
+  fontOptions,
+  TextAnnotateFormSchema,
+} from "./AutoCertTextTool";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 interface AutoCertTextToolListProps
@@ -26,8 +30,8 @@ interface AutoCertTextToolListProps
     | "selectedAnnotateId"
     | "columns"
     | "onAnnotateSelect"
-    | "onUpdateTextField"
-    | "onDeleteTextField"
+    | "onTextAnnotateUpdate"
+    | "onTextAnnotateRemove"
   > {
   textAnnotate: TextAnnotateState;
   pageNumber: number;
@@ -42,14 +46,14 @@ export default function AnnotateTextCard({
   selectedAnnotateId,
   columns,
   onAnnotateSelect,
-  onUpdateTextField,
-  onDeleteTextField,
+  onTextAnnotateUpdate,
+  onTextAnnotateRemove,
 }: AutoCertTextToolListProps) {
   const {
     token: { colorPrimary },
   } = theme.useToken();
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
-  const [form] = Form.useForm<TextFieldSchema>();
+  const [form] = Form.useForm<TextAnnotateFormSchema>();
 
   const resetForm = () => {
     form.setFieldsValue({
@@ -73,7 +77,7 @@ export default function AnnotateTextCard({
     logger.debug("AutoCert edit text field confirmed");
     try {
       const values = await form.validateFields();
-      onUpdateTextField(textAnnotate.id, values);
+      onTextAnnotateUpdate(textAnnotate.id, values);
       setEditModalOpen(false);
     } catch (error) {
       logger.error("AutoCert edit text field failed", error);
@@ -94,7 +98,9 @@ export default function AnnotateTextCard({
       >
         <Flex justify="space-between" align="center">
           <Space>
-            <Tag>{textAnnotate.value}</Tag>
+            <Tooltip title="Table column">
+              <Tag>{textAnnotate.value}</Tag>
+            </Tooltip>
             <Text type="secondary">Page: {pageNumber}</Text>
           </Space>
           <Space>
@@ -107,10 +113,10 @@ export default function AnnotateTextCard({
               />
             </Tooltip>
             <Popconfirm
-              title="Are you sure to delete this field?"
-              onConfirm={() => onDeleteTextField(textAnnotate.id)}
+              title="Are you sure to remove this field?"
+              onConfirm={() => onTextAnnotateRemove(textAnnotate.id)}
             >
-              <Tooltip title="Delete">
+              <Tooltip title="Remove">
                 <Button
                   size="small"
                   type="text"

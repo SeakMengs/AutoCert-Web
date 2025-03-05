@@ -2,6 +2,8 @@ import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 
 export type BaseSignatureAnnotate = {
   signatureData: string | null;
+  email: string;
+  status: "not_invited" | "invited" | "signed";
 };
 
 export interface SignatureAnnotateProps
@@ -10,6 +12,8 @@ export interface SignatureAnnotateProps
 
 export default function SignatureAnnotate({
   signatureData,
+  email,
+  status,
   ...restProps
 }: SignatureAnnotateProps) {
   return (

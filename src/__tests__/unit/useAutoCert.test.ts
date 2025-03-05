@@ -1,7 +1,7 @@
 import useAutoCert from "@/components/builder/hooks/useAutoCert";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { TextFieldSchema } from "@/components/builder/panel/tool/text/AutoCertTextTool";
+import { TextAnnotateFormSchema } from "@/components/builder/panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "@/components/builder/panel/table/AutoCertTable";
 import { WHSize, XYPosition } from "@/components/builder/annotate/BaseAnnotate";
 
@@ -63,10 +63,10 @@ describe("useAutoCert", () => {
       value: "Test Text",
       fontName: "Arial",
       color: "#FF0000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     expect(result.current.annotates[initialPdfPage]).toHaveLength(1);
@@ -88,7 +88,7 @@ describe("useAutoCert", () => {
     const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
 
     act(() => {
-      result.current.onAddSignatureField();
+      result.current.onSignatureAnnotateAdd();
     });
 
     expect(result.current.annotates[initialPdfPage]).toHaveLength(1);
@@ -104,10 +104,10 @@ describe("useAutoCert", () => {
       value: "Original Text",
       fontName: "Arial",
       color: "#000000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
@@ -115,10 +115,10 @@ describe("useAutoCert", () => {
       value: "Updated Text",
       fontName: "Helvetica",
       color: "#FF0000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onUpdateTextField(textId, updatedTextFieldData);
+      result.current.onTextAnnotateUpdate(textId, updatedTextFieldData);
     });
 
     const updatedTextAnnotate = result.current.annotates[initialPdfPage][0];
@@ -139,16 +139,16 @@ describe("useAutoCert", () => {
       value: "To Be Deleted",
       fontName: "Arial",
       color: "#000000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
 
     act(() => {
-      result.current.onDeleteTextField(textId);
+      result.current.onTextAnnotateRemove(textId);
     });
 
     expect(result.current.annotates[initialPdfPage]).toHaveLength(0);
@@ -161,10 +161,10 @@ describe("useAutoCert", () => {
       value: "Select Me",
       fontName: "Arial",
       color: "#000000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
@@ -184,14 +184,14 @@ describe("useAutoCert", () => {
 
   it("should handle annotation drag", () => {
     const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
-    const textFieldData: TextFieldSchema = {
+    const textFieldData: TextAnnotateFormSchema = {
       value: "Drag Me",
       fontName: "Arial",
       color: "#000000",
     };
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
@@ -217,10 +217,10 @@ describe("useAutoCert", () => {
       value: "Resize Me",
       fontName: "Arial",
       color: "#000000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
@@ -272,10 +272,10 @@ describe("useAutoCert", () => {
       value: "OldTitle",
       fontName: "Arial",
       color: "#000000",
-    } satisfies TextFieldSchema;
+    } satisfies TextAnnotateFormSchema;
 
     act(() => {
-      result.current.onAddTextField(initialPdfPage, textFieldData);
+      result.current.onTextAnnotateAdd(initialPdfPage, textFieldData);
     });
 
     act(() => {
@@ -296,7 +296,7 @@ describe("useAutoCert", () => {
 
     // Add a text field that will be kept
     act(() => {
-      result.current.onAddTextField(initialPdfPage, {
+      result.current.onTextAnnotateAdd(initialPdfPage, {
         value: "KeepThis",
         fontName: "Arial",
         color: "#000000",
@@ -305,7 +305,7 @@ describe("useAutoCert", () => {
 
     // Add another text field that will be removed
     act(() => {
-      result.current.onAddTextField(initialPdfPage, {
+      result.current.onTextAnnotateAdd(initialPdfPage, {
         value: "RemoveThis",
         fontName: "Arial",
         color: "#000000",

@@ -2,12 +2,21 @@ import { Button, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { SignatureAnnotateStates } from "@/components/builder/hooks/useAutoCert";
 import AnnotateSignatoryCard from "./AnnotateSignatoryCard";
+import { z } from "zod";
+
+export const signatureFieldSchema = z.object({
+  email: z.string().trim().email({
+    message: "Invalid email address",
+  }),
+});
+
+export type SignatureSchema = z.infer<typeof signatureFieldSchema>;
 
 export interface AutoCertSignatoryToolProps {
   currentPdfPage: number;
   signatureAnnotates: SignatureAnnotateStates;
   selectedAnnotateId: string | undefined;
-  onAddSignatureField: () => void;
+  onSignatureAnnotateAdd: () => void;
   onAnnotateSelect: (id: string) => void;
 }
 
@@ -16,7 +25,7 @@ export default function AutoCertSignatoryTool({
   signatureAnnotates,
   selectedAnnotateId,
   onAnnotateSelect,
-  onAddSignatureField,
+  onSignatureAnnotateAdd,
 }: AutoCertSignatoryToolProps) {
   return (
     <div>
@@ -25,7 +34,7 @@ export default function AutoCertSignatoryTool({
         className="w-full"
         type="dashed"
         icon={<PlusOutlined />}
-        onClick={onAddSignatureField}
+        onClick={onSignatureAnnotateAdd}
       >
         Signature Placement
       </Button>
@@ -39,14 +48,6 @@ export default function AutoCertSignatoryTool({
               onAnnotateSelect={onAnnotateSelect}
               onSignatoryInvite={() => {}}
               onSignatoryRemove={() => {}}
-              // temporary
-              signatory={{
-                id: "1",
-                email: "lol@gmail.com",
-                status: "not_invited",
-                invitedAt: "2023-10-01T00:00:00Z",
-                signedAt: "2023-10-01T00:00:00Z",
-              }}
             />
           )),
         )}

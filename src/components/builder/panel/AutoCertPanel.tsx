@@ -4,6 +4,7 @@ import {
   Space,
   Tabs,
   TabsProps,
+  theme,
   Typography,
 } from "antd";
 import AutoCertTextTool, {
@@ -36,15 +37,19 @@ export default function AutoCertPanel({
   textAnnotates,
   signatureAnnotates,
   onAnnotateSelect,
-  onAddTextField,
-  onUpdateTextField,
-  onDeleteTextField,
-  onAddSignatureField,
+  onTextAnnotateAdd,
+  onTextAnnotateUpdate,
+  onTextAnnotateRemove,
+  onSignatureAnnotateAdd,
 
   // Table,
   columns,
   ...autoCertTableProps
 }: AutoCertPanelProps) {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
   const collapseItems: CollapseProps["items"] = [
     {
       key: "1",
@@ -59,9 +64,9 @@ export default function AutoCertPanel({
           textAnnotates={textAnnotates}
           currentPdfPage={currentPdfPage}
           columns={columns}
-          onAddTextField={onAddTextField}
-          onUpdateTextField={onUpdateTextField}
-          onDeleteTextField={onDeleteTextField}
+          onTextAnnotateAdd={onTextAnnotateAdd}
+          onTextAnnotateUpdate={onTextAnnotateUpdate}
+          onTextAnnotateRemove={onTextAnnotateRemove}
           onAnnotateSelect={onAnnotateSelect}
         />
       ),
@@ -79,7 +84,7 @@ export default function AutoCertPanel({
           currentPdfPage={currentPdfPage}
           signatureAnnotates={signatureAnnotates}
           onAnnotateSelect={onAnnotateSelect}
-          onAddSignatureField={onAddSignatureField}
+          onSignatureAnnotateAdd={onSignatureAnnotateAdd}
           selectedAnnotateId={selectedAnnotateId}
         />
       ),
@@ -122,15 +127,32 @@ export default function AutoCertPanel({
   ] satisfies TabsProps["items"];
 
   return (
-    <Tabs
-      centered
-      defaultActiveKey="1"
-      items={tabs}
-      // TODO: fix tab bar scroll
-      tabBarStyle={{
-        // ...headerStyle,
-        height: BarSize,
-      }}
-    />
+    <>
+      <style>
+        {/* to enforce nav list to be the same height as Bar size */}
+        {`
+          .ant-tabs-nav-list {
+            height: ${BarSize}px;
+          }
+
+          /*  When adding headerStyle to tabBarStyle, seems like the width is not 100%, this is to fix that temporarily :) */
+          .ant-tabs-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+          }
+        `}
+      </style>
+      <Tabs
+        centered
+        defaultActiveKey="1"
+        items={tabs}
+        tabBarStyle={{
+          // ...headerStyle,
+          height: BarSize,
+          background: colorBgContainer,
+        }}
+      />
+    </>
   );
 }

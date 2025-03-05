@@ -8,19 +8,13 @@ import {
   Typography,
   Flex,
   theme,
+  Tooltip,
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { AutoCertSignatoryToolProps } from "./AutoCertSignatoryTool";
 import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
 
 // TODO: update this, currently is temporary
-interface SignatoryType {
-  id: string;
-  email: string;
-  status: "not_invited" | "invited" | "signed";
-  invitedAt?: string;
-  signedAt?: string;
-}
 
 interface AnnotateSignatoryCardProps
   extends Pick<
@@ -28,7 +22,6 @@ interface AnnotateSignatoryCardProps
     "selectedAnnotateId" | "onAnnotateSelect"
   > {
   signatureAnnotate: SignatureAnnotateState;
-  signatory: SignatoryType;
   onSignatoryInvite: (id: string) => void;
   onSignatoryRemove: (id: string) => void;
 }
@@ -38,7 +31,6 @@ const { Text } = Typography;
 export default function AnnotateSignatoryCard({
   signatureAnnotate,
   selectedAnnotateId,
-  signatory,
   onAnnotateSelect,
   onSignatoryInvite,
   onSignatoryRemove,
@@ -48,7 +40,7 @@ export default function AnnotateSignatoryCard({
   } = theme.useToken();
 
   const getStatusTag = () => {
-    switch (signatory.status) {
+    switch (signatureAnnotate.status) {
       case "not_invited":
         return <Tag>Not Invited</Tag>;
       case "invited":
@@ -65,16 +57,18 @@ export default function AnnotateSignatoryCard({
   };
 
   const getActionButton = () => {
-    switch (signatory.status) {
+    switch (signatureAnnotate.status) {
       case "not_invited":
         return (
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => onSignatoryInvite(signatory.id)}
-          >
-            Invite
-          </Button>
+          <Tooltip title="Invite signatory">
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => onSignatoryInvite(signatureAnnotate.id)}
+            >
+              Invite
+            </Button>
+          </Tooltip>
         );
       case "invited":
         return null;
@@ -99,41 +93,29 @@ export default function AnnotateSignatoryCard({
       }}
     >
       <Flex justify="center" align="center" gap={12}>
-        <Avatar
-          style={{
-            backgroundColor: "#1677ff",
-            color: "#fff",
-            fontSize: 14,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {getInitials(signatory.email)}
+        <Avatar className="whitespace-nowrap">
+          {getInitials(signatureAnnotate.email)}
         </Avatar>
 
         <div style={{ flex: 1 }}>
-          <Text style={{ display: "block" }}>{signatory.email}</Text>
+          <Text>{signatureAnnotate.email}</Text>
           {getStatusTag()}
         </div>
 
         <Space size={8}>
           {getActionButton()}
           <Popconfirm
-            title="Remove signatory"
-            description="Are you sure you want to remove this signatory?"
-            onConfirm={() => onSignatoryRemove(signatory.id)}
-            okText="Remove"
-            cancelText="Cancel"
-            placement="left"
+            title="Are you sure you want to remove this signatory?"
+            onConfirm={() => onSignatoryRemove(signatureAnnotate.id)}
           >
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              style={{ width: 24, height: 24 }}
-            />
+            <Tooltip title="Delete">
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       </Flex>

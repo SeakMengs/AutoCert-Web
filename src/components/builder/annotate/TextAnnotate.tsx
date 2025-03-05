@@ -1,4 +1,4 @@
-import { ResizeEnable } from "react-rnd";
+import { z } from "zod";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 
 export type TextAnnotateFont = {

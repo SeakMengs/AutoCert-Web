@@ -90,9 +90,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Revalidate auth state
       const result = await fetchAuthState();
 
-      // If refresh failed, check if the token is valid because other browser tabs may have already refreshed the token
-      if (!refreshed || !result.isAuthenticated) {
-        logger.error(`Failed to refresh access token, after fetch auth state isAuthenticated: ${result.isAuthenticated}`);
+      if (!refreshed) {
+        logger.error(
+          `Failed to refresh access token, after fetch auth state isAuthenticated: ${result.isAuthenticated}`,
+        );
+
+        // If refresh failed, check if the token is valid because other browser tabs may have already refreshed the token
+        if (result.isAuthenticated) {
+          return;
+        }
+
         router.push("/?error=Failed to reauthenticate");
 
         if (pathname === "/") {

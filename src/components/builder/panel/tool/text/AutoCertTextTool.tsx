@@ -1,22 +1,29 @@
 "use client";
 import { Space } from "antd";
-import {
-  TextAnnotateStates,
-} from "@/components/builder/hooks/useAutoCert";
+import { TextAnnotateStates } from "@/components/builder/hooks/useAutoCert";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertTableColumn } from "../../table/AutoCertTable";
 import AnnotateTextCard from "./AnnotateTextCard";
 import AutoCertTextToolAdd from "./AutoCertTextToolAdd";
+import { z } from "zod";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:text:AutoCertTextTool",
 );
 
-export type TextFieldSchema = {
-  value: string;
-  fontName: string;
-  color: string;
-};
+export const textAnnotateFormSchema = z.object({
+  value: z.string().trim(),
+  fontName: z.string().trim(),
+  color: z
+    .string()
+    .trim()
+    .refine((val) => {
+      // check if hex
+      return isHexColor(val);
+    }, "Invalid hex color"),
+});
+
+export type TextAnnotateFormSchema = z.infer<typeof textAnnotateFormSchema>;
 
 export interface AutoCertTextToolProps {
   currentPdfPage: number;
@@ -24,15 +31,15 @@ export interface AutoCertTextToolProps {
   columns: AutoCertTableColumn[];
   selectedAnnotateId: string | undefined;
   onAnnotateSelect: (id: string) => void;
-  onAddTextField: (
+  onTextAnnotateAdd: (
     page: number,
-    { value, fontName, color }: TextFieldSchema,
+    { value, fontName, color }: TextAnnotateFormSchema,
   ) => void;
-  onUpdateTextField: (
+  onTextAnnotateUpdate: (
     id: string,
-    { value, fontName, color }: TextFieldSchema,
+    { value, fontName, color }: TextAnnotateFormSchema,
   ) => void;
-  onDeleteTextField: (id: string) => void;
+  onTextAnnotateRemove: (id: string) => void;
 }
 
 export type FontOption = {
@@ -49,19 +56,19 @@ export const fontOptions = [
 
 export default function AutoCertTextTool({
   currentPdfPage,
-  onAddTextField,
+  onTextAnnotateAdd,
   selectedAnnotateId,
   textAnnotates,
   columns,
-  onUpdateTextField,
-  onDeleteTextField,
+  onTextAnnotateUpdate,
+  onTextAnnotateRemove,
   onAnnotateSelect,
 }: AutoCertTextToolProps) {
   return (
     <Space direction="vertical" className="w-full">
       <AutoCertTextToolAdd
         currentPdfPage={currentPdfPage}
-        onAddTextField={onAddTextField}
+        onTextAnnotateAdd={onTextAnnotateAdd}
         columns={columns}
       />
       <Space direction="vertical" className="w-full">
@@ -73,8 +80,8 @@ export default function AutoCertTextTool({
               selectedAnnotateId={selectedAnnotateId}
               columns={columns}
               pageNumber={Number(page)}
-              onUpdateTextField={onUpdateTextField}
-              onDeleteTextField={onDeleteTextField}
+              onTextAnnotateUpdate={onTextAnnotateUpdate}
+              onTextAnnotateRemove={onTextAnnotateRemove}
               onAnnotateSelect={onAnnotateSelect}
             />
           )),
