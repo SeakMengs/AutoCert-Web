@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   DoubleRightOutlined,
   DoubleLeftOutlined,
@@ -20,12 +20,15 @@ import {
   Flex,
   Avatar,
   Dropdown,
+  App,
 } from "antd";
 import Image from "next/image";
 import { APP_NAME } from "@/utils";
 import { AuthUser } from "@/types/models";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
+import { useAuth } from "@/hooks/useAuth";
+import FullScreenSpin from "@/components/loading/FullScreenSpin";
 
 const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
@@ -39,14 +42,17 @@ export const headerStyle: React.CSSProperties = {
   zIndex: 1,
 };
 
+interface DashboardLayoutProps {
+  children: ReactNode;
+}
+
 export default function DashboardLayoutClient({
-  user,
   children,
-}: {
-  user: AuthUser;
-  children: Readonly<ReactNode>;
-}) {
+}: DashboardLayoutProps) {
+  const { message } = App.useApp();
   const [collapsed, setCollapsed] = useState<boolean>(true);
+  const { user, isAuthenticated, revalidate } = useAuth();
+  const router = useRouter();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -54,6 +60,26 @@ export default function DashboardLayoutClient({
   const toggleCollapse = (): void => {
     setCollapsed(!collapsed);
   };
+
+  const redirectIfNotAuthenticate = async (): Promise<void> => {
+    if (!isAuthenticated) {
+      // When auth provider refresh but fail, we try to check the state once again because
+      // There might be a case where user open two tabs
+      const result = await revalidate();
+      if (!result.isAuthenticated) {
+        router.push("/?error=Failed to authenticate");
+        message.error("Failed to authenticate");
+      }
+    }
+  };
+
+  useEffect(() => {
+    redirectIfNotAuthenticate();
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return <FullScreenSpin />;
+  }
 
   return (
     <Layout className="h-screen overflow-hidden" hasSider>
