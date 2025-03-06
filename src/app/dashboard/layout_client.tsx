@@ -27,7 +27,7 @@ import { AuthUser } from "@/types/models";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
 
-const logger = createScopedLogger("dashboard:layout_client");
+const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
 const { Text } = Typography;
 

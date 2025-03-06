@@ -302,6 +302,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     newSA = {
       ...newSA,
       email: data.email,
+      color: data.color,
       status: "not_invited",
     };
 

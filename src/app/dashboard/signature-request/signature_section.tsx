@@ -1,34 +1,43 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import {
   Button,
   Modal,
   Tabs,
   Upload,
-  message,
   Space,
+  App,
   Typography,
   theme,
   TabsProps,
-  Flex,
   Alert,
+  ColorPicker,
+  Flex,
+  ColorPickerProps,
 } from "antd";
 import {
   UploadOutlined,
   EditOutlined,
   SignatureOutlined,
+  ClearOutlined,
+  SaveOutlined,
 } from "@ant-design/icons";
 import { trimSvgWhitespace } from "@/utils/svg";
 import Marquee from "react-fast-marquee";
 import { UploadChangeParam, UploadFile } from "antd/es/upload";
+import { AggregationColor } from "antd/es/color-picker/color";
+import { createScopedLogger } from "@/utils/logger";
 
 const { Title } = Typography;
+const logger = createScopedLogger(
+  "app:dashboard:signature-request:signature-section",
+);
 
 interface SignatureSectionProps {
-  onSignatureChange: (signatureBase64: string | null) => void;
+  onSignatureChange: (base64Signature: string | null) => void;
 }
 
 export default function SignatureSection({
@@ -37,48 +46,22 @@ export default function SignatureSection({
   const {
     token: { colorSplit },
   } = theme.useToken();
+  const { message } = App.useApp();
   const [signature, setSignature] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const signatureRef = useRef<SignatureCanvas | null>(null);
 
-  const handleSignatureChange = (signatureBase64: string | null) => {
-    setSignature(signatureBase64);
-    onSignatureChange(signatureBase64);
+  const handleSignatureChange = (base64Signature: string | null): void => {
+    logger.debug("Signature change");
+    setSignature(base64Signature);
+    onSignatureChange(base64Signature);
   };
 
-  const handleUpload = (info: UploadChangeParam<UploadFile>) => {
-    if (info.file.status === "done") {
-      const file = info.file.originFileObj;
-      if (!file) {
-        message.error("Failed to upload signature");
-        return;
-      }
-
-      const base64 = URL.createObjectURL(file);
-      handleSignatureChange(base64);
-      message.success("Signature uploaded successfully");
-      setIsModalVisible(false);
-    }
+  const onSignatureSave = (base64Signature: string | null): void => {
+    handleSignatureChange(base64Signature);
+    setIsModalVisible(false);
   };
 
-  const handleSignatureSave = () => {
-    if (signatureRef.current) {
-      const svg = signatureRef.current.toDataURL("image/svg+xml");
-      const trimmedSvg = trimSvgWhitespace(svg);
-      handleSignatureChange(trimmedSvg);
-      clearSignature();
-      message.success("Signature saved successfully");
-      setIsModalVisible(false);
-    }
-  };
-
-  const clearSignature = () => {
-    if (signatureRef.current) {
-      signatureRef.current.clear();
-    }
-  };
-
-  const removeSignature = () => {
+  const removeSignature = (): void => {
     handleSignatureChange(null);
     message.success("Signature removed successfully");
   };
@@ -91,21 +74,7 @@ export default function SignatureSection({
           <UploadOutlined /> Upload
         </span>
       ),
-      children: (
-        <Upload.Dragger
-          name="file"
-          accept=".png, .svg"
-          onChange={handleUpload}
-          showUploadList={false}
-        >
-          <p className="ant-upload-drag-icon">
-            <UploadOutlined />
-          </p>
-          <p className="ant-upload-text">
-            Click or drag file to this area to upload
-          </p>
-        </Upload.Dragger>
-      ),
+      children: <SignatureUpload onSignatureSave={onSignatureSave} />,
     },
     {
       key: "2",
@@ -114,27 +83,7 @@ export default function SignatureSection({
           <SignatureOutlined /> Draw
         </span>
       ),
-      children: (
-        <>
-          <div className="h-[200px] border border-gray-300">
-            <SignatureCanvas
-              ref={signatureRef}
-              penColor="black"
-              velocityFilterWeight={0.9}
-              canvasProps={{
-                className: "w-full h-full signatureCanvas",
-                style: { border: "1px solid #d9d9d9", borderRadius: "4px" },
-              }}
-            />
-          </div>
-          <Space style={{ marginTop: "10px" }}>
-            <Button onClick={clearSignature}>Clear</Button>
-            <Button type="primary" onClick={handleSignatureSave}>
-              Save Signature
-            </Button>
-          </Space>
-        </>
-      ),
+      children: <SignatureDrawer onSignatureSave={onSignatureSave} />,
     },
   ] satisfies TabsProps["items"];
 
@@ -162,7 +111,7 @@ export default function SignatureSection({
                 border: `1px solid ${colorSplit}`,
               }}
             />
-            <Space>
+            <Space wrap>
               <Button
                 icon={<EditOutlined />}
                 onClick={() => setIsModalVisible(true)}
@@ -192,5 +141,137 @@ export default function SignatureSection({
         <Tabs items={tabs} defaultActiveKey={tabs[0].key} />
       </Modal>
     </div>
+  );
+}
+
+interface SignatureUploadProps {
+  onSignatureSave: (base64Signature: string | null) => void;
+}
+
+function SignatureUpload({ onSignatureSave }: SignatureUploadProps) {
+  const { message } = App.useApp();
+
+  const handleSignatureUpload = (info: UploadChangeParam<UploadFile>): void => {
+    if (info.file.status === "done") {
+      const file = info.file.originFileObj;
+      if (!file) {
+        message.error("Failed to upload signature");
+        return;
+      }
+
+      const base64 = URL.createObjectURL(file);
+      onSignatureSave(base64);
+      message.success("Signature uploaded successfully");
+    }
+  };
+
+  return (
+    <Upload.Dragger
+      name="file"
+      accept=".png, .svg"
+      onChange={handleSignatureUpload}
+      showUploadList={false}
+    >
+      <p className="ant-upload-drag-icon">
+        <UploadOutlined />
+      </p>
+      <p className="ant-upload-text">
+        Click or drag file to this area to upload
+      </p>
+    </Upload.Dragger>
+  );
+}
+
+interface SignatureDrawerProps {
+  onSignatureSave: (base64SvgSignature: string | null) => void;
+}
+
+function SignatureDrawer({ onSignatureSave }: SignatureDrawerProps) {
+  const defaultSignatureHex = "#000000";
+  const signatureRef = useRef<SignatureCanvas | null>(null);
+  const [signatureHex, setSignatureHex] = useState<string>(defaultSignatureHex);
+  const { message } = App.useApp();
+
+  const signatureColorPresets = useMemo(() => {
+    return [
+      {
+        label: "Suggested colors for e-signature",
+        key: "common",
+        colors: [
+          defaultSignatureHex,
+          "#1873e3",
+          "#a7c9ee",
+          "#145cbc",
+          "#647ca4",
+          "#b6c0cc",
+        ],
+      },
+    ] satisfies ColorPickerProps["presets"];
+  }, []);
+
+  const getBase64SvgSignature = (): string | null => {
+    try {
+      if (!signatureRef.current) {
+        return null;
+      }
+
+      const svg = signatureRef.current.toDataURL("image/svg+xml");
+      const trimmedSvg = trimSvgWhitespace(svg);
+      clearSignature();
+      message.success("Signature saved successfully");
+
+      return trimmedSvg;
+    } catch (error) {
+      message.error("Error while trying to get signature from canvas");
+      logger.error(
+        `Error while trying to get signature from canvas. Error: ${error}`,
+      );
+    }
+
+    return null;
+  };
+
+  const clearSignature = (): void => {
+    if (signatureRef.current) {
+      signatureRef.current.clear();
+    }
+  };
+
+  const onColorChange = (color: AggregationColor, css: string): void => {
+    setSignatureHex(`#${color.toHex()}`);
+  };
+
+  return (
+    <Space direction="vertical" className="w-full h-full">
+      <div className="w-full h-64 relative">
+        <SignatureCanvas
+          ref={signatureRef}
+          penColor={signatureHex}
+          velocityFilterWeight={0.9}
+          canvasProps={{
+            className: "w-full h-full signatureCanvas",
+            style: { border: "1px solid #d9d9d9", borderRadius: "2px" },
+          }}
+        />
+      </div>
+      <Flex gap={8} align="center" wrap>
+        <ColorPicker
+          defaultValue={signatureHex}
+          showText
+          onChange={onColorChange}
+          presets={signatureColorPresets}
+        />
+        <Button onClick={clearSignature} icon={<ClearOutlined />}>
+          Clear
+        </Button>
+        <Button
+          type="primary"
+          onClick={() => onSignatureSave(getBase64SvgSignature())}
+          icon={<SaveOutlined />}
+        >
+          Save Signature
+        </Button>
+      </Flex>
+    </Space>
   );
 }

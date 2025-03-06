@@ -1,6 +1,5 @@
-import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
 import { logger } from "@/utils/logger";
-import { Select, Form, Button, Modal, ColorPicker, Input } from "antd";
+import { Form, Button, Modal, ColorPicker, Input } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
@@ -8,6 +7,7 @@ import {
   AutoCertSignatoryToolProps,
   SignatureAnnotateFormSchema,
 } from "./AutoCertSignatoryTool";
+import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
 
 interface AutoCertSignatureToolAddProps
   extends Pick<
@@ -25,6 +25,7 @@ export default function AutoCertSignatureToolAdd({
   const resetForm = () => {
     form.setFieldsValue({
       email: "",
+      color: AnnotateColor,
     });
   };
 
@@ -79,6 +80,16 @@ export default function AutoCertSignatureToolAdd({
             ]}
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            name="color"
+            label="Color"
+            initialValue={AnnotateColor}
+            getValueFromEvent={(color: AggregationColor) => {
+              return `#${color.toHex()}`;
+            }}
+          >
+            <ColorPicker size="small" showText />
           </Form.Item>
         </Form>
       </Modal>

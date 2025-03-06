@@ -1,14 +1,21 @@
-import { Button, Space } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Space } from "antd";
 import { SignatureAnnotateStates } from "@/components/builder/hooks/useAutoCert";
 import AnnotateSignatoryCard from "./AnnotateSignatoryCard";
 import { z } from "zod";
 import AutoCertSignatureToolAdd from "./AutoCertSignatoryToolAdd";
+import { isHexColor } from "@/utils/color";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({
     message: "Invalid email address",
   }),
+  color: z
+    .string()
+    .trim()
+    .refine((val) => {
+      // check if hex
+      return isHexColor(val);
+    }, "Invalid hex color"),
 });
 
 export type SignatureAnnotateFormSchema = z.infer<

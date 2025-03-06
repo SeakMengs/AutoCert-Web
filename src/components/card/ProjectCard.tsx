@@ -105,7 +105,11 @@ export default function ProjectCard({
         loading ? (
           <Skeleton.Image
             active
-            className="rounded-sm w-full object-cover h-36"
+            className="rounded-sm object-cover w-full"
+            style={{
+              width: 256,
+              height: 144,
+            }}
           />
         ) : (
           <Image

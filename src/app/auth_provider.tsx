@@ -8,7 +8,7 @@ import {
 import { createScopedLogger } from "@/utils/logger";
 import { clientRevalidatePath } from "@/utils/server";
 import { getCookie } from "@/utils/server_cookie";
-import { message } from "antd";
+import { App } from "antd";
 import moment from "moment";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
@@ -51,7 +51,7 @@ const RefreshTokenType = {
 const ExcludePath = ["/authenticating"];
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [messageApi, contextHolder] = message.useMessage();
+  const { message } = App.useApp();
   const [authState, setAuthState] = useState<AuthState>(initialAuthState);
   const pathname = usePathname();
   const router = useRouter();
@@ -109,10 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             ? "Failed to authenticate"
             : "Failed to reauthenticate";
 
-          messageApi.open({
-            type: "error",
-            content: errorMsg,
-          });
+          message.error(errorMsg);
         }
         return;
       }
@@ -182,7 +179,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={{ ...authState, revalidate: fetchAuthState }}>
-      {contextHolder}
       {children}
     </AuthContext.Provider>
   );

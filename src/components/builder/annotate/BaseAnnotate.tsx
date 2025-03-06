@@ -2,6 +2,8 @@
 import { memo, MouseEvent } from "react";
 import { DraggableEvent, DraggableData } from "react-draggable";
 import { ResizeEnable, Rnd } from "react-rnd";
+import { AnnotateColor } from "../hooks/useAutoCert";
+import { isHexColor } from "@/utils/color";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 
@@ -81,6 +83,10 @@ function BaseAnnotate({
     x: position.x * deZoomScale,
     y: position.y * deZoomScale,
   } satisfies XYPosition;
+
+  if (!isHexColor(color)) {
+    color = AnnotateColor;
+  }
 
   return (
     <Rnd

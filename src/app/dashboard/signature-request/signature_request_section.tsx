@@ -115,7 +115,7 @@ export default function SignatureRequestSection() {
   return (
     <>
       <Title level={5}>Signature Request</Title>
-      <Space direction="vertical" size={"middle"}>
+      <Space direction="vertical" size={"middle"} className="w-full">
         <Flex vertical gap={16}>
           <Search
             placeholder="Search by project title"

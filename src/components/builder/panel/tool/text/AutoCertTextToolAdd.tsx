@@ -1,6 +1,6 @@
 import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
 import { logger } from "@/utils/logger";
-import { Select, Form, Button, Modal, ColorPicker } from "antd";
+import { Select, Form, Button, Modal, ColorPicker, Alert } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
 import {
@@ -71,6 +71,15 @@ export default function AutoCertTextToolAdd({
         onCancel={onModalCancel}
         onOk={handleAddField}
       >
+        {Array.isArray(columns) && columns.length === 0 && (
+          <Alert
+            className="mb-4"
+            message="To add a text field, please insert the table data column on the second tab first."
+            type="warning"
+            showIcon
+            closable
+          />
+        )}
         <Form form={form} layout="horizontal">
           <Form.Item
             name="value"

@@ -6,6 +6,7 @@ import { AutoCertTableColumn } from "../../table/AutoCertTable";
 import AnnotateTextCard from "./AnnotateTextCard";
 import AutoCertTextToolAdd from "./AutoCertTextToolAdd";
 import { z } from "zod";
+import { isHexColor } from "@/utils/color";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:text:AutoCertTextTool",
