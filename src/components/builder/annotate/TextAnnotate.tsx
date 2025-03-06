@@ -1,5 +1,6 @@
 import { z } from "zod";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
+import { memo } from "react";
 
 export type TextAnnotateFont = {
   name: string;
@@ -17,11 +18,7 @@ export interface TextAnnotateProps
   extends Omit<BaseAnnotateProps, "children">,
     BaseTextAnnotate {}
 
-export default function TextAnnotate({
-  font,
-  value,
-  ...restProps
-}: TextAnnotateProps) {
+function TextAnnotate({ font, value, ...restProps }: TextAnnotateProps) {
   return (
     <BaseAnnotate {...restProps}>
       <span
@@ -43,3 +40,5 @@ export default function TextAnnotate({
     </BaseAnnotate>
   );
 }
+
+export default memo(TextAnnotate);

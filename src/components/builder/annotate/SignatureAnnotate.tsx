@@ -1,3 +1,4 @@
+import { memo } from "react";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 
 export type BaseSignatureAnnotate = {
@@ -10,7 +11,7 @@ export interface SignatureAnnotateProps
   extends Omit<BaseAnnotateProps, "children">,
     BaseSignatureAnnotate {}
 
-export default function SignatureAnnotate({
+function SignatureAnnotate({
   signatureData,
   email,
   status,
@@ -30,3 +31,5 @@ export default function SignatureAnnotate({
     </BaseAnnotate>
   );
 }
+
+export default memo(SignatureAnnotate);

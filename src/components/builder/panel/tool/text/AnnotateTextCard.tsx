@@ -96,7 +96,7 @@ export default function AnnotateTextCard({
             textAnnotate.id === selectedAnnotateId ? colorPrimary : undefined,
         }}
       >
-        <Flex justify="space-between" align="center">
+        <Flex justify="space-between" align="center" wrap>
           <Space>
             <Tooltip title="Table column">
               <Tag>{textAnnotate.value}</Tag>

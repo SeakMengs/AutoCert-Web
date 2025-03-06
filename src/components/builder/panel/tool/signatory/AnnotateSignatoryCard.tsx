@@ -108,7 +108,7 @@ export default function AnnotateSignatoryCard({
             : undefined,
       }}
     >
-      <Flex justify="center" align="center" gap={12}>
+      <Flex justify="center" align="center" gap={12} wrap>
         <Avatar className="whitespace-nowrap">
           {getInitialEmail(signatureAnnotate.email)}
         </Avatar>

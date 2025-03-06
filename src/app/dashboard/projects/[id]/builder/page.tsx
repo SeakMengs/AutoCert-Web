@@ -35,8 +35,9 @@ export default function ProjectBuilderByID() {
     onAnnotateResizeStop,
     onAnnotateSelect,
     onDocumentLoadSuccess,
-    onColumnTitleChange,
+    onGenerateCertificates,
     onPageClick,
+    replaceAnnotatesTextValue,
     removeUnnecessaryAnnotates,
   } = useAutoCert({
     initialPdfPage: 1,
@@ -56,7 +57,7 @@ export default function ProjectBuilderByID() {
     newTitle: string,
   ): void => {
     onColumnUpdate(oldTitle, newTitle);
-    onColumnTitleChange(oldTitle, newTitle);
+    replaceAnnotatesTextValue(oldTitle, newTitle);
   };
 
   if (!pdfFile) {
@@ -117,6 +118,7 @@ export default function ProjectBuilderByID() {
             // End of table props
             currentPdfPage={currentPdfPage}
             selectedAnnotateId={selectedAnnotateId}
+            onGenerateCertificates={onGenerateCertificates}
             textAnnotates={textAnnotates}
             onTextAnnotateAdd={onTextAnnotateAdd}
             onTextAnnotateUpdate={onTextAnnotateUpdate}

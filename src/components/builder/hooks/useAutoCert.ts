@@ -408,7 +408,14 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     setSelectedAnnotateId(id);
   };
 
-  const onColumnTitleChange = (oldTitle: string, newTitle: string): void => {
+  const onGenerateCertificates = (): void => {
+    console.log(annotates);
+  };
+
+  const replaceAnnotatesTextValue = (
+    oldTitle: string,
+    newTitle: string,
+  ): void => {
     const pages = Object.keys(annotates);
     const newAnnotates = { ...annotates };
 
@@ -463,7 +470,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onAnnotateResizeStop,
     onAnnotateDragStop,
     onAnnotateSelect,
-    onColumnTitleChange,
+    onGenerateCertificates,
+    replaceAnnotatesTextValue,
     removeUnnecessaryAnnotates,
   };
 }

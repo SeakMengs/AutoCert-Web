@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { memo, useRef, useState, useCallback, useMemo } from "react";
 import {
   Button,
   Form,
@@ -71,7 +71,7 @@ export interface AutoCertTableProps {
   ) => void;
 }
 
-export default function AutoCertTable({
+function AutoCertTable({
   rows,
   columns,
   onColumnAdd,
@@ -83,7 +83,7 @@ export default function AutoCertTable({
   onImportFromCSV,
 }: AutoCertTableProps) {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const tblRef: Parameters<typeof Table>[0]["ref"] = React.useRef(null);
+  const tblRef = useRef<any>(null);
   const { modal, message } = App.useApp();
   const csvFileInput = useRef<InputRef>(null);
   const [addRowForm] = Form.useForm<AutoCertTableRow>();
@@ -92,21 +92,23 @@ export default function AutoCertTable({
   }>();
   const [parsingCSV, setParsingCSV] = useState<boolean>(false);
 
-  const handleAddRow = (): void => {
+  const handleAddRow = useCallback((): void => {
     logger.debug("Add new row");
-
-    const inputs = columns.map((col) => (
-      <Form.Item key={col.dataIndex} label={col.title} name={col.dataIndex}>
-        <Input />
-      </Form.Item>
-    ));
 
     modal.confirm({
       title: "Add New Row",
       content: (
         <div className="max-h-[calc(100vh-200px)] overflow-auto">
           <Form form={addRowForm} className="mr-2" layout="horizontal">
-            {inputs}
+            {columns.map((col) => (
+              <Form.Item
+                key={col.dataIndex}
+                label={col.title}
+                name={col.dataIndex}
+              >
+                <Input />
+              </Form.Item>
+            ))}
           </Form>
         </div>
       ),
@@ -124,9 +126,9 @@ export default function AutoCertTable({
       maskClosable: true,
       centered: true,
     });
-  };
+  }, [columns, modal, addRowForm, onRowAdd, message]);
 
-  const handleAddColumn = (): void => {
+  const handleAddColumn = useCallback((): void => {
     logger.debug("Add new column");
 
     modal.confirm({
@@ -171,177 +173,221 @@ export default function AutoCertTable({
       maskClosable: true,
       centered: true,
     });
-  };
+  }, [columns, modal, addColumForm, onColumnAdd, message]);
 
-  const handleDeleteSelectedRows = (): void => {
+  const handleDeleteSelectedRows = useCallback((): void => {
     logger.debug("Delete selected rows", selectedRowKeys);
 
     onRowsDelete(selectedRowKeys);
     setSelectedRowKeys([]);
-  };
+  }, [selectedRowKeys, onRowsDelete]);
 
-  const handleSaveBodyRow = (row: AutoCertTableRow): void => {
-    logger.debug("Save body row", row);
-
-    onRowUpdate(row);
-  };
-
-  const handleDeleteHeaderColumn = (columnTitle: string): void => {
-    logger.debug("Delete column", columnTitle);
-
-    onColumnDelete(columnTitle);
-  };
-
-  const handleSaveHeaderRow = (columnTitle: string, newTitle: any): void => {
-    logger.debug("Save header row", columnTitle, newTitle);
-
-    if (columnTitle === newTitle) {
-      return;
-    }
-
-    if (columns.some((c) => c.title === newTitle)) {
-      message.warning("Column title already exists.");
-      return;
-    }
-
-    onColumnUpdate(columnTitle, newTitle);
-  };
-
-  const handleCSVFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ): Promise<void> => {
-    logger.debug("User upload a csv file", e.target.files);
-
-    setParsingCSV(true);
-    const file = e.target.files?.[0];
-
-    if (!file) {
-      message.error("No file selected.");
-      setParsingCSV(false);
-      return;
-    }
-
-    if (file.type !== "text/csv") {
-      message.error("Invalid file type. Please upload a csv file.");
-      setParsingCSV(false);
-      return;
-    }
-
-    try {
-      // Parse csv already handle duplicate column name by adding a number suffix
-      const { columns, rows } = await parseCSV(file);
-
-      onImportFromCSV(rows, columns);
-      message.success("CSV file parsed successfully.");
-    } catch (error) {
-      message.error("Failed to parse csv file.");
-    } finally {
-      setParsingCSV(false);
-    }
-  };
-
-  const processedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-
-    return {
-      ...col,
-      // Add extra props to each column for custom cell rendering
-      onCell: (record: AutoCertTableRow): EditableBodyCellProps => ({
-        ...col,
-        record,
-        onSaveBodyRow: handleSaveBodyRow,
-      }),
-      // Add extra props to each column for custom header rendering
-      onHeaderCell: (): EditableHeaderCellProps => ({
-        ...col,
-        onDeleteHeaderColumn: handleDeleteHeaderColumn,
-        onSaveHeaderRow: handleSaveHeaderRow,
-      }),
-    };
-  });
-
-  const onRowSelectChange = (newSelectedRowKeys: React.Key[]): void => {
-    logger.debug(`Selected ${newSelectedRowKeys.length} rows`);
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: onRowSelectChange,
-  } satisfies TableProps<AutoCertTableRow>["rowSelection"];
-
-  const components = {
-    header: {
-      row: EditableBodyRow,
-      cell: EditableHeaderCell,
+  const handleSaveBodyRow = useCallback(
+    (row: AutoCertTableRow): void => {
+      logger.debug("Save body row", row);
+      onRowUpdate(row);
     },
-    body: {
-      row: EditableBodyRow,
-      cell: EditableBodyCell,
+    [onRowUpdate],
+  );
+
+  const handleDeleteHeaderColumn = useCallback(
+    (columnTitle: string): void => {
+      logger.debug("Delete column", columnTitle);
+      onColumnDelete(columnTitle);
     },
-  } satisfies Exclude<TableProps<AutoCertTableRow>["components"], undefined>;
+    [onColumnDelete],
+  );
+
+  const handleSaveHeaderRow = useCallback(
+    (columnTitle: string, newTitle: any): void => {
+      logger.debug("Save header row", columnTitle, newTitle);
+
+      if (columnTitle === newTitle) {
+        return;
+      }
+
+      if (columns.some((c) => c.title === newTitle)) {
+        message.warning("Column title already exists.");
+        return;
+      }
+
+      onColumnUpdate(columnTitle, newTitle);
+    },
+    [columns, onColumnUpdate, message],
+  );
+
+  const handleCSVFileUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+      logger.debug("User upload a csv file", e.target.files);
+
+      setParsingCSV(true);
+      const file = e.target.files?.[0];
+
+      if (!file) {
+        message.error("No file selected.");
+        setParsingCSV(false);
+        return;
+      }
+
+      if (file.type !== "text/csv") {
+        message.error("Invalid file type. Please upload a csv file.");
+        setParsingCSV(false);
+        return;
+      }
+
+      try {
+        const { columns, rows } = await parseCSV(file);
+
+        onImportFromCSV(rows, columns);
+        message.success("CSV file parsed successfully.");
+      } catch (error) {
+        message.error("Failed to parse csv file.");
+      } finally {
+        setParsingCSV(false);
+      }
+    },
+    [message, onImportFromCSV],
+  );
+
+  const processedColumns = useMemo(
+    () =>
+      columns.map((col) => {
+        if (!col.editable) {
+          return col;
+        }
+
+        // These depends on the variable components
+        return {
+          ...col,
+          // Add extra props to each column for custom cell rendering
+          onCell: (record: AutoCertTableRow): EditableBodyCellProps => ({
+            ...col,
+            record,
+            onSaveBodyRow: handleSaveBodyRow,
+          }),
+          // Add extra props to each column for custom header rendering
+          onHeaderCell: (): EditableHeaderCellProps => ({
+            ...col,
+            onDeleteHeaderColumn: handleDeleteHeaderColumn,
+            onSaveHeaderRow: handleSaveHeaderRow,
+          }),
+        };
+      }),
+    [columns, handleSaveBodyRow, handleDeleteHeaderColumn, handleSaveHeaderRow],
+  ) satisfies AutoCertTableColumn[];
+
+  const onRowSelectChange = useCallback(
+    (newSelectedRowKeys: React.Key[]): void => {
+      logger.debug(`Selected ${newSelectedRowKeys.length} rows`);
+      setSelectedRowKeys(newSelectedRowKeys);
+    },
+    [],
+  );
+
+  const rowSelection = useMemo(
+    () => ({
+      selectedRowKeys,
+      onChange: onRowSelectChange,
+    }),
+    [selectedRowKeys, onRowSelectChange],
+  );
+
+  const components = useMemo(
+    () => ({
+      header: {
+        row: EditableBodyRow,
+        cell: EditableHeaderCell,
+      },
+      body: {
+        row: EditableBodyRow,
+        cell: EditableBodyCell,
+      },
+    }),
+    [],
+  );
 
   const hasColumns = columns.length > 0;
   const hasSelected = selectedRowKeys.length > 0;
 
-  const Buttons = (
-    <Flex gap="small" wrap="wrap">
-      {hasSelected && (
-        <Space>
-          <span>{selectedRowKeys.length} Selected</span>
-          <Popconfirm
-            title="The selected rows will be deleted permanently. Are you sure?"
-            onConfirm={handleDeleteSelectedRows}
-          >
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              disabled={!hasSelected}
+  const Buttons = useMemo(
+    () => (
+      <Flex gap="small" wrap="wrap">
+        {hasSelected && (
+          <Space>
+            <span>{selectedRowKeys.length} Selected</span>
+            <Popconfirm
+              title="The selected rows will be deleted permanently. Are you sure?"
+              onConfirm={handleDeleteSelectedRows}
             >
-              Delete
-            </Button>
-          </Popconfirm>
-        </Space>
-      )}
-      <Button onClick={handleAddColumn} size="small" icon={<PlusOutlined />}>
-        Column
-      </Button>
-      {hasColumns && (
-        <Button
-          onClick={handleAddRow}
-          disabled={!hasColumns}
-          size="small"
-          icon={<PlusOutlined />}
-        >
-          Row
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+                disabled={!hasSelected}
+              >
+                Delete
+              </Button>
+            </Popconfirm>
+          </Space>
+        )}
+        <Button onClick={handleAddColumn} size="small" icon={<PlusOutlined />}>
+          Column
         </Button>
-      )}
-      <Input
-        ref={csvFileInput}
-        className="hidden"
-        accept=".csv"
-        type="file"
-        id="csvInput"
-        onChange={handleCSVFileUpload}
-      />
-      <Button
-        type="primary"
-        onClick={() => {
-          const csvInput = csvFileInput.current;
-          if (csvInput && csvInput.input) {
-            csvInput.input.click();
-          }
-        }}
-        size="small"
-        icon={<UploadOutlined />}
-      >
-        Import from CSV
-      </Button>
-    </Flex>
-  ) satisfies React.ReactNode;
+        {hasColumns && (
+          <Button
+            onClick={handleAddRow}
+            disabled={!hasColumns}
+            size="small"
+            icon={<PlusOutlined />}
+          >
+            Row
+          </Button>
+        )}
+        <Input
+          ref={csvFileInput}
+          className="hidden"
+          accept=".csv"
+          type="file"
+          id="csvInput"
+          onChange={handleCSVFileUpload}
+        />
+        <Button
+          type="primary"
+          onClick={() => {
+            const csvInput = csvFileInput.current;
+            if (csvInput && csvInput.input) {
+              csvInput.input.click();
+            }
+          }}
+          size="small"
+          icon={<UploadOutlined />}
+        >
+          Import from CSV
+        </Button>
+      </Flex>
+    ),
+    [
+      hasSelected,
+      hasColumns,
+      selectedRowKeys.length,
+      handleDeleteSelectedRows,
+      handleAddColumn,
+      handleAddRow,
+      handleCSVFileUpload,
+    ],
+  );
+
+  const paginationConfig = useMemo(
+    () => ({
+      showSizeChanger: true,
+      showQuickJumper: true,
+      showTotal: (total: number, range: [number, number]) =>
+        `Showing ${range[0]}-${range[1]} of ${total} items`,
+      pageSizeOptions: [10, 20, 50, 100, 200],
+      responsive: true,
+    }),
+    [],
+  ) satisfies TableProps<AutoCertTableRow>["pagination"];
 
   return (
     <Flex vertical gap="middle">
@@ -358,19 +404,11 @@ export default function AutoCertTable({
         size="small"
         scroll={{
           x: "fit-content",
-          // y: "fit-content",
-          // y: '50px',
         }}
-        pagination={{
-          // position: ["topRight"],
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) =>
-            `Showing ${range[0]}-${range[1]} of ${total} items`,
-          pageSizeOptions: [10, 20, 50, 100, 200],
-          responsive: true,
-        }}
+        pagination={paginationConfig}
       />
     </Flex>
   );
 }
+
+export default memo(AutoCertTable);

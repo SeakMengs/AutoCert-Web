@@ -3,7 +3,7 @@ import { Document, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
@@ -28,7 +28,7 @@ export interface PdfRendererProps
   onDocumentLoadSuccess: (pdf: DocumentCallback) => void;
 }
 
-export default function PdfRenderer({
+function PdfRenderer({
   // share
   currentPdfPage,
   zoomScale,
@@ -97,3 +97,5 @@ function DocumentError() {
     />
   );
 }
+
+export default memo(PdfRenderer);

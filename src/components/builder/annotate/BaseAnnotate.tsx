@@ -1,7 +1,7 @@
 // import { createScopedLogger } from "@/utils/logger";
-import { memo, MouseEvent } from "react";
+import { memo, MouseEvent, useCallback, useMemo } from "react";
 import { DraggableEvent, DraggableData } from "react-draggable";
-import { ResizeEnable, Rnd } from "react-rnd";
+import { ResizeEnable, Rnd, RndResizeCallback } from "react-rnd";
 import { AnnotateColor } from "../hooks/useAutoCert";
 import { isHexColor } from "@/utils/color";
 
@@ -34,7 +34,7 @@ export interface BaseAnnotateProps {
   onDragStop: (
     id: string,
     e: DraggableEvent,
-    data: DraggableData,
+    position: XYPosition,
     pageNumber: number,
   ) => void;
   onResizeStop: (
@@ -62,89 +62,117 @@ function BaseAnnotate({
   onResizeStop,
   onAnnotateSelect,
 }: BaseAnnotateProps) {
-  const onAnnotateSelectWithStopPropagation = (
-    id: string | undefined,
-    e: MouseEvent<Element> | DraggableEvent,
-  ) => {
-    // Prevent the event from propagating to the parent element
-    e.preventDefault();
-    e.stopPropagation();
-    onAnnotateSelect(id);
-  };
+  const deZoomScale = useMemo(() => scale / zoomScale, [scale, zoomScale]);
 
-  const deZoomScale = scale / zoomScale;
+  const scaledSize = useMemo(
+    () => ({
+      width: size.width * deZoomScale,
+      height: size.height * deZoomScale,
+    }),
+    [size.width, size.height, deZoomScale],
+  );
 
-  const scaledSize = {
-    width: size.width * deZoomScale,
-    height: size.height * deZoomScale,
-  } satisfies WHSize;
+  const scaledPosition = useMemo(
+    () => ({
+      x: position.x * deZoomScale,
+      y: position.y * deZoomScale,
+    }),
+    [position.x, position.y, deZoomScale],
+  );
 
-  const scaledPosition = {
-    x: position.x * deZoomScale,
-    y: position.y * deZoomScale,
-  } satisfies XYPosition;
+  const displayColor = useMemo(
+    () => (isHexColor(color) ? color : AnnotateColor),
+    [color],
+  );
 
-  if (!isHexColor(color)) {
-    color = AnnotateColor;
-  }
+  const onAnnotateSelectWithStopPropagation = useCallback(
+    (
+      annotateId: string | undefined,
+      e: MouseEvent<Element> | DraggableEvent,
+    ) => {
+      // Prevent the event from propagating to the parent element
+      e.preventDefault();
+      e.stopPropagation();
+      onAnnotateSelect(annotateId);
+    },
+    [onAnnotateSelect],
+  );
+
+  const handleDragStop = useCallback(
+    (_e: DraggableEvent, dragPosition: DraggableData) => {
+      onAnnotateSelectWithStopPropagation(id, _e);
+      onDragStop(
+        id,
+        _e,
+        {
+          x: dragPosition.x / deZoomScale,
+          y: dragPosition.y / deZoomScale,
+        },
+        pageNumber,
+      );
+    },
+    [
+      id,
+      onAnnotateSelectWithStopPropagation,
+      onDragStop,
+      deZoomScale,
+      pageNumber,
+    ],
+  );
+
+  const handleResizeStop = useCallback<RndResizeCallback>(
+    (_e, dir, elementRef, delta, position) => {
+      onResizeStop(
+        id,
+        {
+          width: Number(elementRef.style.width.replace("px", "")) / deZoomScale,
+          height:
+            Number(elementRef.style.height.replace("px", "")) / deZoomScale,
+        },
+        {
+          x: position.x / deZoomScale,
+          y: position.y / deZoomScale,
+        },
+        pageNumber,
+      );
+    },
+    [id, onResizeStop, deZoomScale, pageNumber],
+  );
+
+  const handleClick = useCallback(
+    (e: MouseEvent<HTMLDivElement>) => {
+      onAnnotateSelectWithStopPropagation(id, e);
+    },
+    [id, onAnnotateSelectWithStopPropagation],
+  );
 
   return (
     <Rnd
-      // identifier for on select parent element (in AnnotateRenderer div onClick)
       className="annotation-rnd"
       scale={zoomScale}
       size={scaledSize}
       position={scaledPosition}
-      onDragStart={(_e, _data) => {
-        onAnnotateSelectWithStopPropagation(id, _e);
-      }}
-      onDragStop={(_e, position) => {
-        onAnnotateSelectWithStopPropagation(id, _e);
-        onDragStop(
-          id,
-          _e,
-          {
-            ...position,
-            x: position.x / deZoomScale,
-            y: position.y / deZoomScale,
-          },
-          pageNumber,
-        );
-      }}
-      onResizeStart={(_e) => {
-        onAnnotateSelectWithStopPropagation(id, _e);
-      }}
-      onResizeStop={(_e, _direction, ref, _delta, position) => {
-        onResizeStop(
-          id,
-          {
-            width: Number(ref.style.width.replace("px", "")) / deZoomScale,
-            height: Number(ref.style.height.replace("px", "")) / deZoomScale,
-          },
-          {
-            x: position.x / deZoomScale,
-            y: position.y / deZoomScale,
-          },
-          pageNumber,
-        );
-      }}
+      onDragStart={(e) => onAnnotateSelectWithStopPropagation(id, e)}
+      onDragStop={handleDragStop}
+      onResizeStart={(e) => onAnnotateSelectWithStopPropagation(id, e)}
+      onResizeStop={handleResizeStop}
       disableDragging={previewMode}
       enableResizing={previewMode ? false : resizable}
       bounds="parent"
     >
       <div
-        onClick={(e: MouseEvent<HTMLDivElement>) => {
-          onAnnotateSelectWithStopPropagation(id, e);
-        }}
+        onClick={handleClick}
         className="relative z-20 rounded cursor-text w-full h-full"
         style={{
-          border: selected ? `1px solid ${color}` : `1px solid transparent`,
+          border: selected
+            ? `1px solid ${displayColor}`
+            : `1px solid transparent`,
         }}
       >
         <div
           className="absolute inset-0 rounded z-0 opacity-[0.4]"
           style={{
-            backgroundColor: previewMode ? "transparent" : color,
+            backgroundColor: previewMode ? "transparent" : displayColor,
           }}
         ></div>
         <div className="relative flex items-center justify-center w-full h-full">

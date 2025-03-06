@@ -1,9 +1,9 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { WHSize } from "../../annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
-import { cn, IS_PRODUCTION } from "@/utils";
+import { IS_PRODUCTION } from "@/utils";
 import AnnotateRenderer, {
   AnnotateRendererProps,
 } from "../annotate/AnnotateRenderer";
@@ -20,7 +20,7 @@ export interface PageRendererProps extends AnnotateRendererProps {
   onPageClick: (page: number) => void;
 }
 
-export default function PageRenderer({
+function PageRenderer({
   // pdf page
   pageNumber,
   scale,
@@ -77,14 +77,14 @@ export default function PageRenderer({
     // );
 
     onScaleChange(newScale, pageNumber);
-  }, [pdfViewPort, onScaleChange, pageNumber]);
+  }, [containerRef, pdfViewPort.width, pageNumber, onScaleChange]);
 
   useEffect(() => {
     if (pdfViewPort.width > 0) {
       updateScale();
     }
     // when zoomScale change, check for scale update
-  }, [pdfViewPort.width, zoomScale]);
+  }, [pdfViewPort.width, zoomScale, updateScale]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
@@ -98,7 +98,7 @@ export default function PageRenderer({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [pdfViewPort.width, updateScale]);
+  }, [updateScale]);
 
   return (
     <div
@@ -148,3 +148,5 @@ export default function PageRenderer({
     </div>
   );
 }
+
+export default memo(PageRenderer);

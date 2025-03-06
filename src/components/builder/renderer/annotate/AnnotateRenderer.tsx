@@ -3,7 +3,7 @@ import { BaseAnnotateProps } from "../../annotate/BaseAnnotate";
 import SignatureAnnotate from "../../annotate/SignatureAnnotate";
 import TextAnnotate from "../../annotate/TextAnnotate";
 import { AnnotateState } from "../../hooks/useAutoCert";
-import { MouseEvent } from "react";
+import { MouseEvent, memo, useCallback, useMemo } from "react";
 
 export interface AnnotateRendererProps
   extends Pick<
@@ -32,23 +32,26 @@ const TEXT_RESIZABLE = {
   topRight: false,
 } satisfies ResizeEnable;
 
-export default function AnnotateRenderer({
+function AnnotateRenderer({
   annotatesByPage,
   currentPdfPage,
   selectedAnnotateId,
   ...restProps
 }: AnnotateRendererProps) {
-  const onAnnotationSelect = (id: string | undefined): void => {
+  const onAnnotationSelect = useCallback((id: string | undefined): void => {
     if (restProps.previewMode) {
       return;
     }
 
     restProps.onAnnotateSelect(id);
-  };
+  }, [restProps.previewMode, restProps.onAnnotateSelect]);
 
-  const Annotates =
-    Array.isArray(annotatesByPage) &&
-    annotatesByPage.map((annotate) => {
+  const Annotates = useMemo(() => {
+    if (!Array.isArray(annotatesByPage) || annotatesByPage.length === 0) {
+      return null;
+    }
+    
+    return annotatesByPage.map((annotate) => {
       const selected = selectedAnnotateId === annotate.id;
       switch (annotate.type) {
         case "text":
@@ -77,19 +80,24 @@ export default function AnnotateRenderer({
           return null;
       }
     });
+  }, [annotatesByPage, selectedAnnotateId, restProps, onAnnotationSelect]);
+
+  const handleContainerClick = useCallback((e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const isAnnotationClick = target.closest(".annotation-rnd");
+    if (!isAnnotationClick) {
+      onAnnotationSelect(undefined);
+    }
+  }, [onAnnotationSelect]);
 
   return (
     <div
-      onClick={(e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const isAnnotationClick = target.closest(".annotation-rnd");
-        if (!isAnnotationClick) {
-          onAnnotationSelect(undefined);
-        }
-      }}
+      onClick={handleContainerClick}
       className="absolute top-0 left-0 w-full h-full z-10"
     >
       {Annotates}
     </div>
   );
 }
+
+export default memo(AnnotateRenderer);
