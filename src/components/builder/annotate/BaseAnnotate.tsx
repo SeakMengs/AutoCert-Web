@@ -1,5 +1,13 @@
+"use client";
 // import { createScopedLogger } from "@/utils/logger";
-import { memo, MouseEvent, useCallback, useMemo } from "react";
+import {
+  memo,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { DraggableEvent, DraggableData } from "react-draggable";
 import { ResizeEnable, Rnd, RndResizeCallback } from "react-rnd";
 import { AnnotateColor } from "../hooks/useAutoCert";
@@ -62,28 +70,25 @@ function BaseAnnotate({
   onResizeStop,
   onAnnotateSelect,
 }: BaseAnnotateProps) {
-  const deZoomScale = useMemo(() => scale / zoomScale, [scale, zoomScale]);
+  const deZoomScale = useMemo(() => {
+    return scale / zoomScale;
+  }, [scale, zoomScale]);
 
-  const scaledSize = useMemo(
-    () => ({
+  const scaledSize = useMemo(() => {
+    return {
       width: size.width * deZoomScale,
       height: size.height * deZoomScale,
-    }),
-    [size.width, size.height, deZoomScale],
-  );
+    };
+  }, [size, deZoomScale]);
 
-  const scaledPosition = useMemo(
-    () => ({
+  const scaledPosition = useMemo(() => {
+    return {
       x: position.x * deZoomScale,
       y: position.y * deZoomScale,
-    }),
-    [position.x, position.y, deZoomScale],
-  );
+    };
+  }, [position, deZoomScale]);
 
-  const displayColor = useMemo(
-    () => (isHexColor(color) ? color : AnnotateColor),
-    [color],
-  );
+  const displayColor = isHexColor(color) ? color : AnnotateColor;
 
   const onAnnotateSelectWithStopPropagation = (
     annotateId: string | undefined,

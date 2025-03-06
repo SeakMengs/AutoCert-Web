@@ -6,8 +6,15 @@ import {
   ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 import { createScopedLogger } from "@/utils/logger";
+import { Space, Button, Typography } from "antd";
+import {
+  ZoomInOutlined,
+  ZoomOutOutlined,
+  UndoOutlined,
+} from "@ant-design/icons";
 
 const logger = createScopedLogger("components:builder:zoom:AutoCertZoom");
+const { Text } = Typography;
 
 export interface AutoCertZoomProps {
   transformWrapperRef: RefObject<ReactZoomPanPinchContentRef | null>;
@@ -27,7 +34,7 @@ export default function AutoCertZoom({
       return;
     }
 
-    transformWrapperRef.current.zoomIn();
+    transformWrapperRef.current.zoomIn(0.05, 0);
   };
 
   const handleZoomOut = () => {
@@ -36,7 +43,7 @@ export default function AutoCertZoom({
       return;
     }
 
-    transformWrapperRef.current.zoomOut();
+    transformWrapperRef.current.zoomOut(0.05, 0);
   };
 
   const handleReset = () => {
@@ -45,7 +52,7 @@ export default function AutoCertZoom({
       return;
     }
 
-    transformWrapperRef.current.resetTransform();
+    transformWrapperRef.current.resetTransform(0);
   };
 
   const onTransformed = (
@@ -79,7 +86,7 @@ export default function AutoCertZoom({
         }}
         panning={
           {
-            // disabled: true,
+            disabled: true,
           }
         }
         zoomAnimation={{
@@ -110,18 +117,15 @@ export default function AutoCertZoom({
       </TransformWrapper>
       {/* FIXME: Currently disable zoom because flicker issue and laggy */}
       {/* <div className="absolute bottom-4 right-4">
-                <Space>
-                    <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} />
-                    <Text>{`${Math.round(zoomScale * 100)}%`}</Text>
-                    <Button
-                        icon={<ZoomOutOutlined />}
-                        onClick={handleZoomOut}
-                    />
-                    <Button icon={<UndoOutlined />} onClick={handleReset}>
-                        Reset
-                    </Button>
-                </Space>
-            </div> */}
+        <Space>
+          <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} />
+          <Text>{`${Math.round(zoomScale * 100)}%`}</Text>
+          <Button icon={<ZoomOutOutlined />} onClick={handleZoomOut} />
+          <Button icon={<UndoOutlined />} onClick={handleReset}>
+            Reset
+          </Button>
+        </Space>
+      </div> */}
     </div>
   );
 }

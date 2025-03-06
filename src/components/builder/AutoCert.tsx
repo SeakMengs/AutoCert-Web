@@ -43,14 +43,7 @@ export default function AutoCert({
       return;
     }
 
-    // TODO: remove this temporary fix
-    setTimeout(() => {
-      transformWrapperRef.current?.resetTransform();
-    }, 100);
-
-    if (typeof onDocumentLoadSuccess === "function") {
-      onDocumentLoadSuccess(pdf);
-    }
+    onDocumentLoadSuccess(pdf);
   };
 
   return (

@@ -149,6 +149,7 @@ function AutoCertPanel({
         centered
         defaultActiveKey="1"
         items={tabs}
+        destroyInactiveTabPane
         tabBarStyle={{
           // ...headerStyle,
           height: BarSize,

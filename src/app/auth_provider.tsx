@@ -10,7 +10,7 @@ import { clientRevalidatePath } from "@/utils/server";
 import { getCookie } from "@/utils/server_cookie";
 import { App } from "antd";
 import moment from "moment";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
 const logger = createScopedLogger("app:auth_provider");
@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { message } = App.useApp();
   const [authState, setAuthState] = useState<AuthState>(initialAuthState);
   const pathname = usePathname();
+  const router = useRouter();
 
   const fetchAuthState = async (): Promise<JwtTokenValidationResult> => {
     try {
@@ -99,12 +100,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
 
-        const refreshToken = await getCookie(RefreshTokenCookie);
-        const errorMsg = !refreshToken
-          ? "Failed to authenticate"
-          : "Failed to reauthenticate";
+        router.push("/?error=Failed to reauthenticate");
 
-        message.error(errorMsg);
+        if (pathname === "/") {
+          const refreshToken = await getCookie(RefreshTokenCookie);
+
+          const errorMsg = !refreshToken
+            ? "Failed to authenticate"
+            : "Failed to reauthenticate";
+
+          message.error(errorMsg);
+        }
         return;
       }
     } catch (error: any) {

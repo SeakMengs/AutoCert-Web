@@ -1,5 +1,5 @@
 "use client";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { WHSize } from "../../annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
@@ -9,6 +9,7 @@ import AnnotateRenderer, {
 } from "../annotate/AnnotateRenderer";
 import { theme } from "antd";
 import { PageCallback } from "react-pdf/src/shared/types.js";
+import debounce from "lodash.debounce";
 
 const logger = createScopedLogger("components:builder:renderer:pdf:Page");
 
@@ -79,16 +80,18 @@ function PageRenderer({
     onScaleChange(newScale, pageNumber);
   };
 
+  const debounceUpdateScale = debounce(updateScale, 10);
+
   useEffect(() => {
     if (pdfViewPort.width > 0) {
-      updateScale();
+      debounceUpdateScale();
     }
     // when zoomScale change, check for scale update
-  }, [pdfViewPort.width, zoomScale]);
+  }, [pdfViewPort.width, zoomScale, debounceUpdateScale]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
-      updateScale();
+      debounceUpdateScale();
     });
 
     if (containerRef.current) {
@@ -98,7 +101,7 @@ function PageRenderer({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateScale]);
+  }, [debounceUpdateScale]);
 
   return (
     <div

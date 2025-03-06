@@ -12,6 +12,7 @@ export default function ProjectBuilderByID() {
   const {
     token: { colorSplit },
   } = theme.useToken();
+  // const [pdfFile, setPdfFile] = useState<string>("");
   const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
   // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
   const {
@@ -78,9 +79,13 @@ export default function ProjectBuilderByID() {
         <Splitter.Panel className="p-0 overflow-hidden">
           <Header />
           <Flex
-            className="w-full h-full p-2 overflow-auto scrollbar-hide"
+            // className="w-full h-full p-2 overflow-auto scrollbar-hide"
+            className="w-full p-2 overflow-auto"
             justify="center"
             align="center"
+            style={{
+              height: `calc(100vh - ${BarSize}px)`,
+            }}
           >
             <AutoCert
               transformWrapperRef={transformWrapperRef}

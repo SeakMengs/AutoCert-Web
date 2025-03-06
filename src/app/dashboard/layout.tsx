@@ -3,10 +3,6 @@ import DashboardLayoutClient from "./layout_client";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: Readonly<ReactNode>;
-}) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 }

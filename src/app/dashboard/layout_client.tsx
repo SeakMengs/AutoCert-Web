@@ -42,17 +42,15 @@ export const headerStyle: React.CSSProperties = {
   zIndex: 1,
 };
 
-interface DashboardLayoutProps {
+interface DashboardLayoutClientProps {
   children: ReactNode;
 }
 
 export default function DashboardLayoutClient({
   children,
-}: DashboardLayoutProps) {
-  const { message } = App.useApp();
+}: DashboardLayoutClientProps) {
   const [collapsed, setCollapsed] = useState<boolean>(true);
-  const { user, isAuthenticated, revalidate, loading } = useAuth();
-  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -61,29 +59,8 @@ export default function DashboardLayoutClient({
     setCollapsed(!collapsed);
   };
 
-  // const redirectIfNotAuthenticate = async (): Promise<void> => {
-  //   if (!isAuthenticated) {
-  //     // When auth provider refresh but fail, we try to check the state once again because
-  //     // There might be a case where user open two tabs
-  //     const result = await revalidate();
-  //     if (!result.isAuthenticated) {
-  //       router.push("/?error=Failed to authenticate (layout)");
-  //       message.error("Failed to authenticate (layout)");
-  //     }
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   redirectIfNotAuthenticate();
-  // }, [isAuthenticated]);
-  if (loading) {
-    return <FullScreenSpin />;
-  }
-
   if (!isAuthenticated) {
-    // return <FullScreenSpin />;
-    message.error("Failed to authenticate (layout)");
-    return router.push("/?error=Failed to authenticate (layout)");
+    return <FullScreenSpin />;
   }
 
   return (
