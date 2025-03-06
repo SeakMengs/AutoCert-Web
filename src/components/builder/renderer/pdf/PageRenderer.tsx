@@ -58,7 +58,7 @@ function PageRenderer({
     });
   };
 
-  const updateScale = useCallback(() => {
+  const updateScale = () => {
     if (!containerRef.current) return;
     const currentWidth = containerRef.current.getBoundingClientRect().width;
     const originalWidth = pdfViewPort.width;
@@ -77,14 +77,14 @@ function PageRenderer({
     // );
 
     onScaleChange(newScale, pageNumber);
-  }, [containerRef, pdfViewPort.width, pageNumber, onScaleChange]);
+  };
 
   useEffect(() => {
     if (pdfViewPort.width > 0) {
       updateScale();
     }
     // when zoomScale change, check for scale update
-  }, [pdfViewPort.width, zoomScale, updateScale]);
+  }, [pdfViewPort.width, zoomScale]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {

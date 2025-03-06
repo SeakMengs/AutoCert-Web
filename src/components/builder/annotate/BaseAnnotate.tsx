@@ -85,66 +85,53 @@ function BaseAnnotate({
     [color],
   );
 
-  const onAnnotateSelectWithStopPropagation = useCallback(
-    (
-      annotateId: string | undefined,
-      e: MouseEvent<Element> | DraggableEvent,
-    ) => {
-      // Prevent the event from propagating to the parent element
-      e.preventDefault();
-      e.stopPropagation();
-      onAnnotateSelect(annotateId);
-    },
-    [onAnnotateSelect],
-  );
+  const onAnnotateSelectWithStopPropagation = (
+    annotateId: string | undefined,
+    e: MouseEvent<Element> | DraggableEvent,
+  ) => {
+    // Prevent the event from propagating to the parent element
+    e.preventDefault();
+    e.stopPropagation();
+    onAnnotateSelect(annotateId);
+  };
 
-  const handleDragStop = useCallback(
-    (_e: DraggableEvent, dragPosition: DraggableData) => {
-      onAnnotateSelectWithStopPropagation(id, _e);
-      onDragStop(
-        id,
-        _e,
-        {
-          x: dragPosition.x / deZoomScale,
-          y: dragPosition.y / deZoomScale,
-        },
-        pageNumber,
-      );
-    },
-    [
+  const handleDragStop = (_e: DraggableEvent, dragPosition: DraggableData) => {
+    onAnnotateSelectWithStopPropagation(id, _e);
+    onDragStop(
       id,
-      onAnnotateSelectWithStopPropagation,
-      onDragStop,
-      deZoomScale,
+      _e,
+      {
+        x: dragPosition.x / deZoomScale,
+        y: dragPosition.y / deZoomScale,
+      },
       pageNumber,
-    ],
-  );
+    );
+  };
 
-  const handleResizeStop = useCallback<RndResizeCallback>(
-    (_e, dir, elementRef, delta, position) => {
-      onResizeStop(
-        id,
-        {
-          width: Number(elementRef.style.width.replace("px", "")) / deZoomScale,
-          height:
-            Number(elementRef.style.height.replace("px", "")) / deZoomScale,
-        },
-        {
-          x: position.x / deZoomScale,
-          y: position.y / deZoomScale,
-        },
-        pageNumber,
-      );
-    },
-    [id, onResizeStop, deZoomScale, pageNumber],
-  );
+  const handleResizeStop: RndResizeCallback = (
+    _e,
+    dir,
+    elementRef,
+    delta,
+    position,
+  ) => {
+    onResizeStop(
+      id,
+      {
+        width: Number(elementRef.style.width.replace("px", "")) / deZoomScale,
+        height: Number(elementRef.style.height.replace("px", "")) / deZoomScale,
+      },
+      {
+        x: position.x / deZoomScale,
+        y: position.y / deZoomScale,
+      },
+      pageNumber,
+    );
+  };
 
-  const handleClick = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      onAnnotateSelectWithStopPropagation(id, e);
-    },
-    [id, onAnnotateSelectWithStopPropagation],
-  );
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+    onAnnotateSelectWithStopPropagation(id, e);
+  };
 
   return (
     <Rnd

@@ -15,7 +15,6 @@ import {
   useContext,
   useEffect,
   PropsWithChildren,
-  useCallback,
   memo,
 } from "react";
 import { AutoCertTableColumn, AutoCertTableRow } from "./AutoCertTable";
@@ -78,7 +77,7 @@ export const EditableBodyCell = memo(
       form.setFieldsValue({ [dataIndex]: record[dataIndex] });
     };
 
-    const save = useCallback(async (): Promise<void> => {
+    const save = async (): Promise<void> => {
       try {
         const values = await form.validateFields();
 
@@ -87,28 +86,27 @@ export const EditableBodyCell = memo(
       } catch (err) {
         logger.error("Editable cell save failed:", err);
       }
-    }, [form, onSaveBodyRow, record, dataIndex, toggleEdit]);
+    };
 
-    if (!editable) {
-      return <td {...restProps}>{children}</td>;
+    let childNode = children;
+
+    if (editable) {
+      childNode = editing ? (
+        <Form.Item
+          style={{ margin: 0 }}
+          name={dataIndex}
+          // rules={[{ required: true, message: `${title} is required.` }]}
+        >
+          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+        </Form.Item>
+      ) : (
+        <div className="editable-cell-value-wrap min-h-6" onClick={toggleEdit}>
+          {children}
+        </div>
+      );
     }
 
-    return (
-      <td {...restProps}>
-        {editing ? (
-          <Form.Item style={{ margin: 0 }} name={dataIndex}>
-            <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-          </Form.Item>
-        ) : (
-          <div
-            className="editable-cell-value-wrap min-h-6"
-            onClick={toggleEdit}
-          >
-            {children}
-          </div>
-        )}
-      </td>
-    );
+    return <td {...restProps}>{childNode}</td>;
   },
 );
 
@@ -160,7 +158,7 @@ export const EditableHeaderCell = memo(
       form.setFieldsValue({ [dataIndex]: title });
     };
 
-    const save = useCallback(async (): Promise<void> => {
+    const save = async (): Promise<void> => {
       try {
         const values = await form.validateFields();
         toggleEdit();
@@ -169,53 +167,46 @@ export const EditableHeaderCell = memo(
         logger.error("Editable cell save failed:", err);
         setEditing(false);
       }
-    }, [form, dataIndex, title, onSaveHeaderRow, toggleEdit]);
-
-    // Prevent the click event from propagating to the parent element which trigger edit mode
-    const handleDelete = (e: React.MouseEvent) => {
-      e.stopPropagation();
     };
 
-    if (!editable) {
-      return <th {...restProps}>{children}</th>;
+    let childNode = children;
+
+    if (editable) {
+      childNode = editing ? (
+        <Form.Item
+          style={{ margin: 0 }}
+          name={dataIndex}
+          rules={[{ required: true, message: `Column title is required.` }]}
+        >
+          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+        </Form.Item>
+      ) : (
+        <Flex
+          justify="space-between"
+          align="center"
+          className="editable-cell-value-wrap min-h-6 group"
+          onClick={toggleEdit}
+        >
+          <div>{children}</div>
+          <Popconfirm
+            title="All rows and annotations under this column will be deleted. Are you sure?"
+            onConfirm={() => onDeleteHeaderColumn(dataIndex)}
+          >
+            <Tooltip title="Delete column">
+              <Button
+                className="opacity-0 group-hover:opacity-100"
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                // Prevent the click event from propagating to the parent element which trigger edit mode
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          </Popconfirm>
+        </Flex>
+      );
     }
 
-    return (
-      <th {...restProps}>
-        {editing ? (
-          <Form.Item
-            style={{ margin: 0 }}
-            name={dataIndex}
-            rules={[{ required: true, message: `Column title is required.` }]}
-          >
-            <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-          </Form.Item>
-        ) : (
-          <Flex
-            justify="space-between"
-            align="center"
-            className="editable-cell-value-wrap min-h-6 group"
-            onClick={toggleEdit}
-          >
-            <div>{children}</div>
-            <Popconfirm
-              title="All rows and annotations under this column will be deleted. Are you sure?"
-              onConfirm={() => onDeleteHeaderColumn(dataIndex)}
-            >
-              <Tooltip title="Delete column">
-                <Button
-                  className="opacity-0 group-hover:opacity-100"
-                  type="text"
-                  danger
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  onClick={handleDelete}
-                />
-              </Tooltip>
-            </Popconfirm>
-          </Flex>
-        )}
-      </th>
-    );
+    return <th {...restProps}>{childNode}</th>;
   },
 );

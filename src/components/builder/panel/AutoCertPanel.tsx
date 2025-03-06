@@ -30,11 +30,143 @@ export interface AutoCertPanelProps
   onGenerateCertificates: () => void;
 }
 
+function AutoCertPanel({
+  // Annotate
+  selectedAnnotateId,
+  currentPdfPage,
+  textAnnotates,
+  signatureAnnotates,
+  onAnnotateSelect,
+  onTextAnnotateAdd,
+  onTextAnnotateUpdate,
+  onTextAnnotateRemove,
+  onSignatureAnnotateAdd,
+  onSignatureAnnotateRemove,
+  onSignatureAnnotateInvite,
+  onGenerateCertificates,
+  // Table,
+  columns,
+  ...autoCertTableProps
+}: AutoCertPanelProps) {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
+  const collapseItems = [
+    {
+      key: "1",
+      label: (
+        <span>
+          <FontSizeOutlined /> Text Fields
+        </span>
+      ),
+      children: (
+        <AutoCertTextTool
+          selectedAnnotateId={selectedAnnotateId}
+          textAnnotates={textAnnotates}
+          currentPdfPage={currentPdfPage}
+          columns={columns}
+          onTextAnnotateAdd={onTextAnnotateAdd}
+          onTextAnnotateUpdate={onTextAnnotateUpdate}
+          onTextAnnotateRemove={onTextAnnotateRemove}
+          onAnnotateSelect={onAnnotateSelect}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <span>
+          <FormOutlined /> Signatories
+        </span>
+      ),
+      children: (
+        <AutoCertSignatoryTool
+          currentPdfPage={currentPdfPage}
+          signatureAnnotates={signatureAnnotates}
+          onAnnotateSelect={onAnnotateSelect}
+          onSignatureAnnotateAdd={onSignatureAnnotateAdd}
+          onSignatureAnnotateRemove={onSignatureAnnotateRemove}
+          onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+          selectedAnnotateId={selectedAnnotateId}
+        />
+      ),
+    },
+  ] satisfies CollapseProps["items"];
+
+  const tabs = [
+    {
+      key: "1",
+      label: (
+        <span>
+          <ToolOutlined /> Tools
+        </span>
+      ),
+      children: (
+        <Layout onGenerateCertificates={onGenerateCertificates}>
+          <Collapse
+            defaultActiveKey={["1", "2"]}
+            items={collapseItems}
+            bordered={false}
+            expandIconPosition="end"
+          />
+        </Layout>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <span>
+          <TableOutlined /> Data
+        </span>
+      ),
+      children: (
+        <Layout onGenerateCertificates={onGenerateCertificates}>
+          <AutoCertTable columns={columns} {...autoCertTableProps} />
+        </Layout>
+      ),
+    },
+  ] satisfies TabsProps["items"];
+
+  return (
+    <>
+      <style>
+        {/* to enforce nav list to be the same height as Bar size */}
+        {`
+          .ant-tabs-nav-list {
+            height: ${BarSize}px;
+          }
+
+          /*  When adding headerStyle to tabBarStyle, seems like the width is not 100%, this is to fix that temporarily :) */
+          .ant-tabs-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            }
+            `}
+      </style>
+      <Tabs
+        centered
+        defaultActiveKey="1"
+        items={tabs}
+        tabBarStyle={{
+          // ...headerStyle,
+          height: BarSize,
+          background: colorBgContainer,
+          margin: 0,
+        }}
+      />
+    </>
+  );
+}
+
+export default memo(AutoCertPanel);
+
+interface LayoutProps
+  extends Pick<AutoCertPanelProps, "onGenerateCertificates"> {}
+
 const Layout = memo(
-  ({
-    onGenerateCertificates,
-    children,
-  }: PropsWithChildren<Pick<AutoCertPanelProps, "onGenerateCertificates">>) => {
+  ({ onGenerateCertificates, children }: PropsWithChildren<LayoutProps>) => {
     const {
       token: { colorSplit },
     } = theme.useToken();
@@ -65,160 +197,3 @@ const Layout = memo(
     );
   },
 );
-
-function AutoCertPanel({
-  // Annotate
-  selectedAnnotateId,
-  currentPdfPage,
-  textAnnotates,
-  signatureAnnotates,
-  onAnnotateSelect,
-  onTextAnnotateAdd,
-  onTextAnnotateUpdate,
-  onTextAnnotateRemove,
-  onSignatureAnnotateAdd,
-  onSignatureAnnotateRemove,
-  onSignatureAnnotateInvite,
-  onGenerateCertificates,
-  // Table,
-  columns,
-  ...autoCertTableProps
-}: AutoCertPanelProps) {
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
-
-  const collapseItems = useMemo(
-    () =>
-      [
-        {
-          key: "1",
-          label: (
-            <span>
-              <FontSizeOutlined /> Text Fields
-            </span>
-          ),
-          children: (
-            <AutoCertTextTool
-              selectedAnnotateId={selectedAnnotateId}
-              textAnnotates={textAnnotates}
-              currentPdfPage={currentPdfPage}
-              columns={columns}
-              onTextAnnotateAdd={onTextAnnotateAdd}
-              onTextAnnotateUpdate={onTextAnnotateUpdate}
-              onTextAnnotateRemove={onTextAnnotateRemove}
-              onAnnotateSelect={onAnnotateSelect}
-            />
-          ),
-        },
-        {
-          key: "2",
-          label: (
-            <span>
-              <FormOutlined /> Signatories
-            </span>
-          ),
-          children: (
-            <AutoCertSignatoryTool
-              currentPdfPage={currentPdfPage}
-              signatureAnnotates={signatureAnnotates}
-              onAnnotateSelect={onAnnotateSelect}
-              onSignatureAnnotateAdd={onSignatureAnnotateAdd}
-              onSignatureAnnotateRemove={onSignatureAnnotateRemove}
-              onSignatureAnnotateInvite={onSignatureAnnotateInvite}
-              selectedAnnotateId={selectedAnnotateId}
-            />
-          ),
-        },
-      ] satisfies CollapseProps["items"],
-    [
-      selectedAnnotateId,
-      textAnnotates,
-      currentPdfPage,
-      columns,
-      onTextAnnotateAdd,
-      onTextAnnotateUpdate,
-      onTextAnnotateRemove,
-      onAnnotateSelect,
-      signatureAnnotates,
-      onSignatureAnnotateAdd,
-      onSignatureAnnotateRemove,
-      onSignatureAnnotateInvite,
-    ],
-  );
-
-  const tabs = useMemo(
-    () =>
-      [
-        {
-          key: "1",
-          label: (
-            <span>
-              <ToolOutlined /> Tools
-            </span>
-          ),
-          children: (
-            <Layout onGenerateCertificates={onGenerateCertificates}>
-              <Collapse
-                defaultActiveKey={["1", "2"]}
-                items={collapseItems}
-                bordered={false}
-                expandIconPosition="end"
-              />
-            </Layout>
-          ),
-        },
-        {
-          key: "2",
-          label: (
-            <span>
-              <TableOutlined /> Data
-            </span>
-          ),
-          children: (
-            <Layout onGenerateCertificates={onGenerateCertificates}>
-              <AutoCertTable columns={columns} {...autoCertTableProps} />
-            </Layout>
-          ),
-        },
-      ] satisfies TabsProps["items"],
-    [collapseItems, onGenerateCertificates, columns, autoCertTableProps],
-  );
-
-  const tabBarStyle = useMemo(
-    () => ({
-      height: BarSize,
-      background: colorBgContainer,
-      margin: 0,
-    }),
-    [colorBgContainer],
-  );
-
-  return (
-    <>
-      <style>
-        {/* to enforce nav list to be the same height as Bar size */}
-        {`
-          .ant-tabs-nav-list {
-            height: ${BarSize}px;
-          }
-
-          /*  When adding headerStyle to tabBarStyle, seems like the width is not 100%, this is to fix that temporarily :) */
-          .ant-tabs-nav {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-          }
-        `}
-      </style>
-      <Tabs
-        centered
-        defaultActiveKey="1"
-        items={tabs}
-        tabBarStyle={tabBarStyle}
-      />
-    </>
-  );
-}
-
-export default memo(AutoCertPanel);
