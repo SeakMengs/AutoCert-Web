@@ -26,7 +26,6 @@ export default function AutoCert({
   // pdf
   pdfFile,
   pagesScale,
-  onScaleChange,
   onDocumentLoadSuccess,
   onPageClick,
   // Annotate
@@ -60,7 +59,6 @@ export default function AutoCert({
             pagesScale={pagesScale}
             currentPdfPage={currentPdfPage}
             // For pdf
-            onScaleChange={onScaleChange}
             pdfFile={pdfFile}
             onDocumentLoadSuccess={onDocumentLoadSuccessResetTransform}
             // For annotates

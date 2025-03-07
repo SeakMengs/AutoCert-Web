@@ -12,9 +12,9 @@ export interface AnnotateRendererProps
     | "onResizeStop"
     | "previewMode"
     | "onAnnotateSelect"
-    | "scale"
     | "zoomScale"
     | "pageNumber"
+    | "pageOriginalSize"
   > {
   selectedAnnotateId: string | undefined;
   annotatesByPage: AnnotateState[];

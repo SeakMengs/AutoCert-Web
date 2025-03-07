@@ -19,7 +19,7 @@ const logger = createScopedLogger(
 );
 
 export interface PdfRendererProps
-  extends Omit<PageRendererProps, "scale" | "pageNumber" | "annotatesByPage"> {
+  extends Omit<PageRendererProps, "scale" | "pageNumber" | "annotatesByPage" > {
   annotates: AnnotateStates;
   pdfFile: string;
   currentPdfPage: number;

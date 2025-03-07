@@ -1,29 +1,19 @@
 "use client";
 // import { createScopedLogger } from "@/utils/logger";
-import {
-  memo,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { DraggableEvent, DraggableData } from "react-draggable";
-import { ResizeEnable, Rnd, RndResizeCallback } from "react-rnd";
+import { memo, useEffect, useRef, useState } from "react";
 import { AnnotateColor } from "../hooks/useAutoCert";
 import { isHexColor } from "@/utils/color";
+import Rnd, {
+  RndProps,
+  WHSize,
+  WHSizePercent,
+  WHSizePx,
+  XYPosition,
+  XYPositionPercent,
+  XYPositionPx,
+} from "../rnd/Rnd";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
-
-export type XYPosition = {
-  x: number;
-  y: number;
-};
-
-export type WHSize = {
-  width: number;
-  height: number;
-};
 
 export interface BaseAnnotateProps {
   id: string;
@@ -32,26 +22,27 @@ export interface BaseAnnotateProps {
   selected: boolean;
   // When enable, annotate cannot be resized, dragged, or edited.
   previewMode: boolean;
-  resizable?: ResizeEnable | undefined;
+  resizable?: any | undefined;
   children: React.ReactNode;
   // Background and border color of the annotate
   color: string;
-  scale: number;
   zoomScale: number;
   pageNumber: number;
+  // pdf page size which will be used to convert percentage of resized page to actual page size
+  pageOriginalSize: WHSize;
+  onAnnotateSelect: (id: string | undefined) => void;
   onDragStop: (
     id: string,
-    e: DraggableEvent,
-    position: XYPosition,
+    e: MouseEvent,
+    position: XYPositionPercent & XYPositionPx,
     pageNumber: number,
   ) => void;
   onResizeStop: (
     id: string,
-    numberSize: WHSize,
-    position: XYPosition,
+    e: MouseEvent,
+    rect: XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx,
     pageNumber: number,
   ) => void;
-  onAnnotateSelect: (id: string | undefined) => void;
 }
 
 function BaseAnnotate({
@@ -63,108 +54,82 @@ function BaseAnnotate({
   resizable,
   selected,
   color,
-  scale,
+  // pdf page size which will be used to convert percentage of resized page to actual page size
+  pageOriginalSize,
   zoomScale,
   pageNumber,
   onDragStop,
   onResizeStop,
   onAnnotateSelect,
 }: BaseAnnotateProps) {
-  const deZoomScale = useMemo(() => {
-    return scale / zoomScale;
-  }, [scale, zoomScale]);
+  const deZoomScale = 1;
 
-  const scaledSize = useMemo(() => {
-    return {
-      width: size.width * deZoomScale,
-      height: size.height * deZoomScale,
-    };
-  }, [size, deZoomScale]);
-
-  const scaledPosition = useMemo(() => {
-    return {
-      x: position.x * deZoomScale,
-      y: position.y * deZoomScale,
-    };
-  }, [position, deZoomScale]);
-
-  const displayColor = isHexColor(color) ? color : AnnotateColor;
+  const bgColor = isHexColor(color) ? color : AnnotateColor;
 
   const onAnnotateSelectWithStopPropagation = (
-    annotateId: string | undefined,
-    e: MouseEvent<Element> | DraggableEvent,
+    annotateId: string,
+    e: MouseEvent,
   ) => {
-    // Prevent the event from propagating to the parent element
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      // Prevent the event from propagating to the parent element
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (previewMode) {
+      // If preview mode is enabled, do not select the annotate
+      return;
+    }
+
     onAnnotateSelect(annotateId);
   };
 
-  const handleDragStop = (_e: DraggableEvent, dragPosition: DraggableData) => {
-    onAnnotateSelectWithStopPropagation(id, _e);
-    onDragStop(
-      id,
-      _e,
-      {
-        x: dragPosition.x / deZoomScale,
-        y: dragPosition.y / deZoomScale,
-      },
-      pageNumber,
-    );
-  };
-
-  const handleResizeStop: RndResizeCallback = (
-    _e,
-    dir,
-    elementRef,
-    delta,
-    position,
-  ) => {
-    onResizeStop(
-      id,
-      {
-        width: Number(elementRef.style.width.replace("px", "")) / deZoomScale,
-        height: Number(elementRef.style.height.replace("px", "")) / deZoomScale,
-      },
-      {
-        x: position.x / deZoomScale,
-        y: position.y / deZoomScale,
-      },
-      pageNumber,
-    );
-  };
-
-  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+  const handleDragStop: RndProps["onDragStop"] = (e, position) => {
     onAnnotateSelectWithStopPropagation(id, e);
+    if (onDragStop) {
+      onDragStop(id, e, position, pageNumber);
+    }
+  };
+
+  const handleResizeStop: RndProps["onResizeStop"] = (e, rect) => {
+    onAnnotateSelectWithStopPropagation(id, e);
+    if (onResizeStop) {
+      onResizeStop(id, e, rect, pageNumber);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    onAnnotateSelectWithStopPropagation(id, e as unknown as MouseEvent);
   };
 
   return (
     <Rnd
-      className="annotation-rnd"
-      scale={zoomScale}
-      size={scaledSize}
-      position={scaledPosition}
-      onDragStart={(e) => onAnnotateSelectWithStopPropagation(id, e)}
+      originalSize={pageOriginalSize}
+      size={size}
+      position={position}
+      onDragStart={(e) => {
+        onAnnotateSelectWithStopPropagation(id, e);
+      }}
+      onResizeStart={(e) => {
+        onAnnotateSelectWithStopPropagation(id, e);
+      }}
       onDragStop={handleDragStop}
-      onResizeStart={(e) => onAnnotateSelectWithStopPropagation(id, e)}
       onResizeStop={handleResizeStop}
-      disableDragging={previewMode}
-      enableResizing={previewMode ? false : resizable}
-      bounds="parent"
+      enableDragging={!previewMode}
+      enableResizing={!previewMode}
+      // bounds="parent"
     >
       <div
         onClick={handleClick}
-        className="relative z-20 rounded cursor-text w-full h-full"
+        className="relative z-19 rounded cursor-text w-full h-full"
         style={{
-          border: selected
-            ? `1px solid ${displayColor}`
-            : `1px solid transparent`,
+          border: selected ? `1px solid ${bgColor}` : `1px solid transparent`,
         }}
       >
         <div
           className="absolute inset-0 rounded z-0 opacity-[0.4]"
           style={{
-            backgroundColor: previewMode ? "transparent" : displayColor,
+            backgroundColor: previewMode ? "transparent" : bgColor,
           }}
         ></div>
         <div className="relative flex items-center justify-center w-full h-full">

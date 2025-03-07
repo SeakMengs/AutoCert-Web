@@ -1,8 +1,4 @@
-import {
-  BaseAnnotateProps,
-  WHSize,
-  XYPosition,
-} from "@/components/builder/annotate/BaseAnnotate";
+import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
@@ -16,6 +12,7 @@ import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { MIN_SCALE } from "../utils";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signatory/AutoCertSignatoryTool";
+import { WHSize, XYPosition } from "../rnd/Rnd";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -31,6 +28,7 @@ type BaseAnnotateState = Omit<
   | "scale"
   | "zoomScale"
   | "pageNumber"
+  | "pageOriginalSize"
 > & {
   type: "text" | "signature";
 };
@@ -363,36 +361,55 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     }));
   };
 
-  const onAnnotateResizeStop = (
-    id: string,
-    size: WHSize,
-    position: XYPosition,
-    pageNumber: number,
+  const onAnnotateResizeStop: BaseAnnotateProps["onResizeStop"] = (
+    id,
+    e,
+    rect,
+    pageNumber,
   ): void => {
     logger.debug(
-      `Resize annotation (unscaled), w:${size.width}, h:${size.height},  Position: x:${position.x}, y:${position.y}, dpi: ${window.devicePixelRatio}, page scale: ${pagesScale[pageNumber]}, zoomScale: ${zoomScale}`,
+      `Resize annotation, w:${rect.widthPx}, h:${rect.heightPx},  Position: x:${rect.xPx}, y:${rect.yPx}, dpi: ${window.devicePixelRatio}, zoomScale: ${zoomScale}`,
     );
 
     setAnnotates((prev) => ({
       ...prev,
       [pageNumber]: (prev[pageNumber] || []).map((annotation) =>
-        annotation.id === id ? { ...annotation, size, position } : annotation,
+        annotation.id === id
+          ? {
+              ...annotation,
+              position: {
+                x: rect.xPx,
+                y: rect.yPx,
+              },
+              size: { width: rect.widthPx, height: rect.heightPx },
+            }
+          : annotation,
       ),
     }));
   };
 
-  const onAnnotateDragStop = (
-    id: string,
-    _e: any,
-    position: XYPosition,
-    pageNumber: number,
+  const onAnnotateDragStop: BaseAnnotateProps["onDragStop"] = (
+    id,
+    e,
+    position,
+    pageNumber,
   ): void => {
-    logger.debug(`Drag annotation, Position: x:${position.x}, y:${position.y}`);
+    logger.debug(
+      `Drag annotation, Position: x:${position.xPx}, y:${position.yPx}`,
+    );
 
     setAnnotates((prev) => ({
       ...prev,
       [pageNumber]: (prev[pageNumber] || []).map((annotation) =>
-        annotation.id === id ? { ...annotation, position } : annotation,
+        annotation.id === id
+          ? {
+              ...annotation,
+              position: {
+                x: position.xPx,
+                y: position.yPx,
+              },
+            }
+          : annotation,
       ),
     }));
   };

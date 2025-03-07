@@ -1,10 +1,19 @@
-import useAutoCert from "@/components/builder/hooks/useAutoCert";
+import useAutoCert, {
+  AnnotateColor,
+} from "@/components/builder/hooks/useAutoCert";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TextAnnotateFormSchema } from "@/components/builder/panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "@/components/builder/panel/table/AutoCertTable";
-import { WHSize, XYPosition } from "@/components/builder/annotate/BaseAnnotate";
 import { SignatureAnnotateFormSchema } from "@/components/builder/panel/tool/signatory/AutoCertSignatoryTool";
+import {
+  WHSize,
+  WHSizePercent,
+  WHSizePx,
+  XYPosition,
+  XYPositionPercent,
+  XYPositionPx,
+} from "@/components/builder/rnd/Rnd";
 
 describe("useAutoCert", () => {
   const initialPdfPage = 1;
@@ -90,6 +99,7 @@ describe("useAutoCert", () => {
 
     const data = {
       email: "test@autocert.com",
+      color: AnnotateColor,
     } satisfies SignatureAnnotateFormSchema;
 
     act(() => {
@@ -114,6 +124,7 @@ describe("useAutoCert", () => {
 
     const data = {
       email: "test@autocert.com",
+      color: AnnotateColor,
     } satisfies SignatureAnnotateFormSchema;
 
     act(() => {
@@ -141,6 +152,7 @@ describe("useAutoCert", () => {
     const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
     const data = {
       email: "test@autocert.com",
+      color: AnnotateColor,
     } satisfies SignatureAnnotateFormSchema;
     act(() => {
       result.current.onSignatureAnnotateAdd(initialPdfPage, data);
@@ -255,12 +267,17 @@ describe("useAutoCert", () => {
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
-    const newPosition = { x: 100, y: 200 } satisfies XYPosition;
+    const newPosition = {
+      xPercent: 10,
+      yPercent: 10,
+      xPx: 10,
+      yPx: 10,
+    } satisfies XYPositionPx & XYPositionPercent;
 
     act(() => {
       result.current.onAnnotateDragStop(
         textId,
-        null,
+        null as any,
         newPosition,
         initialPdfPage,
       );
@@ -268,7 +285,10 @@ describe("useAutoCert", () => {
 
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];
 
-    expect(updatedAnnotate.position).toEqual(newPosition);
+    expect(updatedAnnotate.position).toEqual({
+      x: newPosition.xPx,
+      y: newPosition.yPx,
+    } satisfies XYPosition);
   });
 
   it("should handle annotation resize", () => {
@@ -284,22 +304,36 @@ describe("useAutoCert", () => {
     });
 
     const textId = result.current.annotates[initialPdfPage][0].id;
-    const newSize = { width: 200, height: 50 } satisfies WHSize;
-    const newPosition = { x: 50, y: 100 } satisfies XYPosition;
+    const rect = {
+      heightPercent: 50,
+      widthPercent: 50,
+      heightPx: 100,
+      widthPx: 100,
+      xPercent: 10,
+      yPercent: 10,
+      xPx: 10,
+      yPx: 10,
+    } satisfies XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx;
 
     act(() => {
       result.current.onAnnotateResizeStop(
         textId,
-        newSize,
-        newPosition,
+        null as any,
+        rect,
         initialPdfPage,
       );
     });
 
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];
 
-    expect(updatedAnnotate.size).toEqual(newSize);
-    expect(updatedAnnotate.position).toEqual(newPosition);
+    expect(updatedAnnotate.size).toEqual({
+      width: rect.widthPx,
+      height: rect.heightPx,
+    } satisfies WHSize);
+    expect(updatedAnnotate.position).toEqual({
+      x: rect.xPx,
+      y: rect.yPx,
+    } satisfies XYPosition);
   });
 
   it("should update scale for a page", () => {
@@ -339,7 +373,7 @@ describe("useAutoCert", () => {
     });
 
     act(() => {
-      result.current.onColumnTitleChange("OldTitle", "NewTitle");
+      result.current.replaceAnnotatesTextValue("OldTitle", "NewTitle");
     });
 
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];

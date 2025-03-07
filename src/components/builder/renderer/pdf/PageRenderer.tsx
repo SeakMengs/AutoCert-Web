@@ -1,6 +1,5 @@
 "use client";
 import { memo, useEffect, useRef, useState } from "react";
-import { WHSize } from "../../annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
 import { IS_PRODUCTION } from "@/utils";
@@ -10,23 +9,20 @@ import AnnotateRenderer, {
 import { theme } from "antd";
 import { PageCallback } from "react-pdf/src/shared/types.js";
 import debounce from "lodash.debounce";
+import { WHSize } from "../../rnd/Rnd";
 
 const logger = createScopedLogger("components:builder:renderer:pdf:Page");
 
-export interface PageRendererProps extends AnnotateRendererProps {
+export interface PageRendererProps
+  extends Omit<AnnotateRendererProps, "pageOriginalSize"> {
   pageNumber: number;
-  // Scale of the canvas element, not the PDF page scale
-  scale: number;
-  onScaleChange: (scale: number, page: number) => void;
   onPageClick: (page: number) => void;
 }
 
 function PageRenderer({
   // pdf page
   pageNumber,
-  scale,
   onPageClick,
-  onScaleChange,
 
   // annotate
   annotatesByPage,
@@ -46,8 +42,6 @@ function PageRenderer({
     width: 0,
     height: 0,
   });
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const onPageRenderSuccess = (page: PageCallback) => {
     // const viewport = page.getViewport({ scale: 1 });
     logger.debug(
@@ -59,59 +53,13 @@ function PageRenderer({
     });
   };
 
-  const updateScale = () => {
-    if (!containerRef.current) return;
-    const currentWidth = containerRef.current.getBoundingClientRect().width;
-    const originalWidth = pdfViewPort.width;
-
-    if (originalWidth === 0) {
-      logger.warn(
-        `Pdf page: ${pageNumber}, Original width is 0, skip scale update`,
-      );
-      return;
-    }
-
-    const newScale = parseFloat((currentWidth / originalWidth).toFixed(3)) || 1;
-
-    // logger.debug(
-    //     `Pdf page: ${pageNumber}, Current width: ${currentWidth}, Original width: ${originalWidth}, Old scale ${scale},New scale: ${newScale}, Shall expect update annotation with new scale`
-    // );
-
-    onScaleChange(newScale, pageNumber);
-  };
-
-  const debounceUpdateScale = debounce(updateScale, 10);
-
-  useEffect(() => {
-    if (pdfViewPort.width > 0) {
-      debounceUpdateScale();
-    }
-    // when zoomScale change, check for scale update
-  }, [pdfViewPort.width, zoomScale, debounceUpdateScale]);
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      debounceUpdateScale();
-    });
-
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [debounceUpdateScale]);
-
   return (
     <div
-      id={`autocert-pdf-page-${pageNumber}`}
       onClick={() => {
         if (!selected) {
           onPageClick(pageNumber);
         }
       }}
-      ref={containerRef}
       className="relative"
       style={{
         // Prevent canvas from going beyond the viewport
@@ -134,7 +82,7 @@ function PageRenderer({
       <AnnotateRenderer
         pageNumber={pageNumber}
         zoomScale={zoomScale}
-        scale={scale}
+        pageOriginalSize={pdfViewPort}
         previewMode={previewMode}
         annotatesByPage={annotatesByPage}
         selectedAnnotateId={selectedAnnotateId}
@@ -145,7 +93,7 @@ function PageRenderer({
       />
       {!IS_PRODUCTION && (
         <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
-          Scale: {scale}, Zoom: {zoomScale}
+          Zoom: {zoomScale}
         </div>
       )}
     </div>
