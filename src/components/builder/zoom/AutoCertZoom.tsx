@@ -84,11 +84,9 @@ export default function AutoCertZoom({
         pinch={{
           disabled: true,
         }}
-        panning={
-          {
-            disabled: true,
-          }
-        }
+        panning={{
+          disabled: true,
+        }}
         zoomAnimation={{
           animationTime: 200,
         }}

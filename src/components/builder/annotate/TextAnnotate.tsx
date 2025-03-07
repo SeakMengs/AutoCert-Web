@@ -20,7 +20,7 @@ export interface TextAnnotateProps
 
 function TextAnnotate({ font, value, ...restProps }: TextAnnotateProps) {
   return (
-    <BaseAnnotate {...restProps}>
+    <BaseAnnotate {...restProps} lockResizeY={true}>
       <span
         contentEditable={!restProps.previewMode}
         suppressContentEditableWarning

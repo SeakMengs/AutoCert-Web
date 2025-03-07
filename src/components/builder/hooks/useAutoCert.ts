@@ -29,6 +29,9 @@ type BaseAnnotateState = Omit<
   | "zoomScale"
   | "pageNumber"
   | "pageOriginalSize"
+  | "containerRef"
+  | "lockResizeX"
+  | "lockResizeY"
 > & {
   type: "text" | "signature";
 };

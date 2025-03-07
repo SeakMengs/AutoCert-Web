@@ -121,7 +121,9 @@ export default function AnnotateSignatoryCard({
             }}
           >
             {getStatusTag()}
-            <Text type="secondary" className="text-xs">Page: {pageNumber}</Text>
+            <Text type="secondary" className="text-xs">
+              Page: {pageNumber}
+            </Text>
           </div>
         </Flex>
 

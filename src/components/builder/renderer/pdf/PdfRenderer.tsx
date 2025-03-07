@@ -19,7 +19,7 @@ const logger = createScopedLogger(
 );
 
 export interface PdfRendererProps
-  extends Omit<PageRendererProps, "scale" | "pageNumber" | "annotatesByPage" > {
+  extends Omit<PageRendererProps, "scale" | "pageNumber" | "annotatesByPage"> {
   annotates: AnnotateStates;
   pdfFile: string;
   currentPdfPage: number;
@@ -35,7 +35,6 @@ function PdfRenderer({
   // pdf
   pdfFile,
   pagesScale,
-  onScaleChange,
   onDocumentLoadSuccess,
   onPageClick,
 
@@ -66,8 +65,6 @@ function PdfRenderer({
             key={`page_${index + 1}`}
             onPageClick={onPageClick}
             pageNumber={index + 1}
-            scale={pagesScale[index + 1] ?? 1}
-            onScaleChange={onScaleChange}
             // Annotate
             annotatesByPage={annotates[index + 1] ?? []}
             selectedAnnotateId={selectedAnnotateId}

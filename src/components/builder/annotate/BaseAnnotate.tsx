@@ -1,6 +1,5 @@
-"use client";
 // import { createScopedLogger } from "@/utils/logger";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo } from "react";
 import { AnnotateColor } from "../hooks/useAutoCert";
 import { isHexColor } from "@/utils/color";
 import Rnd, {
@@ -15,7 +14,8 @@ import Rnd, {
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 
-export interface BaseAnnotateProps {
+export interface BaseAnnotateProps
+  extends Pick<RndProps, "containerRef" | "lockResizeX" | "lockResizeY"> {
   id: string;
   position: XYPosition;
   size: WHSize;
@@ -54,6 +54,9 @@ function BaseAnnotate({
   resizable,
   selected,
   color,
+  containerRef,
+  lockResizeX,
+  lockResizeY,
   // pdf page size which will be used to convert percentage of resized page to actual page size
   pageOriginalSize,
   zoomScale,
@@ -107,6 +110,7 @@ function BaseAnnotate({
       originalSize={pageOriginalSize}
       size={size}
       position={position}
+      showResizeHandle={selected}
       onDragStart={(e) => {
         onAnnotateSelectWithStopPropagation(id, e);
       }}
@@ -117,7 +121,9 @@ function BaseAnnotate({
       onResizeStop={handleResizeStop}
       enableDragging={!previewMode}
       enableResizing={!previewMode}
-      // bounds="parent"
+      lockResizeX={lockResizeX}
+      lockResizeY={lockResizeY}
+      containerRef={containerRef}
     >
       <div
         onClick={handleClick}

@@ -1,4 +1,3 @@
-import { ResizeEnable } from "react-rnd";
 import { BaseAnnotateProps } from "../../annotate/BaseAnnotate";
 import SignatureAnnotate from "../../annotate/SignatureAnnotate";
 import TextAnnotate from "../../annotate/TextAnnotate";
@@ -15,6 +14,7 @@ export interface AnnotateRendererProps
     | "zoomScale"
     | "pageNumber"
     | "pageOriginalSize"
+    | "containerRef"
   > {
   selectedAnnotateId: string | undefined;
   annotatesByPage: AnnotateState[];
@@ -30,7 +30,7 @@ const TEXT_RESIZABLE = {
   top: false,
   topLeft: false,
   topRight: false,
-} satisfies ResizeEnable;
+};
 
 function AnnotateRenderer({
   annotatesByPage,
@@ -38,19 +38,22 @@ function AnnotateRenderer({
   selectedAnnotateId,
   ...restProps
 }: AnnotateRendererProps) {
-  const onAnnotationSelect = useCallback((id: string | undefined): void => {
-    if (restProps.previewMode) {
-      return;
-    }
+  const onAnnotationSelect = useCallback(
+    (id: string | undefined): void => {
+      if (restProps.previewMode) {
+        return;
+      }
 
-    restProps.onAnnotateSelect(id);
-  }, [restProps.previewMode, restProps.onAnnotateSelect]);
+      restProps.onAnnotateSelect(id);
+    },
+    [restProps.previewMode, restProps.onAnnotateSelect],
+  );
 
   const Annotates = useMemo(() => {
     if (!Array.isArray(annotatesByPage) || annotatesByPage.length === 0) {
       return null;
     }
-    
+
     return annotatesByPage.map((annotate) => {
       const selected = selectedAnnotateId === annotate.id;
       switch (annotate.type) {
@@ -82,13 +85,16 @@ function AnnotateRenderer({
     });
   }, [annotatesByPage, selectedAnnotateId, restProps, onAnnotationSelect]);
 
-  const handleContainerClick = useCallback((e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const isAnnotationClick = target.closest(".annotation-rnd");
-    if (!isAnnotationClick) {
-      onAnnotationSelect(undefined);
-    }
-  }, [onAnnotationSelect]);
+  const handleContainerClick = useCallback(
+    (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isAnnotationClick = target.closest(".autocert-drag");
+      if (!isAnnotationClick) {
+        onAnnotationSelect(undefined);
+      }
+    },
+    [onAnnotationSelect],
+  );
 
   return (
     <div

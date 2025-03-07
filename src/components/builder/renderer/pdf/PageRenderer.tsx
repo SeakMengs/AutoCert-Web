@@ -14,7 +14,7 @@ import { WHSize } from "../../rnd/Rnd";
 const logger = createScopedLogger("components:builder:renderer:pdf:Page");
 
 export interface PageRendererProps
-  extends Omit<AnnotateRendererProps, "pageOriginalSize"> {
+  extends Omit<AnnotateRendererProps, "pageOriginalSize" | "containerRef"> {
   pageNumber: number;
   onPageClick: (page: number) => void;
 }
@@ -42,6 +42,8 @@ function PageRenderer({
     width: 0,
     height: 0,
   });
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const onPageRenderSuccess = (page: PageCallback) => {
     // const viewport = page.getViewport({ scale: 1 });
     logger.debug(
@@ -60,6 +62,7 @@ function PageRenderer({
           onPageClick(pageNumber);
         }
       }}
+      ref={containerRef}
       className="relative"
       style={{
         // Prevent canvas from going beyond the viewport
@@ -80,6 +83,7 @@ function PageRenderer({
         }}
       />
       <AnnotateRenderer
+        containerRef={containerRef}
         pageNumber={pageNumber}
         zoomScale={zoomScale}
         pageOriginalSize={pdfViewPort}

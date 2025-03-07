@@ -1,5 +1,6 @@
-import { useState, useEffect, PropsWithChildren } from "react";
-import { E } from "vitest/dist/chunks/reporters.Y8BYiXBN.js";
+import { useState, useEffect, PropsWithChildren, HTMLAttributes, memo } from "react";
+import { cn } from "@/utils";
+import ResizeHandle from "./ResizeHandle";
 
 export type XYPosition = {
   x: number;
@@ -36,16 +37,20 @@ export interface Rect extends XYPosition, WHSize {}
 export interface RndProps {
   // Initial values in pixels
   position: XYPosition;
-  size: { width: number; height: number };
+  size: WHSize;
   minWidth?: number;
   minHeight?: number;
   // The design reference container size in px which will be used to convert percentage of resized component to actual position and size
-  originalSize: { width: number; height: number };
-  containerRef?: React.RefObject<HTMLElement>;
+  originalSize: WHSize;
+  // the parent container that wraps the component, will be used to calculate the percentage of the component, if omitted, will use the viewport size
+  containerRef: React.RefObject<HTMLDivElement | HTMLElement | null>;
+  showResizeHandle: boolean;
+  lockResizeX?: boolean;
+  lockResizeY?: boolean;
   dragStyle?: React.CSSProperties;
   resizeStyle?: React.CSSProperties;
-  dragClassName?: string;
-  resizeClassName?: string;
+  dragClassName?: HTMLAttributes<HTMLDivElement>["className"];
+  resizeClassName?: HTMLAttributes<HTMLDivElement>["className"];
   enableDragging?: boolean;
   enableResizing?: boolean;
   onDragStart?: (
@@ -101,7 +106,7 @@ export interface RndProps {
   ) => void;
 }
 
-export default function Rnd({
+function Rnd({
   position,
   size,
   minHeight = 0,
@@ -112,6 +117,9 @@ export default function Rnd({
   resizeStyle,
   dragClassName,
   resizeClassName,
+  lockResizeX = false,
+  lockResizeY = false,
+  showResizeHandle = true,
   enableDragging = true,
   enableResizing = true,
   onDragStart,
@@ -136,6 +144,7 @@ export default function Rnd({
       ? (minHeight / originalSize.height) * 100
       : undefined;
 
+  // Rect as percentage values.
   const [rect, setRect] = useState<Rect>({
     x: initialXPercent,
     y: initialYPercent,
@@ -145,7 +154,9 @@ export default function Rnd({
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  // Mouse position in pixels.
   const [startMouse, setStartMouse] = useState<XYPosition | null>(null);
+  // Rect as percentage values.
   const [startRect, setStartRect] = useState<Rect | null>(null);
 
   // Get container dimensions (responsive container or fallback to viewport)
@@ -160,6 +171,25 @@ export default function Rnd({
       width: document.documentElement.clientWidth,
       height: document.documentElement.clientHeight,
     };
+  };
+
+  const getEventClientPosition = (
+    e:
+      | MouseEvent
+      | TouchEvent
+      | React.MouseEvent<HTMLDivElement>
+      | React.TouchEvent<HTMLDivElement>,
+  ): {
+    clientX: number;
+    clientY: number;
+  } => {
+    if ("clientX" in e) {
+      return { clientX: e.clientX, clientY: e.clientY };
+    }
+    if ("touches" in e && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    return { clientX: 0, clientY: 0 };
   };
 
   // Convert percentage values back to pixels based on original size.
@@ -177,12 +207,16 @@ export default function Rnd({
     };
   };
 
-  const onMouseMove = (e: MouseEvent) => {
+  // Handle mouse/touch movement for dragging and resizing.
+  const onPointerMove = (e: MouseEvent | TouchEvent) => {
     if (!startMouse || !startRect) return;
     const { width: containerWidth, height: containerHeight } =
       getContainerDimensions();
-    const deltaX = e.clientX - startMouse.x;
-    const deltaY = e.clientY - startMouse.y;
+
+    const { clientX, clientY } = getEventClientPosition(e);
+
+    const deltaX = clientX - startMouse.x;
+    const deltaY = clientY - startMouse.y;
 
     if (isDragging) {
       // Compute delta as percentage of container dimensions.
@@ -202,7 +236,7 @@ export default function Rnd({
       setRect((prev) => ({ ...prev, x: newX, y: newY }));
       if (onDrag) {
         const conv = convertToPx(newX, newY, startRect.width, startRect.height);
-        onDrag(e, {
+        onDrag(e as unknown as MouseEvent, {
           xPercent: newX,
           yPercent: newY,
           xPx: conv.x,
@@ -211,8 +245,8 @@ export default function Rnd({
       }
     } else if (isResizing) {
       // Compute width/height change in percentage.
-      const deltaWidthPercent = (deltaX / containerWidth) * 100;
-      const deltaHeightPercent = (deltaY / containerHeight) * 100;
+      const deltaWidthPercent = lockResizeX ? 0 : (deltaX / containerWidth) * 100;
+      const deltaHeightPercent = lockResizeY ? 0 : (deltaY / containerHeight) * 100;
       let newWidth = startRect.width + deltaWidthPercent;
       let newHeight = startRect.height + deltaHeightPercent;
 
@@ -229,7 +263,7 @@ export default function Rnd({
       if (onResize) {
         // When resizing from the bottom-right, position (x,y) remains unchanged.
         const conv = convertToPx(startRect.x, startRect.y, newWidth, newHeight);
-        onResize(e, {
+        onResize(e as unknown as MouseEvent, {
           widthPercent: newWidth,
           heightPercent: newHeight,
           xPercent: startRect.x,
@@ -243,12 +277,13 @@ export default function Rnd({
     }
   };
 
-  const onMouseUp = (e: MouseEvent) => {
+  // Stop dragging or resizing when the mouse/touch is released.
+  const onPointerUp = (e: MouseEvent | TouchEvent) => {
     if (isDragging) {
       setIsDragging(false);
       if (onDragStop) {
         const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
-        onDragStop(e, {
+        onDragStop(e as unknown as MouseEvent, {
           xPercent: rect.x,
           yPercent: rect.y,
           xPx: conv.x,
@@ -260,7 +295,7 @@ export default function Rnd({
       setIsResizing(false);
       if (onResizeStop) {
         const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
-        onResizeStop(e, {
+        onResizeStop(e as unknown as MouseEvent, {
           widthPercent: rect.width,
           heightPercent: rect.height,
           xPercent: rect.x,
@@ -276,21 +311,25 @@ export default function Rnd({
     setStartRect(null);
   };
 
-  // Start dragging when clicking outside the resize handle.
-  const onDragMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Start dragging when clicking/touching outside the resize handle.
+  const onDragPointerDown = (
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+  ) => {
     if (!enableDragging) {
       return;
     }
 
-    if (
-      (e.target as HTMLElement).classList.contains("autocert-resize-handle")
-    ) {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains("autocert-resize-handle")) {
       return;
     }
 
+    const { clientX, clientY } = getEventClientPosition(e);
+
     setIsDragging(true);
-    setStartMouse({ x: e.clientX, y: e.clientY });
+    setStartMouse({ x: clientX, y: clientY });
     setStartRect(rect);
+
     if (onDragStart) {
       const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
       onDragStart(e as unknown as MouseEvent, {
@@ -300,18 +339,23 @@ export default function Rnd({
         yPx: conv.y,
       });
     }
+
     e.preventDefault();
     e.stopPropagation();
   };
 
   // Start resizing when clicking the resize handle.
-  const onResizeMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onResizePointerDown = (
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+  ) => {
     if (!enableResizing) {
       return;
     }
 
+    const { clientX, clientY } = getEventClientPosition(e);
+
     setIsResizing(true);
-    setStartMouse({ x: e.clientX, y: e.clientY });
+    setStartMouse({ x: clientX, y: clientY });
     setStartRect(rect);
     if (onResizeStart) {
       const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
@@ -332,22 +376,35 @@ export default function Rnd({
 
   useEffect(() => {
     if (isDragging || isResizing) {
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
+      window.addEventListener("mousemove", onPointerMove);
+      window.addEventListener("mouseup", onPointerUp);
+      window.addEventListener("mouseleave", onPointerUp);
+      window.addEventListener("touchmove", onPointerMove, { passive: false });
+      window.addEventListener("touchend", onPointerUp);
+      window.addEventListener("touchcancel", onPointerUp);
     } else {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onPointerMove);
+      window.removeEventListener("mouseup", onPointerUp);
+      window.removeEventListener("mouseleave", onPointerUp);
+      window.removeEventListener("touchmove", onPointerMove);
+      window.removeEventListener("touchend", onPointerUp);
+      window.removeEventListener("touchcancel", onPointerUp);
     }
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onPointerMove);
+      window.removeEventListener("mouseup", onPointerUp);
+      window.removeEventListener("mouseleave", onPointerUp);
+      window.removeEventListener("touchmove", onPointerMove);
+      window.removeEventListener("touchend", onPointerUp);
+      window.removeEventListener("touchcancel", onPointerUp);
     };
   }, [isDragging, isResizing, startMouse, startRect, rect]);
 
   return (
     <div
-      className={`autocert-drag` + (dragClassName ? ` ${dragClassName}` : "")}
-      onMouseDown={onDragMouseDown}
+      className={cn("autocert-drag", dragClassName)}
+      onMouseDown={onDragPointerDown}
+      onTouchStart={onDragPointerDown}
       style={{
         ...dragStyle,
         position: "absolute",
@@ -357,31 +414,21 @@ export default function Rnd({
         height: `${rect.height}%`,
         boxSizing: "border-box",
         userSelect: "none",
+        // Prevent default touch actions like scrolling
+        touchAction: "none",
       }}
     >
       {children}
-      {/* Bottom-right resize handle */}
-      {enableResizing && (
-        <div
-          className={
-            `autocert-resize-handle` +
-            (resizeClassName ? ` ${resizeClassName}` : "") +
-            "rounded-full -bottom-1 border-gray-400 bg-white shadow-md border absolute cursor-nwse-resize"
-          }
-          onMouseDown={onResizeMouseDown}
-          style={{
-            ...resizeStyle,
-            position: "absolute",
-            width: "8px",
-            height: "8px",
-            right: -4,
-            bottom: 0,
-            cursor: "se-resize",
-            borderRadius: "50%",
-            backgroundColor: "rgba(0,0,0,0.3)",
-          }}
-        />
-      )}
+      {/*  resize handle */}
+      <ResizeHandle
+        onResizePointerDown={onResizePointerDown}
+        showResizeHandle={showResizeHandle}
+        enableResizing={enableResizing}
+        resizeClassName={resizeClassName}
+        resizeStyle={resizeStyle}
+      />
     </div>
   );
 }
+
+export default memo(Rnd);

@@ -49,6 +49,7 @@ const RefreshTokenType = {
 
 // Path that should not trigger refresh token
 const ExcludeRefreshPath = ["/authenticating"];
+const ForbiddenRoutes = ["/dashboard"];
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { message } = App.useApp();
@@ -100,9 +101,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
 
-        router.push("/?error=Failed to reauthenticate");
+        if (ForbiddenRoutes.some((route) => pathname.startsWith(route))) {
+          logger.warn(
+            `Failed to refresh access token, redirecting to / page: ${pathname}`,
+          );
+          // session expire
+          router.push("/?error=Session expired");
+          message.error("Session expired");
+          return;
+        }
 
         if (pathname === "/") {
+          router.push("/?error=Failed to reauthenticate");
           const refreshToken = await getCookie(RefreshTokenCookie);
 
           const errorMsg = !refreshToken
@@ -110,8 +120,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             : "Failed to reauthenticate";
 
           message.error(errorMsg);
+          return;
         }
-        return;
       }
     } catch (error: any) {
       switch (type) {
