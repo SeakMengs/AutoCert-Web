@@ -48,7 +48,6 @@ export default function AutoCert({
   return (
     <AutoCertZoom
       transformWrapperRef={transformWrapperRef}
-      zoomScale={zoomScale}
       onZoomScaleChange={onZoomScaleChange}
     >
       <div className="flex">

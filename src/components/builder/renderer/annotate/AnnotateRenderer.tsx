@@ -21,16 +21,16 @@ export interface AnnotateRendererProps
   currentPdfPage: number;
 }
 
-const TEXT_RESIZABLE = {
-  bottom: false,
-  bottomLeft: false,
-  bottomRight: false,
-  left: true,
-  right: true,
-  top: false,
-  topLeft: false,
-  topRight: false,
-};
+// const TEXT_RESIZABLE = {
+//   bottom: false,
+//   bottomLeft: false,
+//   bottomRight: false,
+//   left: true,
+//   right: true,
+//   top: false,
+//   topLeft: false,
+//   topRight: false,
+// };
 
 function AnnotateRenderer({
   annotatesByPage,
@@ -63,7 +63,6 @@ function AnnotateRenderer({
               {...annotate}
               {...restProps}
               key={annotate.id}
-              resizable={TEXT_RESIZABLE}
               selected={selected}
               onAnnotateSelect={onAnnotationSelect}
             />
@@ -74,7 +73,6 @@ function AnnotateRenderer({
               {...annotate}
               {...restProps}
               key={annotate.id}
-              resizable={undefined}
               selected={selected}
               onAnnotateSelect={onAnnotationSelect}
             />

@@ -8,11 +8,9 @@ import { AutoCertTableColumn } from "@/components/builder/panel/table/AutoCertTa
 import { SignatureAnnotateFormSchema } from "@/components/builder/panel/tool/signatory/AutoCertSignatoryTool";
 import {
   WHSize,
-  WHSizePercent,
-  WHSizePx,
   XYPosition,
-  XYPositionPercent,
-  XYPositionPx,
+  XYPositionPxAndPercent,
+  RectPxAndPercent,
 } from "@/components/builder/rnd/Rnd";
 
 describe("useAutoCert", () => {
@@ -270,9 +268,9 @@ describe("useAutoCert", () => {
     const newPosition = {
       xPercent: 10,
       yPercent: 10,
-      xPx: 10,
-      yPx: 10,
-    } satisfies XYPositionPx & XYPositionPercent;
+      x: 10,
+      y: 10,
+    } satisfies XYPositionPxAndPercent;
 
     act(() => {
       result.current.onAnnotateDragStop(
@@ -286,8 +284,8 @@ describe("useAutoCert", () => {
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];
 
     expect(updatedAnnotate.position).toEqual({
-      x: newPosition.xPx,
-      y: newPosition.yPx,
+      x: newPosition.x,
+      y: newPosition.y,
     } satisfies XYPosition);
   });
 
@@ -307,13 +305,13 @@ describe("useAutoCert", () => {
     const rect = {
       heightPercent: 50,
       widthPercent: 50,
-      heightPx: 100,
-      widthPx: 100,
+      height: 100,
+      width: 100,
       xPercent: 10,
       yPercent: 10,
-      xPx: 10,
-      yPx: 10,
-    } satisfies XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx;
+      x: 10,
+      y: 10,
+    } satisfies RectPxAndPercent;
 
     act(() => {
       result.current.onAnnotateResizeStop(
@@ -327,12 +325,12 @@ describe("useAutoCert", () => {
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];
 
     expect(updatedAnnotate.size).toEqual({
-      width: rect.widthPx,
-      height: rect.heightPx,
+      width: rect.width,
+      height: rect.height,
     } satisfies WHSize);
     expect(updatedAnnotate.position).toEqual({
-      x: rect.xPx,
-      y: rect.yPx,
+      x: rect.x,
+      y: rect.y,
     } satisfies XYPosition);
   });
 

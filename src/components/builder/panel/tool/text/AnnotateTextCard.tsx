@@ -24,7 +24,7 @@ import {
 } from "./AutoCertTextTool";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
-interface AutoCertTextToolListProps
+interface AnnotateTextCardProps
   extends Pick<
     AutoCertTextToolProps,
     | "selectedAnnotateId"
@@ -48,7 +48,7 @@ export default function AnnotateTextCard({
   onAnnotateSelect,
   onTextAnnotateUpdate,
   onTextAnnotateRemove,
-}: AutoCertTextToolListProps) {
+}: AnnotateTextCardProps) {
   const {
     token: { colorPrimary },
   } = theme.useToken();

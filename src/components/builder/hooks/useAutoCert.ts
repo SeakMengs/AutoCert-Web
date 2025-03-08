@@ -12,26 +12,12 @@ import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { MIN_SCALE } from "../utils";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signatory/AutoCertSignatoryTool";
-import { WHSize, XYPosition } from "../rnd/Rnd";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
-type BaseAnnotateState = Omit<
+type BaseAnnotateState = Pick<
   BaseAnnotateProps,
-  | "children"
-  | "resizable"
-  | "onDragStop"
-  | "onResizeStop"
-  | "onAnnotateSelect"
-  | "previewMode"
-  | "selected"
-  | "scale"
-  | "zoomScale"
-  | "pageNumber"
-  | "pageOriginalSize"
-  | "containerRef"
-  | "lockResizeX"
-  | "lockResizeY"
+  "id" | "position" | "size" | "color"
 > & {
   type: "text" | "signature";
 };
@@ -371,7 +357,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     pageNumber,
   ): void => {
     logger.debug(
-      `Resize annotation, w:${rect.widthPx}, h:${rect.heightPx},  Position: x:${rect.xPx}, y:${rect.yPx}, dpi: ${window.devicePixelRatio}, zoomScale: ${zoomScale}`,
+      `Resize annotation, w:${rect.width}, h:${rect.height},  Position: x:${rect.x}, y:${rect.y}, dpi: ${window.devicePixelRatio}, zoomScale: ${zoomScale}`,
     );
 
     setAnnotates((prev) => ({
@@ -381,10 +367,10 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
           ? {
               ...annotation,
               position: {
-                x: rect.xPx,
-                y: rect.yPx,
+                x: rect.x,
+                y: rect.y,
               },
-              size: { width: rect.widthPx, height: rect.heightPx },
+              size: { width: rect.width, height: rect.height },
             }
           : annotation,
       ),
@@ -397,9 +383,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     position,
     pageNumber,
   ): void => {
-    logger.debug(
-      `Drag annotation, Position: x:${position.xPx}, y:${position.yPx}`,
-    );
+    logger.debug(`Drag annotation, Position: x:${position.x}, y:${position.y}`);
 
     setAnnotates((prev) => ({
       ...prev,
@@ -408,8 +392,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
           ? {
               ...annotation,
               position: {
-                x: position.xPx,
-                y: position.yPx,
+                x: position.x,
+                y: position.y,
               },
             }
           : annotation,

@@ -97,7 +97,7 @@ function PageRenderer({
       />
       {!IS_PRODUCTION && (
         <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
-          Zoom: {zoomScale}
+          Dev only! Zoom: {zoomScale}
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
 import { Flex, Splitter, theme, Typography } from "antd";
 import { BarSize, headerStyle } from "@/app/dashboard/layout_client";
+import AutoCertZoomPanel from "@/components/builder/panel/zoom/AutoCertZoomPanel";
 
 const { Title } = Typography;
 
@@ -66,76 +67,79 @@ export default function ProjectBuilderByID() {
   }
 
   return (
-    <>
-      <Splitter
-        // to reserve space for the header
-        className={`w-full overflow-hidden`}
-        style={
-          {
-            // height: `calc(100vh - ${BarSize}px)`,
-          }
+    <Splitter
+      // to reserve space for the header
+      className={`w-full overflow-hidden`}
+      style={
+        {
+          // height: `calc(100vh - ${BarSize}px)`,
         }
-      >
-        <Splitter.Panel className="p-0 overflow-hidden">
-          <Header />
-          <Flex
-            // className="w-full h-full p-2 overflow-auto scrollbar-hide"
-            className="w-full p-2 overflow-auto"
-            justify="center"
-            align="center"
-            style={{
-              height: `calc(100vh - ${BarSize}px)`,
-            }}
-          >
-            <AutoCert
-              transformWrapperRef={transformWrapperRef}
-              zoomScale={zoomScale}
-              onZoomScaleChange={onZoomScaleChange}
-              onPageClick={onPageClick}
-              pagesScale={pagesScale}
-              onScaleChange={onScaleChange}
-              previewMode={false}
-              annotates={annotates}
-              currentPdfPage={currentPdfPage}
-              selectedAnnotateId={selectedAnnotateId}
-              onDocumentLoadSuccess={onDocumentLoadSuccess}
-              onDragStop={onAnnotateDragStop}
-              onResizeStop={onAnnotateResizeStop}
-              onAnnotateSelect={onAnnotateSelect}
-              pdfFile={pdfFile}
-            />
-          </Flex>
-        </Splitter.Panel>
-        <Splitter.Panel
-          defaultSize={window.innerWidth / 5}
-          max={window.innerWidth / 2}
+      }
+    >
+      <Splitter.Panel className="p-0 overflow-hidden">
+        <Header />
+        <Flex
+          // className="w-full h-full p-2 overflow-auto scrollbar-hide"
+          className="relative w-full overflow-auto"
+          justify="center"
+          align="center"
           style={{
-            borderLeft: `1px solid ${colorSplit}`,
+            height: `calc(100vh - ${BarSize}px)`,
           }}
-          className="w-1/5"
-          collapsible
         >
-          <AutoCertPanel
-            {...autoCertTableProps}
-            signatureAnnotates={signatureAnnotates}
-            columns={columns}
-            onColumnUpdate={onAutoCertTableColumnTitleUpdate}
-            // End of table props
+          <AutoCert
+            transformWrapperRef={transformWrapperRef}
+            zoomScale={zoomScale}
+            onZoomScaleChange={onZoomScaleChange}
+            onPageClick={onPageClick}
+            pagesScale={pagesScale}
+            previewMode={false}
+            annotates={annotates}
             currentPdfPage={currentPdfPage}
             selectedAnnotateId={selectedAnnotateId}
-            onGenerateCertificates={onGenerateCertificates}
-            textAnnotates={textAnnotates}
-            onTextAnnotateAdd={onTextAnnotateAdd}
-            onTextAnnotateUpdate={onTextAnnotateUpdate}
-            onTextAnnotateRemove={onTextAnnotateRemove}
-            onSignatureAnnotateAdd={onSignatureAnnotateAdd}
-            onSignatureAnnotateRemove={onSignatureAnnotateRemove}
-            onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+            onDocumentLoadSuccess={onDocumentLoadSuccess}
+            onDragStop={onAnnotateDragStop}
+            onResizeStop={onAnnotateResizeStop}
             onAnnotateSelect={onAnnotateSelect}
+            pdfFile={pdfFile}
           />
-        </Splitter.Panel>
-      </Splitter>
-    </>
+          <div className="absolute bottom-4 right-4">
+            <AutoCertZoomPanel
+              transformWrapperRef={transformWrapperRef}
+              zoomScale={zoomScale}
+            />
+          </div>
+        </Flex>
+      </Splitter.Panel>
+      <Splitter.Panel
+        defaultSize={window.innerWidth / 5}
+        max={window.innerWidth / 2}
+        style={{
+          borderLeft: `1px solid ${colorSplit}`,
+        }}
+        className="w-1/5"
+        collapsible
+      >
+        <AutoCertPanel
+          {...autoCertTableProps}
+          signatureAnnotates={signatureAnnotates}
+          columns={columns}
+          onColumnUpdate={onAutoCertTableColumnTitleUpdate}
+          // End of table props
+          currentPdfPage={currentPdfPage}
+          selectedAnnotateId={selectedAnnotateId}
+          onGenerateCertificates={onGenerateCertificates}
+          textAnnotates={textAnnotates}
+          onTextAnnotateAdd={onTextAnnotateAdd}
+          onTextAnnotateUpdate={onTextAnnotateUpdate}
+          onTextAnnotateRemove={onTextAnnotateRemove}
+          onSignatureAnnotateAdd={onSignatureAnnotateAdd}
+          onSignatureAnnotateRemove={onSignatureAnnotateRemove}
+          onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+          onAnnotateSelect={onAnnotateSelect}
+        />
+      </Splitter.Panel>
+    </Splitter>
   );
 }
 

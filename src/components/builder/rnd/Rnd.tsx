@@ -1,38 +1,36 @@
-import { useState, useEffect, PropsWithChildren, HTMLAttributes, memo } from "react";
+import {
+  useState,
+  useEffect,
+  PropsWithChildren,
+  HTMLAttributes,
+  memo,
+} from "react";
 import { cn } from "@/utils";
-import ResizeHandle from "./ResizeHandle";
+import ResizeHandle, { ResizeProps } from "./ResizeHandle";
 
 export type XYPosition = {
   x: number;
   y: number;
 };
-
-export type XYPositionPx = {
-  xPx: number;
-  yPx: number;
-};
-
 export type XYPositionPercent = {
   xPercent: number;
   yPercent: number;
 };
+export type XYPositionPxAndPercent = XYPosition & XYPositionPercent;
 
 export type WHSize = {
   width: number;
   height: number;
 };
-
-export type WHSizePx = {
-  widthPx: number;
-  heightPx: number;
-};
-
 export type WHSizePercent = {
   widthPercent: number;
   heightPercent: number;
 };
+export type WHSizePxAndPercent = WHSize & WHSizePercent;
 
-export interface Rect extends XYPosition, WHSize {}
+export type Rect = XYPosition & WHSize;
+export type RectPercent = XYPositionPercent & WHSizePercent;
+export type RectPxAndPercent = XYPositionPxAndPercent & WHSizePxAndPercent;
 
 export interface RndProps {
   // Initial values in pixels
@@ -53,57 +51,12 @@ export interface RndProps {
   resizeClassName?: HTMLAttributes<HTMLDivElement>["className"];
   enableDragging?: boolean;
   enableResizing?: boolean;
-  onDragStart?: (
-    e: MouseEvent,
-    { xPercent, yPercent, xPx, yPx }: XYPositionPercent & XYPositionPx,
-  ) => void;
-  onDrag?: (
-    e: MouseEvent,
-    { xPercent, yPercent, xPx, yPx }: XYPositionPercent & XYPositionPx,
-  ) => void;
-  onDragStop?: (
-    e: MouseEvent,
-    { xPercent, yPercent, xPx, yPx }: XYPositionPercent & XYPositionPx,
-  ) => void;
-  onResizeStart?: (
-    e: MouseEvent,
-    {
-      widthPercent,
-      heightPercent,
-      xPercent,
-      yPercent,
-      widthPx,
-      heightPx,
-      xPx,
-      yPx,
-    }: XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx,
-  ) => void;
-  onResize?: (
-    e: MouseEvent,
-    {
-      widthPercent,
-      heightPercent,
-      xPercent,
-      yPercent,
-      widthPx,
-      heightPx,
-      xPx,
-      yPx,
-    }: XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx,
-  ) => void;
-  onResizeStop?: (
-    e: MouseEvent,
-    {
-      widthPercent,
-      heightPercent,
-      xPercent,
-      yPercent,
-      widthPx,
-      heightPx,
-      xPx,
-      yPx,
-    }: XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx,
-  ) => void;
+  onDragStart?: (e: MouseEvent, position: XYPositionPxAndPercent) => void;
+  onDrag?: (e: MouseEvent, position: XYPositionPxAndPercent) => void;
+  onDragStop?: (e: MouseEvent, position: XYPositionPxAndPercent) => void;
+  onResizeStart?: (e: MouseEvent, rect: RectPxAndPercent) => void;
+  onResize?: (e: MouseEvent, rect: RectPxAndPercent) => void;
+  onResizeStop?: (e: MouseEvent, rect: RectPxAndPercent) => void;
 }
 
 function Rnd({
@@ -145,11 +98,11 @@ function Rnd({
       : undefined;
 
   // Rect as percentage values.
-  const [rect, setRect] = useState<Rect>({
-    x: initialXPercent,
-    y: initialYPercent,
-    width: initialWidthPercent,
-    height: initialHeightPercent,
+  const [rect, setRect] = useState<RectPercent>({
+    xPercent: initialXPercent,
+    yPercent: initialYPercent,
+    widthPercent: initialWidthPercent,
+    heightPercent: initialHeightPercent,
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -157,7 +110,7 @@ function Rnd({
   // Mouse position in pixels.
   const [startMouse, setStartMouse] = useState<XYPosition | null>(null);
   // Rect as percentage values.
-  const [startRect, setStartRect] = useState<Rect | null>(null);
+  const [startRect, setStartRect] = useState<RectPercent | null>(null);
 
   // Get container dimensions (responsive container or fallback to viewport)
   const getContainerDimensions = () => {
@@ -198,7 +151,7 @@ function Rnd({
     yPercent: number,
     widthPercent: number,
     heightPercent: number,
-  ) => {
+  ): Rect => {
     return {
       x: (xPercent / 100) * originalSize.width,
       y: (yPercent / 100) * originalSize.height,
@@ -208,7 +161,7 @@ function Rnd({
   };
 
   // Handle mouse/touch movement for dragging and resizing.
-  const onPointerMove = (e: MouseEvent | TouchEvent) => {
+  const onPointerMove = (e: MouseEvent | TouchEvent): void => {
     if (!startMouse || !startRect) return;
     const { width: containerWidth, height: containerHeight } =
       getContainerDimensions();
@@ -222,8 +175,8 @@ function Rnd({
       // Compute delta as percentage of container dimensions.
       const deltaXPercent = (deltaX / containerWidth) * 100;
       const deltaYPercent = (deltaY / containerHeight) * 100;
-      let newX = startRect.x + deltaXPercent;
-      let newY = startRect.y + deltaYPercent;
+      let newX = startRect.xPercent + deltaXPercent;
+      let newY = startRect.yPercent + deltaYPercent;
 
       /**
        * Clamp so the element remains within the container.
@@ -231,24 +184,33 @@ function Rnd({
        * The maximum X position allowed is 100 - 20 = 80
        * The maximum Y position allowed is 100 - 20 = 80
        **/
-      newX = Math.max(0, Math.min(newX, 100 - startRect.width));
-      newY = Math.max(0, Math.min(newY, 100 - startRect.height));
+      newX = Math.max(0, Math.min(newX, 100 - startRect.widthPercent));
+      newY = Math.max(0, Math.min(newY, 100 - startRect.heightPercent));
       setRect((prev) => ({ ...prev, x: newX, y: newY }));
       if (onDrag) {
-        const conv = convertToPx(newX, newY, startRect.width, startRect.height);
+        const conv = convertToPx(
+          newX,
+          newY,
+          startRect.widthPercent,
+          startRect.heightPercent,
+        );
         onDrag(e as unknown as MouseEvent, {
           xPercent: newX,
           yPercent: newY,
-          xPx: conv.x,
-          yPx: conv.y,
+          x: conv.x,
+          y: conv.y,
         });
       }
     } else if (isResizing) {
       // Compute width/height change in percentage.
-      const deltaWidthPercent = lockResizeX ? 0 : (deltaX / containerWidth) * 100;
-      const deltaHeightPercent = lockResizeY ? 0 : (deltaY / containerHeight) * 100;
-      let newWidth = startRect.width + deltaWidthPercent;
-      let newHeight = startRect.height + deltaHeightPercent;
+      const deltaWidthPercent = lockResizeX
+        ? 0
+        : (deltaX / containerWidth) * 100;
+      const deltaHeightPercent = lockResizeY
+        ? 0
+        : (deltaY / containerHeight) * 100;
+      let newWidth = startRect.widthPercent + deltaWidthPercent;
+      let newHeight = startRect.heightPercent + deltaHeightPercent;
 
       // Apply minimum constraints if provided.
       if (minWidthPercent !== undefined)
@@ -257,53 +219,68 @@ function Rnd({
         newHeight = Math.max(newHeight, minHeightPercent);
 
       // Ensure the element does not exceed container bounds.
-      newWidth = Math.min(newWidth, 100 - startRect.x);
-      newHeight = Math.min(newHeight, 100 - startRect.y);
+      newWidth = Math.min(newWidth, 100 - startRect.xPercent);
+      newHeight = Math.min(newHeight, 100 - startRect.yPercent);
       setRect((prev) => ({ ...prev, width: newWidth, height: newHeight }));
       if (onResize) {
         // When resizing from the bottom-right, position (x,y) remains unchanged.
-        const conv = convertToPx(startRect.x, startRect.y, newWidth, newHeight);
+        const conv = convertToPx(
+          startRect.xPercent,
+          startRect.yPercent,
+          newWidth,
+          newHeight,
+        );
         onResize(e as unknown as MouseEvent, {
           widthPercent: newWidth,
           heightPercent: newHeight,
-          xPercent: startRect.x,
-          yPercent: startRect.y,
-          widthPx: conv.width,
-          heightPx: conv.height,
-          xPx: conv.x,
-          yPx: conv.y,
+          xPercent: startRect.xPercent,
+          yPercent: startRect.yPercent,
+          width: conv.width,
+          height: conv.height,
+          x: conv.x,
+          y: conv.y,
         });
       }
     }
   };
 
   // Stop dragging or resizing when the mouse/touch is released.
-  const onPointerUp = (e: MouseEvent | TouchEvent) => {
+  const onPointerUp = (e: MouseEvent | TouchEvent): void => {
     if (isDragging) {
       setIsDragging(false);
       if (onDragStop) {
-        const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
+        const conv = convertToPx(
+          rect.xPercent,
+          rect.yPercent,
+          rect.widthPercent,
+          rect.heightPercent,
+        );
         onDragStop(e as unknown as MouseEvent, {
-          xPercent: rect.x,
-          yPercent: rect.y,
-          xPx: conv.x,
-          yPx: conv.y,
+          xPercent: rect.xPercent,
+          yPercent: rect.yPercent,
+          x: conv.x,
+          y: conv.y,
         });
       }
     }
     if (isResizing) {
       setIsResizing(false);
       if (onResizeStop) {
-        const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
+        const conv = convertToPx(
+          rect.xPercent,
+          rect.yPercent,
+          rect.widthPercent,
+          rect.heightPercent,
+        );
         onResizeStop(e as unknown as MouseEvent, {
-          widthPercent: rect.width,
-          heightPercent: rect.height,
-          xPercent: rect.x,
-          yPercent: rect.y,
-          widthPx: conv.width,
-          heightPx: conv.height,
-          xPx: conv.x,
-          yPx: conv.y,
+          widthPercent: rect.widthPercent,
+          heightPercent: rect.heightPercent,
+          xPercent: rect.xPercent,
+          yPercent: rect.yPercent,
+          width: conv.width,
+          height: conv.height,
+          x: conv.x,
+          y: conv.y,
         });
       }
     }
@@ -314,7 +291,7 @@ function Rnd({
   // Start dragging when clicking/touching outside the resize handle.
   const onDragPointerDown = (
     e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
-  ) => {
+  ): void => {
     if (!enableDragging) {
       return;
     }
@@ -331,12 +308,17 @@ function Rnd({
     setStartRect(rect);
 
     if (onDragStart) {
-      const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
+      const conv = convertToPx(
+        rect.xPercent,
+        rect.yPercent,
+        rect.widthPercent,
+        rect.heightPercent,
+      );
       onDragStart(e as unknown as MouseEvent, {
-        xPercent: rect.x,
-        yPercent: rect.y,
-        xPx: conv.x,
-        yPx: conv.y,
+        xPercent: rect.xPercent,
+        yPercent: rect.yPercent,
+        x: conv.x,
+        y: conv.y,
       });
     }
 
@@ -345,9 +327,7 @@ function Rnd({
   };
 
   // Start resizing when clicking the resize handle.
-  const onResizePointerDown = (
-    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
-  ) => {
+  const onResizePointerDown: ResizeProps["onResizePointerDown"] = (e) => {
     if (!enableResizing) {
       return;
     }
@@ -358,16 +338,21 @@ function Rnd({
     setStartMouse({ x: clientX, y: clientY });
     setStartRect(rect);
     if (onResizeStart) {
-      const conv = convertToPx(rect.x, rect.y, rect.width, rect.height);
+      const conv = convertToPx(
+        rect.xPercent,
+        rect.yPercent,
+        rect.widthPercent,
+        rect.heightPercent,
+      );
       onResizeStart(e as unknown as MouseEvent, {
-        widthPercent: rect.width,
-        heightPercent: rect.height,
-        xPercent: rect.x,
-        yPercent: rect.y,
-        widthPx: conv.width,
-        heightPx: conv.height,
-        xPx: conv.x,
-        yPx: conv.y,
+        widthPercent: rect.widthPercent,
+        heightPercent: rect.heightPercent,
+        xPercent: rect.xPercent,
+        yPercent: rect.yPercent,
+        width: conv.width,
+        height: conv.height,
+        x: conv.x,
+        y: conv.y,
       });
     }
     e.preventDefault();
@@ -408,11 +393,12 @@ function Rnd({
       style={{
         ...dragStyle,
         position: "absolute",
-        left: `${rect.x}%`,
-        top: `${rect.y}%`,
-        width: `${rect.width}%`,
-        height: `${rect.height}%`,
+        left: `${rect.xPercent}%`,
+        top: `${rect.yPercent}%`,
+        width: `${rect.widthPercent}%`,
+        height: `${rect.heightPercent}%`,
         boxSizing: "border-box",
+        // Prevent text selection while dragging
         userSelect: "none",
         // Prevent default touch actions like scrolling
         touchAction: "none",

@@ -3,13 +3,11 @@ import { memo } from "react";
 import { AnnotateColor } from "../hooks/useAutoCert";
 import { isHexColor } from "@/utils/color";
 import Rnd, {
+  RectPxAndPercent,
   RndProps,
   WHSize,
-  WHSizePercent,
-  WHSizePx,
   XYPosition,
-  XYPositionPercent,
-  XYPositionPx,
+  XYPositionPxAndPercent,
 } from "../rnd/Rnd";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
@@ -22,7 +20,6 @@ export interface BaseAnnotateProps
   selected: boolean;
   // When enable, annotate cannot be resized, dragged, or edited.
   previewMode: boolean;
-  resizable?: any | undefined;
   children: React.ReactNode;
   // Background and border color of the annotate
   color: string;
@@ -34,13 +31,13 @@ export interface BaseAnnotateProps
   onDragStop: (
     id: string,
     e: MouseEvent,
-    position: XYPositionPercent & XYPositionPx,
+    position: XYPositionPxAndPercent,
     pageNumber: number,
   ) => void;
   onResizeStop: (
     id: string,
     e: MouseEvent,
-    rect: XYPositionPercent & XYPositionPx & WHSizePercent & WHSizePx,
+    rect: RectPxAndPercent,
     pageNumber: number,
   ) => void;
 }
@@ -51,7 +48,6 @@ function BaseAnnotate({
   size,
   children,
   previewMode,
-  resizable,
   selected,
   color,
   containerRef,
