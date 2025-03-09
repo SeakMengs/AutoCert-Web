@@ -2,7 +2,7 @@ import { BaseAnnotateProps } from "../../annotate/BaseAnnotate";
 import SignatureAnnotate from "../../annotate/SignatureAnnotate";
 import ColumnAnnotate from "../../annotate/ColumnAnnotate";
 import { AnnotateState } from "../../hooks/useAutoCert";
-import { MouseEvent, memo, useCallback, useMemo } from "react";
+import { JSX, MouseEvent, memo, useMemo } from "react";
 
 export interface AnnotateRendererProps
   extends Pick<
@@ -38,18 +38,15 @@ function AnnotateRenderer({
   selectedAnnotateId,
   ...restProps
 }: AnnotateRendererProps) {
-  const onAnnotationSelect = useCallback(
-    (id: string | undefined): void => {
-      if (restProps.previewMode) {
-        return;
-      }
+  const onAnnotationSelect = (id: string | undefined): void => {
+    if (restProps.previewMode) {
+      return;
+    }
 
-      restProps.onAnnotateSelect(id);
-    },
-    [restProps.previewMode, restProps.onAnnotateSelect],
-  );
+    restProps.onAnnotateSelect(id);
+  };
 
-  const Annotates = useMemo(() => {
+  const Annotates = (): (JSX.Element | null)[] | null => {
     if (!Array.isArray(annotatesByPage) || annotatesByPage.length === 0) {
       return null;
     }
@@ -81,25 +78,22 @@ function AnnotateRenderer({
           return null;
       }
     });
-  }, [annotatesByPage, selectedAnnotateId, restProps, onAnnotationSelect]);
+  };
 
-  const handleContainerClick = useCallback(
-    (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const isAnnotationClick = target.closest(".autocert-drag");
-      if (!isAnnotationClick) {
-        onAnnotationSelect(undefined);
-      }
-    },
-    [onAnnotationSelect],
-  );
+  const handleContainerClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const isAnnotationClick = target.closest(".autocert-drag");
+    if (!isAnnotationClick) {
+      onAnnotationSelect(undefined);
+    }
+  };
 
   return (
     <div
       onClick={handleContainerClick}
       className="absolute top-0 left-0 w-full h-full z-10"
     >
-      {Annotates}
+      {Annotates()}
     </div>
   );
 }

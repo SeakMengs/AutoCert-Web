@@ -22,24 +22,24 @@ export default function SignatureAnnotateAdd({
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<SignatureAnnotateFormSchema>();
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     form.setFieldsValue({
       email: "",
       color: AnnotateColor,
     });
   };
 
-  const toggleModal = () => {
+  const toggleModal = (): void => {
     setModalOpen(!modalOpen);
     resetForm();
   };
 
-  const onModalCancel = () => {
+  const onModalCancel = (): void => {
     setModalOpen(false);
     resetForm();
   };
 
-  const handleAddField = async () => {
+  const handleAddField = async (): Promise<void> => {
     logger.debug("AutoCert add signature field confirmed");
 
     try {

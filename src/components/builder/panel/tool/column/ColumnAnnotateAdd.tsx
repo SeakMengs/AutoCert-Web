@@ -3,7 +3,11 @@ import { logger } from "@/utils/logger";
 import { Select, Form, Button, Modal, ColorPicker, Alert } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
-import { fontOptions, ColumnAnnotateFormSchema, ColumnToolProps } from "./ColumnTool";
+import {
+  fontOptions,
+  ColumnAnnotateFormSchema,
+  ColumnToolProps,
+} from "./ColumnTool";
 import { PlusOutlined } from "@ant-design/icons";
 
 interface ColumnAnnotateAddProps
@@ -22,25 +26,25 @@ export default function ColumnAnnotateAdd({
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<ColumnAnnotateFormSchema>();
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     form.setFieldsValue({
       value: columns[0]?.title,
-      fontName: "Arial",
+      fontName: fontOptions[0].value,
       color: AnnotateColor,
     });
   };
 
-  const toggleModal = () => {
+  const toggleModal = (): void => {
     setModalOpen(!modalOpen);
     resetForm();
   };
 
-  const onModalCancel = () => {
+  const onModalCancel = (): void => {
     setModalOpen(false);
     resetForm();
   };
 
-  const handleAddField = async () => {
+  const handleAddField = async (): Promise<void> => {
     logger.debug("AutoCert add column field confirmed");
 
     try {

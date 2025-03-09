@@ -19,7 +19,7 @@ import {
   ToolOutlined,
 } from "@ant-design/icons";
 import { BarSize } from "@/app/dashboard/layout_client";
-import { memo, PropsWithChildren, useMemo, useCallback } from "react";
+import { memo, PropsWithChildren } from "react";
 
 export interface AutoCertPanelProps
   extends ColumnToolProps,
@@ -170,9 +170,9 @@ const Layout = memo(
       token: { colorSplit },
     } = theme.useToken();
 
-    const handleGenerateCertificates = useCallback(() => {
+    const handleGenerateCertificates = () => {
       onGenerateCertificates();
-    }, [onGenerateCertificates]);
+    };
 
     return (
       <Flex

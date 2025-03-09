@@ -13,6 +13,7 @@ import {
 import { DeleteOutlined } from "@ant-design/icons";
 import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
 import { SignatureToolProps } from "./SignatureTool";
+import { JSX } from "react";
 
 interface SignatureAnnotateCardProps
   extends Pick<
@@ -41,7 +42,7 @@ export default function SignatureAnnotateCard({
     token: { colorPrimary },
   } = theme.useToken();
 
-  const getStatusTag = () => {
+  const getStatusTag = (): JSX.Element | null => {
     switch (signatureAnnotate.status) {
       case "not_invited":
         return <Tag>Not Invited</Tag>;
@@ -54,11 +55,11 @@ export default function SignatureAnnotateCard({
     }
   };
 
-  const getInitialEmail = (email: string) => {
+  const getInitialEmail = (email: string): string => {
     return email.split("@")[0].slice(0, 2).toUpperCase();
   };
 
-  const getActionButton = () => {
+  const getActionButton = (): JSX.Element | null => {
     switch (signatureAnnotate.status) {
       case "not_invited":
         return (
@@ -81,7 +82,7 @@ export default function SignatureAnnotateCard({
     }
   };
 
-  const getRemoveConfirmMessage = () => {
+  const getRemoveConfirmMessage = (): string => {
     const prefix = "Are you sure you want to remove this signatory?";
     switch (signatureAnnotate.status) {
       case "not_invited":

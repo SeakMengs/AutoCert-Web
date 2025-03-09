@@ -55,7 +55,7 @@ export default function ColumnAnnotateCard({
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<ColumnAnnotateFormSchema>();
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     form.setFieldsValue({
       value: columnAnnotate.value,
       fontName: columnAnnotate.font.name,
@@ -63,17 +63,17 @@ export default function ColumnAnnotateCard({
     });
   };
 
-  const toggleEditModal = () => {
+  const toggleEditModal = (): void => {
     setEditModalOpen(!editModalOpen);
     resetForm();
   };
 
-  const onModalCancel = () => {
+  const onModalCancel = (): void => {
     setEditModalOpen(false);
     resetForm();
   };
 
-  const handleEditField = async () => {
+  const handleEditField = async (): Promise<void> => {
     logger.debug("AutoCert edit column field confirmed");
     try {
       const values = await form.validateFields();

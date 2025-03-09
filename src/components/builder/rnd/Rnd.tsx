@@ -146,12 +146,12 @@ function Rnd({
   };
 
   // Convert percentage values back to pixels based on original size.
-  const convertToPx = (
-    xPercent: number,
-    yPercent: number,
-    widthPercent: number,
-    heightPercent: number,
-  ): Rect => {
+  const convertToPx = ({
+    xPercent,
+    yPercent,
+    widthPercent,
+    heightPercent,
+  }: RectPercent): Rect => {
     return {
       x: (xPercent / 100) * originalSize.width,
       y: (yPercent / 100) * originalSize.height,
@@ -167,7 +167,7 @@ function Rnd({
       getContainerDimensions();
 
     const { clientX, clientY } = getEventClientPosition(e);
-
+    // Calculate the difference between the current mouse position and the starting mouse position.
     const deltaX = clientX - startMouse.x;
     const deltaY = clientY - startMouse.y;
 
@@ -175,8 +175,8 @@ function Rnd({
       // Compute delta as percentage of container dimensions.
       const deltaXPercent = (deltaX / containerWidth) * 100;
       const deltaYPercent = (deltaY / containerHeight) * 100;
-      let newX = startRect.xPercent + deltaXPercent;
-      let newY = startRect.yPercent + deltaYPercent;
+      let newXPercent = startRect.xPercent + deltaXPercent;
+      let newYPercent = startRect.yPercent + deltaYPercent;
 
       /**
        * Clamp so the element remains within the container.
@@ -184,19 +184,34 @@ function Rnd({
        * The maximum X position allowed is 100 - 20 = 80
        * The maximum Y position allowed is 100 - 20 = 80
        **/
-      newX = Math.max(0, Math.min(newX, 100 - startRect.widthPercent));
-      newY = Math.max(0, Math.min(newY, 100 - startRect.heightPercent));
-      setRect((prev) => ({ ...prev, x: newX, y: newY }));
+      newXPercent = Math.max(
+        0,
+        Math.min(newXPercent, 100 - startRect.widthPercent),
+      );
+      newYPercent = Math.max(
+        0,
+        Math.min(newYPercent, 100 - startRect.heightPercent),
+      );
+
+      setRect(
+        (prev) =>
+          ({
+            ...prev,
+            xPercent: newXPercent,
+            yPercent: newYPercent,
+          }) satisfies RectPercent,
+      );
+
       if (onDrag) {
-        const conv = convertToPx(
-          newX,
-          newY,
-          startRect.widthPercent,
-          startRect.heightPercent,
-        );
+        const conv = convertToPx({
+          xPercent: newXPercent,
+          yPercent: newYPercent,
+          widthPercent: startRect.widthPercent,
+          heightPercent: startRect.heightPercent,
+        });
         onDrag(e as unknown as MouseEvent, {
-          xPercent: newX,
-          yPercent: newY,
+          xPercent: newXPercent,
+          yPercent: newYPercent,
           x: conv.x,
           y: conv.y,
         });
@@ -209,30 +224,37 @@ function Rnd({
       const deltaHeightPercent = lockResizeY
         ? 0
         : (deltaY / containerHeight) * 100;
-      let newWidth = startRect.widthPercent + deltaWidthPercent;
-      let newHeight = startRect.heightPercent + deltaHeightPercent;
+      let newWidthPercent = startRect.widthPercent + deltaWidthPercent;
+      let newHeightPercent = startRect.heightPercent + deltaHeightPercent;
 
       // Apply minimum constraints if provided.
       if (minWidthPercent !== undefined)
-        newWidth = Math.max(newWidth, minWidthPercent);
+        newWidthPercent = Math.max(newWidthPercent, minWidthPercent);
       if (minHeightPercent !== undefined)
-        newHeight = Math.max(newHeight, minHeightPercent);
+        newHeightPercent = Math.max(newHeightPercent, minHeightPercent);
 
       // Ensure the element does not exceed container bounds.
-      newWidth = Math.min(newWidth, 100 - startRect.xPercent);
-      newHeight = Math.min(newHeight, 100 - startRect.yPercent);
-      setRect((prev) => ({ ...prev, width: newWidth, height: newHeight }));
+      newWidthPercent = Math.min(newWidthPercent, 100 - startRect.xPercent);
+      newHeightPercent = Math.min(newHeightPercent, 100 - startRect.yPercent);
+      setRect(
+        (prev) =>
+          ({
+            ...prev,
+            widthPercent: newWidthPercent,
+            heightPercent: newHeightPercent,
+          }) satisfies RectPercent,
+      );
       if (onResize) {
         // When resizing from the bottom-right, position (x,y) remains unchanged.
-        const conv = convertToPx(
-          startRect.xPercent,
-          startRect.yPercent,
-          newWidth,
-          newHeight,
-        );
+        const conv = convertToPx({
+          xPercent: startRect.xPercent,
+          yPercent: startRect.yPercent,
+          widthPercent: newWidthPercent,
+          heightPercent: newHeightPercent,
+        });
         onResize(e as unknown as MouseEvent, {
-          widthPercent: newWidth,
-          heightPercent: newHeight,
+          widthPercent: newWidthPercent,
+          heightPercent: newHeightPercent,
           xPercent: startRect.xPercent,
           yPercent: startRect.yPercent,
           width: conv.width,
@@ -249,12 +271,7 @@ function Rnd({
     if (isDragging) {
       setIsDragging(false);
       if (onDragStop) {
-        const conv = convertToPx(
-          rect.xPercent,
-          rect.yPercent,
-          rect.widthPercent,
-          rect.heightPercent,
-        );
+        const conv = convertToPx(rect);
         onDragStop(e as unknown as MouseEvent, {
           xPercent: rect.xPercent,
           yPercent: rect.yPercent,
@@ -266,12 +283,7 @@ function Rnd({
     if (isResizing) {
       setIsResizing(false);
       if (onResizeStop) {
-        const conv = convertToPx(
-          rect.xPercent,
-          rect.yPercent,
-          rect.widthPercent,
-          rect.heightPercent,
-        );
+        const conv = convertToPx(rect);
         onResizeStop(e as unknown as MouseEvent, {
           widthPercent: rect.widthPercent,
           heightPercent: rect.heightPercent,
@@ -304,16 +316,11 @@ function Rnd({
     const { clientX, clientY } = getEventClientPosition(e);
 
     setIsDragging(true);
-    setStartMouse({ x: clientX, y: clientY });
+    setStartMouse({ x: clientX, y: clientY } satisfies XYPosition);
     setStartRect(rect);
 
     if (onDragStart) {
-      const conv = convertToPx(
-        rect.xPercent,
-        rect.yPercent,
-        rect.widthPercent,
-        rect.heightPercent,
-      );
+      const conv = convertToPx(rect);
       onDragStart(e as unknown as MouseEvent, {
         xPercent: rect.xPercent,
         yPercent: rect.yPercent,
@@ -338,12 +345,7 @@ function Rnd({
     setStartMouse({ x: clientX, y: clientY });
     setStartRect(rect);
     if (onResizeStart) {
-      const conv = convertToPx(
-        rect.xPercent,
-        rect.yPercent,
-        rect.widthPercent,
-        rect.heightPercent,
-      );
+      const conv = convertToPx(rect);
       onResizeStart(e as unknown as MouseEvent, {
         widthPercent: rect.widthPercent,
         heightPercent: rect.heightPercent,
