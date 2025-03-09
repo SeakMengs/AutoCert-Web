@@ -1,6 +1,6 @@
 import { BaseAnnotateProps } from "../../annotate/BaseAnnotate";
 import SignatureAnnotate from "../../annotate/SignatureAnnotate";
-import TextAnnotate from "../../annotate/TextAnnotate";
+import ColumnAnnotate from "../../annotate/ColumnAnnotate";
 import { AnnotateState } from "../../hooks/useAutoCert";
 import { MouseEvent, memo, useCallback, useMemo } from "react";
 
@@ -21,7 +21,7 @@ export interface AnnotateRendererProps
   currentPdfPage: number;
 }
 
-// const TEXT_RESIZABLE = {
+// const COLUMN_RESIZABLE = {
 //   bottom: false,
 //   bottomLeft: false,
 //   bottomRight: false,
@@ -57,9 +57,9 @@ function AnnotateRenderer({
     return annotatesByPage.map((annotate) => {
       const selected = selectedAnnotateId === annotate.id;
       switch (annotate.type) {
-        case "text":
+        case "column":
           return (
-            <TextAnnotate
+            <ColumnAnnotate
               {...annotate}
               {...restProps}
               key={annotate.id}

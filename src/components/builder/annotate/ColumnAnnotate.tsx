@@ -1,30 +1,28 @@
-import { z } from "zod";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 import { memo } from "react";
 
-export type TextAnnotateFont = {
+export type ColumnAnnotateFont = {
   name: string;
   size: number;
   weight: number;
   color: string;
 };
 
-export type BaseTextAnnotate = {
+export type BaseColumnAnnotate = {
   value: string;
-  font: TextAnnotateFont;
+  font: ColumnAnnotateFont;
 };
 
-export interface TextAnnotateProps
+export interface ColumnAnnotateProps
   extends Omit<BaseAnnotateProps, "children">,
-    BaseTextAnnotate {}
+    BaseColumnAnnotate {}
 
-function TextAnnotate({ font, value, ...restProps }: TextAnnotateProps) {
+function ColumnAnnotate({ font, value, ...restProps }: ColumnAnnotateProps) {
   return (
     <BaseAnnotate {...restProps} lockResizeY={true}>
       <span
-        contentEditable={!restProps.previewMode}
+        // contentEditable={!restProps.previewMode}
         suppressContentEditableWarning
-        id={`textAnnotate-${restProps.id}`}
         className={`text-center border-none bg-transparent outline-none resize-none`}
         style={{
           fontFamily: font.name,
@@ -41,4 +39,4 @@ function TextAnnotate({ font, value, ...restProps }: TextAnnotateProps) {
   );
 }
 
-export default memo(TextAnnotate);
+export default memo(ColumnAnnotate);

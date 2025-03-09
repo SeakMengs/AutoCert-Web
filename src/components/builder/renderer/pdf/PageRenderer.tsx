@@ -1,5 +1,5 @@
 "use client";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
 import { IS_PRODUCTION } from "@/utils";
@@ -8,7 +8,6 @@ import AnnotateRenderer, {
 } from "../annotate/AnnotateRenderer";
 import { theme } from "antd";
 import { PageCallback } from "react-pdf/src/shared/types.js";
-import debounce from "lodash.debounce";
 import { WHSize } from "../../rnd/Rnd";
 
 const logger = createScopedLogger("components:builder:renderer:pdf:Page");

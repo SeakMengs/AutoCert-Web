@@ -4,21 +4,21 @@ import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import {
-  AutoCertSignatoryToolProps,
   SignatureAnnotateFormSchema,
-} from "./AutoCertSignatoryTool";
+  SignatureToolProps,
+} from "./SignatureTool";
 import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
 
-interface AutoCertSignatureToolAddProps
+interface SignatureAnnotateAddProps
   extends Pick<
-    AutoCertSignatoryToolProps,
+    SignatureToolProps,
     "onSignatureAnnotateAdd" | "currentPdfPage"
   > {}
 
-export default function AutoCertSignatureToolAdd({
+export default function SignatureAnnotateAdd({
   currentPdfPage,
   onSignatureAnnotateAdd,
-}: AutoCertSignatureToolAddProps) {
+}: SignatureAnnotateAddProps) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<SignatureAnnotateFormSchema>();
 

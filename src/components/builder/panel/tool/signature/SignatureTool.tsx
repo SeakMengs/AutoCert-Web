@@ -1,9 +1,9 @@
 import { Space } from "antd";
 import { SignatureAnnotateStates } from "@/components/builder/hooks/useAutoCert";
-import AnnotateSignatoryCard from "./AnnotateSignatoryCard";
 import { z } from "zod";
-import AutoCertSignatureToolAdd from "./AutoCertSignatoryToolAdd";
 import { isHexColor } from "@/utils/color";
+import SignatureAnnotateAdd from "./SignatureAnnotateAdd";
+import SignatureAnnotateCard from "./SignatureAnnotateCard";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({
@@ -22,7 +22,7 @@ export type SignatureAnnotateFormSchema = z.infer<
   typeof signatureAnnotateFormSchema
 >;
 
-export interface AutoCertSignatoryToolProps {
+export interface SignatureToolProps {
   currentPdfPage: number;
   signatureAnnotates: SignatureAnnotateStates;
   selectedAnnotateId: string | undefined;
@@ -35,7 +35,7 @@ export interface AutoCertSignatoryToolProps {
   onAnnotateSelect: (id: string) => void;
 }
 
-export default function AutoCertSignatoryTool({
+export default function SignatureTool({
   currentPdfPage,
   signatureAnnotates,
   selectedAnnotateId,
@@ -43,17 +43,17 @@ export default function AutoCertSignatoryTool({
   onSignatureAnnotateAdd,
   onSignatureAnnotateInvite,
   onSignatureAnnotateRemove,
-}: AutoCertSignatoryToolProps) {
+}: SignatureToolProps) {
   return (
     <Space direction="vertical" className="w-full">
-      <AutoCertSignatureToolAdd
+      <SignatureAnnotateAdd
         currentPdfPage={currentPdfPage}
         onSignatureAnnotateAdd={onSignatureAnnotateAdd}
       />
       <Space direction="vertical" className="w-full">
         {Object.keys(signatureAnnotates).map((page) =>
           signatureAnnotates[Number(page)].map((sa) => (
-            <AnnotateSignatoryCard
+            <SignatureAnnotateCard
               key={sa.id}
               pageNumber={Number(page)}
               signatureAnnotate={sa}

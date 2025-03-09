@@ -1,18 +1,18 @@
 "use client";
 import { Space } from "antd";
-import { TextAnnotateStates } from "@/components/builder/hooks/useAutoCert";
-import { createScopedLogger } from "@/utils/logger";
+import { ColumnAnnotateStates } from "@/components/builder/hooks/useAutoCert";
+// import { createScopedLogger } from "@/utils/logger";
 import { AutoCertTableColumn } from "../../table/AutoCertTable";
-import AnnotateTextCard from "./AnnotateTextCard";
-import AutoCertTextToolAdd from "./AutoCertTextToolAdd";
 import { z } from "zod";
 import { isHexColor } from "@/utils/color";
+import ColumnAnnotateAdd from "./ColumnAnnotateAdd";
+import ColumnAnnotateCard from "./ColumnAnnotateCard";
 
-const logger = createScopedLogger(
-  "components:builder:panel:tool:text:AutoCertTextTool",
-);
+// const logger = createScopedLogger(
+//   "components:builder:panel:tool:column:ColumnTool",
+// );
 
-export const textAnnotateFormSchema = z.object({
+export const columnAnnotateFormSchema = z.object({
   value: z.string().trim(),
   fontName: z.string().trim(),
   color: z
@@ -24,17 +24,17 @@ export const textAnnotateFormSchema = z.object({
     }, "Invalid hex color"),
 });
 
-export type TextAnnotateFormSchema = z.infer<typeof textAnnotateFormSchema>;
+export type ColumnAnnotateFormSchema = z.infer<typeof columnAnnotateFormSchema>;
 
-export interface AutoCertTextToolProps {
+export interface ColumnToolProps {
   currentPdfPage: number;
-  textAnnotates: TextAnnotateStates;
+  columnAnnotates: ColumnAnnotateStates;
   columns: AutoCertTableColumn[];
   selectedAnnotateId: string | undefined;
   onAnnotateSelect: (id: string) => void;
-  onTextAnnotateAdd: (page: number, data: TextAnnotateFormSchema) => void;
-  onTextAnnotateUpdate: (id: string, data: TextAnnotateFormSchema) => void;
-  onTextAnnotateRemove: (id: string) => void;
+  onColumnAnnotateAdd: (page: number, data: ColumnAnnotateFormSchema) => void;
+  onColumnAnnotateUpdate: (id: string, data: ColumnAnnotateFormSchema) => void;
+  onColumnAnnotateRemove: (id: string) => void;
 }
 
 export type FontOption = {
@@ -49,34 +49,34 @@ export const fontOptions = [
   { label: "Times New Roman", value: "Times New Roman" },
 ] satisfies FontOption[];
 
-export default function AutoCertTextTool({
+export default function ColumnTool({
   currentPdfPage,
-  onTextAnnotateAdd,
+  onColumnAnnotateAdd,
   selectedAnnotateId,
-  textAnnotates,
+  columnAnnotates,
   columns,
-  onTextAnnotateUpdate,
-  onTextAnnotateRemove,
+  onColumnAnnotateUpdate,
+  onColumnAnnotateRemove,
   onAnnotateSelect,
-}: AutoCertTextToolProps) {
+}: ColumnToolProps) {
   return (
     <Space direction="vertical" className="w-full">
-      <AutoCertTextToolAdd
+      <ColumnAnnotateAdd
         currentPdfPage={currentPdfPage}
-        onTextAnnotateAdd={onTextAnnotateAdd}
+        onColumnAnnotateAdd={onColumnAnnotateAdd}
         columns={columns}
       />
       <Space direction="vertical" className="w-full">
-        {Object.keys(textAnnotates).map((page) =>
-          textAnnotates[Number(page)].map((ta) => (
-            <AnnotateTextCard
-              key={ta.id}
-              textAnnotate={ta}
+        {Object.keys(columnAnnotates).map((page) =>
+          columnAnnotates[Number(page)].map((ca) => (
+            <ColumnAnnotateCard
+              key={ca.id}
+              columnAnnotate={ca}
               selectedAnnotateId={selectedAnnotateId}
               columns={columns}
               pageNumber={Number(page)}
-              onTextAnnotateUpdate={onTextAnnotateUpdate}
-              onTextAnnotateRemove={onTextAnnotateRemove}
+              onColumnAnnotateUpdate={onColumnAnnotateUpdate}
+              onColumnAnnotateRemove={onColumnAnnotateRemove}
               onAnnotateSelect={onAnnotateSelect}
             />
           )),

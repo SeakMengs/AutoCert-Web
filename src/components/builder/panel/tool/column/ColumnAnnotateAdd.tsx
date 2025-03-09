@@ -3,27 +3,24 @@ import { logger } from "@/utils/logger";
 import { Select, Form, Button, Modal, ColorPicker, Alert } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
-import {
-  AutoCertTextToolProps,
-  fontOptions,
-  TextAnnotateFormSchema,
-} from "./AutoCertTextTool";
+import { fontOptions, ColumnAnnotateFormSchema, ColumnToolProps } from "./ColumnTool";
 import { PlusOutlined } from "@ant-design/icons";
 
-interface AutoCertTextToolAddProps
+interface ColumnAnnotateAddProps
   extends Pick<
-    AutoCertTextToolProps,
-    "onTextAnnotateAdd" | "columns" | "currentPdfPage"
+    ColumnToolProps,
+    "onColumnAnnotateAdd" | "columns" | "currentPdfPage"
   > {}
 
 const { Option } = Select;
-export default function AutoCertTextToolAdd({
+
+export default function ColumnAnnotateAdd({
   currentPdfPage,
   columns,
-  onTextAnnotateAdd,
-}: AutoCertTextToolAddProps) {
+  onColumnAnnotateAdd,
+}: ColumnAnnotateAddProps) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [form] = Form.useForm<TextAnnotateFormSchema>();
+  const [form] = Form.useForm<ColumnAnnotateFormSchema>();
 
   const resetForm = () => {
     form.setFieldsValue({
@@ -44,14 +41,14 @@ export default function AutoCertTextToolAdd({
   };
 
   const handleAddField = async () => {
-    logger.debug("AutoCert add text field confirmed");
+    logger.debug("AutoCert add column field confirmed");
 
     try {
       const values = await form.validateFields();
-      onTextAnnotateAdd(currentPdfPage, values);
+      onColumnAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
     } catch (error) {
-      logger.error("AutoCert add text field failed", error);
+      logger.error("AutoCert add column field failed", error);
     }
   };
 
@@ -63,10 +60,10 @@ export default function AutoCertTextToolAdd({
         icon={<PlusOutlined />}
         onClick={toggleModal}
       >
-        Text Field
+        Column Field
       </Button>
       <Modal
-        title="Add Text Field"
+        title="Add Column Field"
         open={modalOpen}
         onCancel={onModalCancel}
         onOk={handleAddField}
@@ -74,7 +71,7 @@ export default function AutoCertTextToolAdd({
         {Array.isArray(columns) && columns.length === 0 && (
           <Alert
             className="mb-4"
-            message="To add a text field, please insert the table data column on the second tab first."
+            message="To add a column field, please insert the table data column on the second tab first."
             type="warning"
             showIcon
             closable

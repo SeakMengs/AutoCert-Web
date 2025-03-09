@@ -11,12 +11,12 @@ import {
   Tooltip,
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
-import { AutoCertSignatoryToolProps } from "./AutoCertSignatoryTool";
 import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
+import { SignatureToolProps } from "./SignatureTool";
 
-interface AnnotateSignatoryCardProps
+interface SignatureAnnotateCardProps
   extends Pick<
-    AutoCertSignatoryToolProps,
+    SignatureToolProps,
     | "selectedAnnotateId"
     | "onAnnotateSelect"
     | "onSignatureAnnotateRemove"
@@ -28,7 +28,7 @@ interface AnnotateSignatoryCardProps
 
 const { Text } = Typography;
 
-export default function AnnotateSignatoryCard({
+export default function SignatureAnnotateCard({
   pageNumber,
   signatureAnnotate,
   selectedAnnotateId,
@@ -36,7 +36,7 @@ export default function AnnotateSignatoryCard({
   // Invite signatory to sign
   onSignatureAnnotateInvite,
   onSignatureAnnotateRemove,
-}: AnnotateSignatoryCardProps) {
+}: SignatureAnnotateCardProps) {
   const {
     token: { colorPrimary },
   } = theme.useToken();

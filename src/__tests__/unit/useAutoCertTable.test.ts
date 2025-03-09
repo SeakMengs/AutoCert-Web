@@ -7,13 +7,13 @@ import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 
 describe("useAutoCertTable", () => {
-  const initialRows: AutoCertTableRow[] = [
+  const initialRows = [
     { key: "1", name: "Row 1" },
     { key: "2", name: "Row 2" },
-  ];
-  const initialColumns: AutoCertTableColumn[] = [
+  ] satisfies AutoCertTableRow[];
+  const initialColumns = [
     { title: "name", dataIndex: "name", editable: true },
-  ];
+  ] satisfies AutoCertTableColumn[];
 
   it("should initialize with given rows and columns", () => {
     const { result } = renderHook(() =>

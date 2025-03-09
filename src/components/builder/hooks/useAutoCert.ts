@@ -4,14 +4,14 @@ import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { tempSignData } from "./temp";
-import { BaseTextAnnotate } from "../annotate/TextAnnotate";
+import { BaseColumnAnnotate } from "../annotate/ColumnAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION } from "@/utils";
-import { TextAnnotateFormSchema } from "../panel/tool/text/AutoCertTextTool";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { MIN_SCALE } from "../utils";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
-import { SignatureAnnotateFormSchema } from "../panel/tool/signatory/AutoCertSignatoryTool";
+import { SignatureAnnotateFormSchema } from "../panel/tool/signature/SignatureTool";
+import { ColumnAnnotateFormSchema } from "../panel/tool/column/ColumnTool";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -19,16 +19,16 @@ type BaseAnnotateState = Pick<
   BaseAnnotateProps,
   "id" | "position" | "size" | "color"
 > & {
-  type: "text" | "signature";
+  type: "column" | "signature";
 };
 
-export type TextAnnotateState = BaseAnnotateState &
-  BaseTextAnnotate & {
-    type: "text";
+export type ColumnAnnotateState = BaseAnnotateState &
+  BaseColumnAnnotate & {
+    type: "column";
   };
 
 // page
-export type TextAnnotateStates = Record<number, TextAnnotateState[]>;
+export type ColumnAnnotateStates = Record<number, ColumnAnnotateState[]>;
 
 export type SignatureAnnotateState = BaseAnnotateState &
   BaseSignatureAnnotate & {
@@ -38,7 +38,7 @@ export type SignatureAnnotateState = BaseAnnotateState &
 // page
 export type SignatureAnnotateStates = Record<number, SignatureAnnotateState[]>;
 
-export type AnnotateState = TextAnnotateState | SignatureAnnotateState;
+export type AnnotateState = ColumnAnnotateState | SignatureAnnotateState;
 
 // Each page has a list of annotates
 export type AnnotateStates = Record<number, AnnotateState[]>;
@@ -46,8 +46,8 @@ export type AnnotateStates = Record<number, AnnotateState[]>;
 // Since each pdf page might have different scale
 export type PagesScale = Record<number, number>;
 
-const TextAnnotateWidth = 150;
-const TextAnnotateHeight = 40;
+const ColumnAnnotateWidth = 150;
+const ColumnAnnotateHeight = 40;
 
 const SignatureAnnotateWidth = 140;
 const SignatureAnnotateHeight = 90;
@@ -59,13 +59,13 @@ export interface UseAutoCertProps {
   initialPdfPage: number;
 }
 
-const newTextAnnotate = (): TextAnnotateState => {
+const newColumnAnnotate = (): ColumnAnnotateState => {
   return {
     id: nanoid(),
-    type: "text",
+    type: "column",
     position: { x: 0, y: 0 },
-    value: "Enter Text",
-    size: { width: TextAnnotateWidth, height: TextAnnotateHeight },
+    value: "",
+    size: { width: ColumnAnnotateWidth, height: ColumnAnnotateHeight },
     font: {
       name: "Arial",
       size: 24,
@@ -96,7 +96,9 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   // currently not use
   const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
   const [annotates, setAnnotates] = useState<AnnotateStates>({});
-  const [textAnnotates, setTextAnnotates] = useState<TextAnnotateStates>({});
+  const [columnAnnotates, setColumnAnnotates] = useState<ColumnAnnotateStates>(
+    {},
+  );
   const [signatureAnnotates, setSignatureAnnotates] =
     useState<SignatureAnnotateStates>({});
   const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
@@ -108,19 +110,19 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
 
   /**
-   * Update text and signature annotates when annotates change
+   * Update column and signature annotates when annotates change
    *  Technically not efficient enough, however since we only handle a few annotates, it should be fine
    * */
   useEffect(() => {
-    const texts: TextAnnotateStates = {};
+    const columns: ColumnAnnotateStates = {};
     const signatures: SignatureAnnotateStates = {};
     const pages = Object.keys(annotates);
 
     pages.forEach((p) => {
       annotates[Number(p)].forEach((a) => {
         switch (a.type) {
-          case "text":
-            texts[Number(p)] = [...(texts[Number(p)] || []), a];
+          case "column":
+            columns[Number(p)] = [...(columns[Number(p)] || []), a];
             break;
           case "signature":
             signatures[Number(p)] = [...(signatures[Number(p)] || []), a];
@@ -129,7 +131,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       });
     });
 
-    setTextAnnotates(texts);
+    setColumnAnnotates(columns);
     setSignatureAnnotates(signatures);
   }, [annotates]);
 
@@ -199,45 +201,47 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     }
   };
 
-  const onTextAnnotateAdd = (
+  const onColumnAnnotateAdd = (
     page: number,
-    { value, color, fontName }: TextAnnotateFormSchema,
+    { value, color, fontName }: ColumnAnnotateFormSchema,
   ): void => {
-    logger.debug("Adding text annotate");
+    logger.debug("Adding column annotate");
 
-    let newTA = newTextAnnotate();
-    newTA = {
-      ...newTA,
+    let newCA = newColumnAnnotate();
+    newCA = {
+      ...newCA,
       value,
       color,
       font: {
-        ...newTA.font,
+        ...newCA.font,
         name: fontName,
       },
     };
 
     setAnnotates((prev) => ({
       ...prev,
-      [page]: [...(prev[page] || []), newTA],
+      [page]: [...(prev[page] || []), newCA],
     }));
-    setSelectedAnnotateId(newTA.id);
+    setSelectedAnnotateId(newCA.id);
   };
 
-  const onTextAnnotateUpdate = (
+  const onColumnAnnotateUpdate = (
     id: string,
-    data: TextAnnotateFormSchema,
+    data: ColumnAnnotateFormSchema,
   ): void => {
-    logger.debug(`Update text annotate with id ${id}`);
+    logger.debug(`Update column annotate with id ${id}`);
 
     const existingAnnotate = findAnnotateById(id);
     if (!existingAnnotate) {
-      logger.warn(`Text annotate with id ${id} not found`);
+      logger.warn(`Column annotate with id ${id} not found`);
       return;
     }
 
     const { annotate, page } = existingAnnotate;
-    if (annotate.type !== "text") {
-      logger.warn(`Text annotate with id ${id} found, but not a text annotate`);
+    if (annotate.type !== "column") {
+      logger.warn(
+        `Column annotate with id ${id} found, but not a column annotate`,
+      );
       return;
     }
 
@@ -249,7 +253,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       },
       value: data.value,
       color: data.color,
-    } satisfies TextAnnotateState;
+    } satisfies ColumnAnnotateState;
 
     setAnnotates((prev) => ({
       ...prev,
@@ -258,18 +262,20 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     setSelectedAnnotateId(updatedAnnotate.id);
   };
 
-  const onTextAnnotateRemove = (id: string): void => {
-    logger.debug(`Remove text annotate with id ${id}`);
+  const onColumnAnnotateRemove = (id: string): void => {
+    logger.debug(`Remove column annotate with id ${id}`);
 
     const existingAnnotate = findAnnotateById(id);
     if (!existingAnnotate) {
-      logger.warn(`Text annotate with id ${id} not found`);
+      logger.warn(`Column annotate with id ${id} not found`);
       return;
     }
 
     const { page, annotate } = existingAnnotate;
-    if (annotate.type !== "text") {
-      logger.warn(`Text annotate with id ${id} found, but not a text annotate`);
+    if (annotate.type !== "column") {
+      logger.warn(
+        `Column annotate with id ${id} found, but not a column annotate`,
+      );
       return;
     }
 
@@ -416,18 +422,18 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     console.log(annotates);
   };
 
-  const replaceAnnotatesTextValue = (
+  const replaceAnnotatesColumnValue = (
     oldTitle: string,
     newTitle: string,
   ): void => {
     const pages = Object.keys(annotates);
     const newAnnotates = { ...annotates };
 
-    // update value of annotate text with value of oldTitle to newTitle
+    // update value of annotate column with value of oldTitle to newTitle
     pages.forEach((p) => {
       const pageAnnotates = newAnnotates[Number(p)];
       pageAnnotates.forEach((a) => {
-        if (a.type === "text" && a.value === oldTitle) {
+        if (a.type === "column" && a.value === oldTitle) {
           a.value = newTitle;
         }
       });
@@ -444,7 +450,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
     pages.forEach((p) => {
       newAnnotates[Number(p)] = newAnnotates[Number(p)].filter(
-        (a) => !(a.type === "text" && !tableTitles.includes(a.value)),
+        (a) => !(a.type === "column" && !tableTitles.includes(a.value)),
       );
     });
 
@@ -453,7 +459,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
   return {
     annotates,
-    textAnnotates,
+    columnAnnotates,
     signatureAnnotates,
     selectedAnnotateId,
     currentPdfPage,
@@ -465,9 +471,9 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onScaleChange,
     onDocumentLoadSuccess,
     onPageClick,
-    onTextAnnotateAdd,
-    onTextAnnotateUpdate,
-    onTextAnnotateRemove,
+    onColumnAnnotateAdd,
+    onColumnAnnotateUpdate,
+    onColumnAnnotateRemove,
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
@@ -475,7 +481,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onAnnotateDragStop,
     onAnnotateSelect,
     onGenerateCertificates,
-    replaceAnnotatesTextValue,
+    replaceAnnotatesColumnValue,
     removeUnnecessaryAnnotates,
   };
 }

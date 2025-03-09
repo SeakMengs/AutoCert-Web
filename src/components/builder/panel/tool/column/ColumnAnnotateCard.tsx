@@ -1,4 +1,4 @@
-import { TextAnnotateState } from "@/components/builder/hooks/useAutoCert";
+import { ColumnAnnotateState } from "@/components/builder/hooks/useAutoCert";
 import { logger } from "@/utils/logger";
 import {
   Button,
@@ -18,48 +18,48 @@ import {
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
 import {
-  AutoCertTextToolProps,
+  ColumnToolProps,
   fontOptions,
-  TextAnnotateFormSchema,
-} from "./AutoCertTextTool";
+  ColumnAnnotateFormSchema,
+} from "./ColumnTool";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
-interface AnnotateTextCardProps
+interface ColumnAnnotateCardProps
   extends Pick<
-    AutoCertTextToolProps,
+    ColumnToolProps,
     | "selectedAnnotateId"
     | "columns"
     | "onAnnotateSelect"
-    | "onTextAnnotateUpdate"
-    | "onTextAnnotateRemove"
+    | "onColumnAnnotateUpdate"
+    | "onColumnAnnotateRemove"
   > {
-  textAnnotate: TextAnnotateState;
+  columnAnnotate: ColumnAnnotateState;
   pageNumber: number;
 }
 
 const { Text } = Typography;
 const { Option } = Select;
 
-export default function AnnotateTextCard({
+export default function ColumnAnnotateCard({
   pageNumber,
-  textAnnotate,
+  columnAnnotate,
   selectedAnnotateId,
   columns,
   onAnnotateSelect,
-  onTextAnnotateUpdate,
-  onTextAnnotateRemove,
-}: AnnotateTextCardProps) {
+  onColumnAnnotateUpdate,
+  onColumnAnnotateRemove,
+}: ColumnAnnotateCardProps) {
   const {
     token: { colorPrimary },
   } = theme.useToken();
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
-  const [form] = Form.useForm<TextAnnotateFormSchema>();
+  const [form] = Form.useForm<ColumnAnnotateFormSchema>();
 
   const resetForm = () => {
     form.setFieldsValue({
-      value: textAnnotate.value,
-      fontName: textAnnotate.font.name,
-      color: textAnnotate.color,
+      value: columnAnnotate.value,
+      fontName: columnAnnotate.font.name,
+      color: columnAnnotate.color,
     });
   };
 
@@ -74,32 +74,32 @@ export default function AnnotateTextCard({
   };
 
   const handleEditField = async () => {
-    logger.debug("AutoCert edit text field confirmed");
+    logger.debug("AutoCert edit column field confirmed");
     try {
       const values = await form.validateFields();
-      onTextAnnotateUpdate(textAnnotate.id, values);
+      onColumnAnnotateUpdate(columnAnnotate.id, values);
       setEditModalOpen(false);
     } catch (error) {
-      logger.error("AutoCert edit text field failed", error);
+      logger.error("AutoCert edit column field failed", error);
     }
   };
 
   return (
     <>
       <Card
-        onClick={() => onAnnotateSelect(textAnnotate.id)}
+        onClick={() => onAnnotateSelect(columnAnnotate.id)}
         size="small"
         className="w-full"
         style={{
           border: "1px solid transparent",
           borderColor:
-            textAnnotate.id === selectedAnnotateId ? colorPrimary : undefined,
+            columnAnnotate.id === selectedAnnotateId ? colorPrimary : undefined,
         }}
       >
         <Flex justify="space-between" align="center" wrap>
           <Space>
             <Tooltip title="Table column">
-              <Tag>{textAnnotate.value}</Tag>
+              <Tag>{columnAnnotate.value}</Tag>
             </Tooltip>
             <Text type="secondary" className="text-xs">
               Page: {pageNumber}
@@ -116,7 +116,7 @@ export default function AnnotateTextCard({
             </Tooltip>
             <Popconfirm
               title="Are you sure to remove this field?"
-              onConfirm={() => onTextAnnotateRemove(textAnnotate.id)}
+              onConfirm={() => onColumnAnnotateRemove(columnAnnotate.id)}
             >
               <Tooltip title="Remove">
                 <Button
@@ -140,7 +140,7 @@ export default function AnnotateTextCard({
           <Form.Item
             name="value"
             label="Field"
-            initialValue={textAnnotate.value}
+            initialValue={columnAnnotate.value}
             rules={[
               {
                 required: true,
@@ -149,9 +149,9 @@ export default function AnnotateTextCard({
             ]}
           >
             <Select>
-              {columns.map((column) => (
-                <Option key={column.title} value={column.title}>
-                  {column.title}
+              {columns.map((c) => (
+                <Option key={c.title} value={c.title}>
+                  {c.title}
                 </Option>
               ))}
             </Select>
@@ -159,7 +159,7 @@ export default function AnnotateTextCard({
           <Form.Item
             name="fontName"
             label="Font Name"
-            initialValue={textAnnotate.font.name}
+            initialValue={columnAnnotate.font.name}
           >
             <Select>
               {fontOptions.map((font) => (
@@ -172,7 +172,7 @@ export default function AnnotateTextCard({
           <Form.Item
             name="color"
             label="Color"
-            initialValue={textAnnotate.color}
+            initialValue={columnAnnotate.color}
             getValueFromEvent={(color: AggregationColor) => {
               return `#${color.toHex()}`;
             }}

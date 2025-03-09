@@ -7,12 +7,10 @@ import {
   TabsProps,
   theme,
 } from "antd";
-import AutoCertTextTool, {
-  AutoCertTextToolProps,
-} from "./tool/text/AutoCertTextTool";
-import AutoCertSignatoryTool, {
-  AutoCertSignatoryToolProps,
-} from "./tool/signatory/AutoCertSignatoryTool";
+import ColumnTool, { ColumnToolProps } from "./tool/column/ColumnTool";
+import SignatureTool, {
+  SignatureToolProps,
+} from "./tool/signature/SignatureTool";
 import AutoCertTable, { AutoCertTableProps } from "./table/AutoCertTable";
 import {
   FontSizeOutlined,
@@ -24,8 +22,8 @@ import { BarSize } from "@/app/dashboard/layout_client";
 import { memo, PropsWithChildren, useMemo, useCallback } from "react";
 
 export interface AutoCertPanelProps
-  extends AutoCertTextToolProps,
-    AutoCertSignatoryToolProps,
+  extends ColumnToolProps,
+    SignatureToolProps,
     AutoCertTableProps {
   onGenerateCertificates: () => void;
 }
@@ -34,12 +32,12 @@ function AutoCertPanel({
   // Annotate
   selectedAnnotateId,
   currentPdfPage,
-  textAnnotates,
+  columnAnnotates,
   signatureAnnotates,
   onAnnotateSelect,
-  onTextAnnotateAdd,
-  onTextAnnotateUpdate,
-  onTextAnnotateRemove,
+  onColumnAnnotateAdd,
+  onColumnAnnotateUpdate,
+  onColumnAnnotateRemove,
   onSignatureAnnotateAdd,
   onSignatureAnnotateRemove,
   onSignatureAnnotateInvite,
@@ -57,18 +55,18 @@ function AutoCertPanel({
       key: "1",
       label: (
         <span>
-          <FontSizeOutlined /> Text Fields
+          <FontSizeOutlined /> Column Fields
         </span>
       ),
       children: (
-        <AutoCertTextTool
+        <ColumnTool
           selectedAnnotateId={selectedAnnotateId}
-          textAnnotates={textAnnotates}
+          columnAnnotates={columnAnnotates}
           currentPdfPage={currentPdfPage}
           columns={columns}
-          onTextAnnotateAdd={onTextAnnotateAdd}
-          onTextAnnotateUpdate={onTextAnnotateUpdate}
-          onTextAnnotateRemove={onTextAnnotateRemove}
+          onColumnAnnotateAdd={onColumnAnnotateAdd}
+          onColumnAnnotateUpdate={onColumnAnnotateUpdate}
+          onColumnAnnotateRemove={onColumnAnnotateRemove}
           onAnnotateSelect={onAnnotateSelect}
         />
       ),
@@ -81,7 +79,7 @@ function AutoCertPanel({
         </span>
       ),
       children: (
-        <AutoCertSignatoryTool
+        <SignatureTool
           currentPdfPage={currentPdfPage}
           signatureAnnotates={signatureAnnotates}
           onAnnotateSelect={onAnnotateSelect}

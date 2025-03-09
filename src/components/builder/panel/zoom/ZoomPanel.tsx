@@ -1,25 +1,25 @@
 import { createScopedLogger } from "@/utils/logger";
 import { Space, Button, Typography } from "antd";
-import { AutoCertZoomProps } from "../../zoom/AutoCertZoom";
 import {
   ZoomInOutlined,
   ZoomOutOutlined,
   UndoOutlined,
 } from "@ant-design/icons";
+import { ZoomProps } from "../../zoom/Zoom";
 
 const { Text } = Typography;
 
-const logger = createScopedLogger("components:builder:panel:AutoCertZoomPanel");
+const logger = createScopedLogger("components:builder:panel:ZoomPanel");
 
-export interface AutoCertZoomPanelProps
-  extends Pick<AutoCertZoomProps, "transformWrapperRef"> {
+export interface ZoomPanelProps
+  extends Pick<ZoomProps, "transformWrapperRef"> {
   zoomScale: number;
 }
 
-export default function AutoCertZoomPanel({
+export default function ZoomPanel({
   transformWrapperRef,
   zoomScale,
-}: AutoCertZoomPanelProps) {
+}: ZoomPanelProps) {
   const handleZoomIn = () => {
     if (!transformWrapperRef.current) {
       logger.error("TransformWrapper ref is null");

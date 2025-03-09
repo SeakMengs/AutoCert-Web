@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, RefObject } from "react";
+import React, { memo, PropsWithChildren, RefObject } from "react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -7,17 +7,17 @@ import {
 } from "react-zoom-pan-pinch";
 import { createScopedLogger } from "@/utils/logger";
 
-const logger = createScopedLogger("components:builder:zoom:AutoCertZoom");
-export interface AutoCertZoomProps {
+const logger = createScopedLogger("components:builder:zoom:Zoom");
+export interface ZoomProps {
   transformWrapperRef: RefObject<ReactZoomPanPinchContentRef | null>;
   onZoomScaleChange: (zoomScale: number) => void;
 }
 
-export default function AutoCertZoom({
+function Zoom({
   transformWrapperRef,
   children,
   onZoomScaleChange,
-}: PropsWithChildren<AutoCertZoomProps>) {
+}: PropsWithChildren<ZoomProps>) {
   const onTransformed = (
     ref: ReactZoomPanPinchRef,
     state: {
@@ -84,3 +84,5 @@ export default function AutoCertZoom({
     // </div>
   );
 }
+
+export default memo(Zoom);

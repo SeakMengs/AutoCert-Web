@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
 import { Flex, Splitter, theme, Typography } from "antd";
 import { BarSize, headerStyle } from "@/app/dashboard/layout_client";
-import AutoCertZoomPanel from "@/components/builder/panel/zoom/AutoCertZoomPanel";
+import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 
 const { Title } = Typography;
 
@@ -18,7 +18,7 @@ export default function ProjectBuilderByID() {
   // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
   const {
     annotates,
-    textAnnotates,
+    columnAnnotates,
     signatureAnnotates,
     currentPdfPage,
     selectedAnnotateId,
@@ -27,9 +27,9 @@ export default function ProjectBuilderByID() {
     transformWrapperRef,
     onZoomScaleChange,
     onScaleChange,
-    onTextAnnotateAdd,
-    onTextAnnotateUpdate,
-    onTextAnnotateRemove,
+    onColumnAnnotateAdd,
+    onColumnAnnotateUpdate,
+    onColumnAnnotateRemove,
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
@@ -39,7 +39,7 @@ export default function ProjectBuilderByID() {
     onDocumentLoadSuccess,
     onGenerateCertificates,
     onPageClick,
-    replaceAnnotatesTextValue,
+    replaceAnnotatesColumnValue,
     removeUnnecessaryAnnotates,
   } = useAutoCert({
     initialPdfPage: 1,
@@ -59,7 +59,7 @@ export default function ProjectBuilderByID() {
     newTitle: string,
   ): void => {
     onColumnUpdate(oldTitle, newTitle);
-    replaceAnnotatesTextValue(oldTitle, newTitle);
+    replaceAnnotatesColumnValue(oldTitle, newTitle);
   };
 
   if (!pdfFile) {
@@ -104,7 +104,7 @@ export default function ProjectBuilderByID() {
             pdfFile={pdfFile}
           />
           <div className="absolute bottom-4 right-4">
-            <AutoCertZoomPanel
+            <ZoomPanel
               transformWrapperRef={transformWrapperRef}
               zoomScale={zoomScale}
             />
@@ -129,10 +129,10 @@ export default function ProjectBuilderByID() {
           currentPdfPage={currentPdfPage}
           selectedAnnotateId={selectedAnnotateId}
           onGenerateCertificates={onGenerateCertificates}
-          textAnnotates={textAnnotates}
-          onTextAnnotateAdd={onTextAnnotateAdd}
-          onTextAnnotateUpdate={onTextAnnotateUpdate}
-          onTextAnnotateRemove={onTextAnnotateRemove}
+          columnAnnotates={columnAnnotates}
+          onColumnAnnotateAdd={onColumnAnnotateAdd}
+          onColumnAnnotateUpdate={onColumnAnnotateUpdate}
+          onColumnAnnotateRemove={onColumnAnnotateRemove}
           onSignatureAnnotateAdd={onSignatureAnnotateAdd}
           onSignatureAnnotateRemove={onSignatureAnnotateRemove}
           onSignatureAnnotateInvite={onSignatureAnnotateInvite}

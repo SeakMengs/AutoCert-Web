@@ -1,20 +1,17 @@
 "use client";
-import AutoCertZoom, { AutoCertZoomProps } from "./zoom/AutoCertZoom";
+import Zoom, { ZoomProps } from "./zoom/Zoom";
 import AutoCertPanel from "./panel/AutoCertPanel";
 import AutoCertTable from "./panel/table/AutoCertTable";
 ("./panel/AutoCertPanel");
-import AnnotateRenderer, {
-  AnnotateRendererProps,
-} from "./renderer/annotate/AnnotateRenderer";
 import PdfRenderer, { PdfRendererProps } from "./renderer/pdf/PdfRenderer";
-import { DocumentCallback, PageCallback } from "react-pdf/src/shared/types.js";
+import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("components:builder/AutoCert");
 
-export interface AutoCertProps extends PdfRendererProps, AutoCertZoomProps {}
+export interface AutoCertProps extends PdfRendererProps, ZoomProps {}
 
-export { AutoCertTable, AutoCertPanel, AutoCertZoom };
+export { AutoCertTable, AutoCertPanel, Zoom };
 
 export default function AutoCert({
   // share
@@ -46,7 +43,7 @@ export default function AutoCert({
   };
 
   return (
-    <AutoCertZoom
+    <Zoom
       transformWrapperRef={transformWrapperRef}
       onZoomScaleChange={onZoomScaleChange}
     >
@@ -71,6 +68,6 @@ export default function AutoCert({
           />
         </div>
       </div>
-    </AutoCertZoom>
+    </Zoom>
   );
 }

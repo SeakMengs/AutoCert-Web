@@ -61,8 +61,6 @@ function BaseAnnotate({
   onResizeStop,
   onAnnotateSelect,
 }: BaseAnnotateProps) {
-  const deZoomScale = 1;
-
   const bgColor = isHexColor(color) ? color : AnnotateColor;
 
   const onAnnotateSelectWithStopPropagation = (
