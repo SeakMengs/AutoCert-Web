@@ -55,7 +55,7 @@ function BaseAnnotate({
   lockResizeY,
   // pdf page size which will be used to convert percentage of resized page to actual page size
   pageOriginalSize,
-  zoomScale,
+  // zoomScale,
   pageNumber,
   onDragStop,
   onResizeStop,

@@ -75,9 +75,7 @@ describe("Rnd Component", () => {
       </Rnd>,
     );
 
-    expect(
-      container.querySelector(".autocert-resize-handle"),
-    ).toBeNull();
+    expect(container.querySelector(".autocert-resize-handle")).toBeNull();
   });
 
   it("calls onDragStart when dragging begins", async () => {

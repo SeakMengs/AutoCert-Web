@@ -1,13 +1,8 @@
 "use client";
 import { Button, ColorPicker, Form, Modal, Select, Tooltip } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
-import {
-  ColumnAnnotateFormSchema,
-  ColumnToolProps,
-  fontOptions,
-} from "./ColumnTool";
+import { ColumnAnnotateFormSchema, fontOptions } from "./ColumnTool";
 import { EditOutlined } from "@ant-design/icons";
-import { ColumnAnnotateState } from "@/components/builder/hooks/useAutoCert";
 import { useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { ColumnAnnotateCardProps } from "./ColumnAnnotateCard";

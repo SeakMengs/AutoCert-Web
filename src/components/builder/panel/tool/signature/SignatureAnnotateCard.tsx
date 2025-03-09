@@ -1,24 +1,9 @@
-import {
-  Tag,
-  Button,
-  Card,
-  Avatar,
-  Space,
-  Typography,
-  Flex,
-  theme,
-  Tooltip,
-} from "antd";
+import { Tag, Card, Avatar, Space, Typography, Flex, theme } from "antd";
 import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
 import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
-import { createScopedLogger } from "@/utils/logger";
 import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
-
-const logger = createScopedLogger(
-  "components:builder:panel:tool:signature:SignatureAnnotateCard",
-);
 
 export interface SignatureAnnotateCardProps
   extends Pick<

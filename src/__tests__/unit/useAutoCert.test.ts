@@ -24,19 +24,11 @@ describe("useAutoCert", () => {
     })),
   };
 
-  const mockPage = {
-    originalWidth: 595,
-    originalHeight: 842,
-    width: 595,
-    height: 842,
-  };
-
   it("should initialize with default values", () => {
     const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
 
     expect(result.current.currentPdfPage).toBe(initialPdfPage);
     expect(result.current.totalPdfPage).toBe(0);
-    expect(result.current.pagesScale).toEqual({});
     expect(result.current.annotates).toEqual({});
     expect(result.current.columnAnnotates).toEqual({});
     expect(result.current.signatureAnnotates).toEqual({});
@@ -186,7 +178,10 @@ describe("useAutoCert", () => {
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
-      result.current.onColumnAnnotateUpdate(columnId, updatedColumnAnnotateData);
+      result.current.onColumnAnnotateUpdate(
+        columnId,
+        updatedColumnAnnotateData,
+      );
     });
 
     const updatedColumnAnnotate = result.current.annotates[initialPdfPage][0];
@@ -332,16 +327,6 @@ describe("useAutoCert", () => {
       x: rect.x,
       y: rect.y,
     } satisfies XYPosition);
-  });
-
-  it("should update scale for a page", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
-
-    act(() => {
-      result.current.onScaleChange(0.75, initialPdfPage);
-    });
-
-    expect(result.current.pagesScale[initialPdfPage]).toBe(0.75);
   });
 
   it("should update zoom scale", () => {

@@ -22,7 +22,6 @@ export default function AutoCert({
   onZoomScaleChange,
   // pdf
   pdfFile,
-  pagesScale,
   onDocumentLoadSuccess,
   onPageClick,
   // Annotate
@@ -52,7 +51,6 @@ export default function AutoCert({
           <PdfRenderer
             // share
             zoomScale={zoomScale}
-            pagesScale={pagesScale}
             currentPdfPage={currentPdfPage}
             // For pdf
             pdfFile={pdfFile}

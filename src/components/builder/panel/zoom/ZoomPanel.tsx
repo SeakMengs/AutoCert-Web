@@ -11,8 +11,7 @@ const { Text } = Typography;
 
 const logger = createScopedLogger("components:builder:panel:ZoomPanel");
 
-export interface ZoomPanelProps
-  extends Pick<ZoomProps, "transformWrapperRef"> {
+export interface ZoomPanelProps extends Pick<ZoomProps, "transformWrapperRef"> {
   zoomScale: number;
 }
 

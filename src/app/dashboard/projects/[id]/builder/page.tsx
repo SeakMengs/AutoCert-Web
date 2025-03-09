@@ -22,11 +22,9 @@ export default function ProjectBuilderByID() {
     signatureAnnotates,
     currentPdfPage,
     selectedAnnotateId,
-    pagesScale,
     zoomScale,
     transformWrapperRef,
     onZoomScaleChange,
-    onScaleChange,
     onColumnAnnotateAdd,
     onColumnAnnotateUpdate,
     onColumnAnnotateRemove,
@@ -92,7 +90,6 @@ export default function ProjectBuilderByID() {
             zoomScale={zoomScale}
             onZoomScaleChange={onZoomScaleChange}
             onPageClick={onPageClick}
-            pagesScale={pagesScale}
             previewMode={false}
             annotates={annotates}
             currentPdfPage={currentPdfPage}

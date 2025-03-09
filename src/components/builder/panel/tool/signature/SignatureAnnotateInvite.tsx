@@ -1,6 +1,5 @@
-import { Button, Popconfirm, Tooltip } from "antd";
+import { Button, Tooltip } from "antd";
 import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
-import { DeleteOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger(

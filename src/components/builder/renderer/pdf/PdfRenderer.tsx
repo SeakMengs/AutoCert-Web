@@ -7,16 +7,16 @@ import { memo, useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
-import { AnnotateStates, PagesScale } from "../../hooks/useAutoCert";
+import { AnnotateStates } from "../../hooks/useAutoCert";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
-const logger = createScopedLogger(
-  "components:builder:renderer:pdf:PdfRenderer",
-);
+// const logger = createScopedLogger(
+//   "components:builder:renderer:pdf:PdfRenderer",
+// );
 
 export interface PdfRendererProps
   extends Omit<PageRendererProps, "scale" | "pageNumber" | "annotatesByPage"> {
@@ -24,7 +24,6 @@ export interface PdfRendererProps
   pdfFile: string;
   currentPdfPage: number;
   zoomScale: number;
-  pagesScale: PagesScale;
   onDocumentLoadSuccess: (pdf: DocumentCallback) => void;
 }
 
@@ -34,7 +33,6 @@ function PdfRenderer({
   zoomScale,
   // pdf
   pdfFile,
-  pagesScale,
   onDocumentLoadSuccess,
   onPageClick,
 

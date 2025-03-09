@@ -8,7 +8,6 @@ import { BaseColumnAnnotate } from "../annotate/ColumnAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { IS_PRODUCTION } from "@/utils";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
-import { MIN_SCALE } from "../utils";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signature/SignatureTool";
 import { ColumnAnnotateFormSchema } from "../panel/tool/column/ColumnTool";
@@ -42,9 +41,6 @@ export type AnnotateState = ColumnAnnotateState | SignatureAnnotateState;
 
 // Each page has a list of annotates
 export type AnnotateStates = Record<number, AnnotateState[]>;
-
-// Since each pdf page might have different scale
-export type PagesScale = Record<number, number>;
 
 const ColumnAnnotateWidth = 150;
 const ColumnAnnotateHeight = 40;
@@ -103,8 +99,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     useState<SignatureAnnotateStates>({});
   const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
   const [currentPdfPage, setCurrentPdfPage] = useState<number>(initialPdfPage);
-  // Scale apply in annotate folder
-  const [pagesScale, setPagesScale] = useState<PagesScale>({});
   // For zoom pan and pinch
   const [zoomScale, setZoomScale] = useState<number>(1);
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
@@ -162,23 +156,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
   const onPageClick = (page: number): void => {
     setCurrentPdfPage(page);
-  };
-
-  const onScaleChange = (newScale: number, page: number): void => {
-    if (
-      (Object.hasOwn(pagesScale, page) && newScale === pagesScale[page]) ||
-      newScale <= MIN_SCALE
-    ) {
-      logger.debug(
-        `Scale is the same as before or is lesser than minimum scale or is greater than maximum, skip update: ${newScale}`,
-      );
-      return;
-    }
-
-    setPagesScale({
-      ...pagesScale,
-      [page]: newScale,
-    });
   };
 
   const onZoomScaleChange = (newZoomScale: number): void => {
@@ -465,10 +442,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     currentPdfPage,
     totalPdfPage,
     transformWrapperRef,
-    pagesScale,
     zoomScale,
     onZoomScaleChange,
-    onScaleChange,
     onDocumentLoadSuccess,
     onPageClick,
     onColumnAnnotateAdd,

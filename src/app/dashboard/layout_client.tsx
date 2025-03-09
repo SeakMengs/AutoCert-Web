@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import {
   DoubleRightOutlined,
   DoubleLeftOutlined,
@@ -20,7 +20,6 @@ import {
   Flex,
   Avatar,
   Dropdown,
-  App,
 } from "antd";
 import Image from "next/image";
 import { APP_NAME } from "@/utils";
