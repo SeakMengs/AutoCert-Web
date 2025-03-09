@@ -1,4 +1,3 @@
-import { logger } from "@/utils/logger";
 import { Form, Button, Modal, ColorPicker, Input } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
@@ -8,6 +7,11 @@ import {
   SignatureToolProps,
 } from "./SignatureTool";
 import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger(
+  "components:builder:panel:tool:signature:SignatureAnnotateAdd",
+);
 
 interface SignatureAnnotateAddProps
   extends Pick<
@@ -39,15 +43,15 @@ export default function SignatureAnnotateAdd({
     resetForm();
   };
 
-  const handleAddField = async (): Promise<void> => {
-    logger.debug("AutoCert add signature field confirmed");
+  const handleAddAnnotate = async (): Promise<void> => {
+    logger.debug("AutoCert add signature annotate confirmed");
 
     try {
       const values = await form.validateFields();
       onSignatureAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
     } catch (error) {
-      logger.error("AutoCert add signature field failed", error);
+      logger.error("AutoCert add signature annotate failed", error);
     }
   };
 
@@ -65,7 +69,7 @@ export default function SignatureAnnotateAdd({
         title="Add Signature Placement"
         open={modalOpen}
         onCancel={onModalCancel}
-        onOk={handleAddField}
+        onOk={handleAddAnnotate}
       >
         <Form form={form} layout="horizontal">
           <Form.Item

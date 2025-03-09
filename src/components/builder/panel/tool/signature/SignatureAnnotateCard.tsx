@@ -4,18 +4,23 @@ import {
   Card,
   Avatar,
   Space,
-  Popconfirm,
   Typography,
   Flex,
   theme,
   Tooltip,
 } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
 import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
 import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
+import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
+import { createScopedLogger } from "@/utils/logger";
+import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
 
-interface SignatureAnnotateCardProps
+const logger = createScopedLogger(
+  "components:builder:panel:tool:signature:SignatureAnnotateCard",
+);
+
+export interface SignatureAnnotateCardProps
   extends Pick<
     SignatureToolProps,
     | "selectedAnnotateId"
@@ -63,15 +68,10 @@ export default function SignatureAnnotateCard({
     switch (signatureAnnotate.status) {
       case "not_invited":
         return (
-          <Tooltip title="Invite signatory">
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => onSignatureAnnotateInvite(signatureAnnotate.id)}
-            >
-              Invite
-            </Button>
-          </Tooltip>
+          <SignatureAnnotateInvite
+            signatureAnnotate={signatureAnnotate}
+            onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+          />
         );
       case "invited":
         return null;
@@ -79,20 +79,6 @@ export default function SignatureAnnotateCard({
         return null;
       default:
         return null;
-    }
-  };
-
-  const getRemoveConfirmMessage = (): string => {
-    const prefix = "Are you sure you want to remove this signatory?";
-    switch (signatureAnnotate.status) {
-      case "not_invited":
-        return prefix;
-      case "invited":
-        return `${prefix} They will no longer be able to sign this certificate.`;
-      case "signed":
-        return `${prefix} The signature will be removed from the certificate.`;
-      default:
-        return prefix;
     }
   };
 
@@ -130,19 +116,10 @@ export default function SignatureAnnotateCard({
 
         <Space size={8}>
           {getActionButton()}
-          <Popconfirm
-            title={getRemoveConfirmMessage()}
-            onConfirm={() => onSignatureAnnotateRemove(signatureAnnotate.id)}
-          >
-            <Tooltip title="Delete">
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-              />
-            </Tooltip>
-          </Popconfirm>
+          <SignatureAnnotateRemove
+            signatureAnnotate={signatureAnnotate}
+            onSignatureAnnotateRemove={onSignatureAnnotateRemove}
+          />
         </Space>
       </Flex>
     </Card>

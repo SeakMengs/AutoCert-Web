@@ -1,5 +1,4 @@
 import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
-import { logger } from "@/utils/logger";
 import { Select, Form, Button, Modal, ColorPicker, Alert } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
@@ -9,6 +8,11 @@ import {
   ColumnToolProps,
 } from "./ColumnTool";
 import { PlusOutlined } from "@ant-design/icons";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger(
+  "components:builder:panel:tool:column:ColumnAnnotateAdd",
+);
 
 interface ColumnAnnotateAddProps
   extends Pick<
@@ -44,15 +48,15 @@ export default function ColumnAnnotateAdd({
     resetForm();
   };
 
-  const handleAddField = async (): Promise<void> => {
-    logger.debug("AutoCert add column field confirmed");
+  const handleAddAnnotate = async (): Promise<void> => {
+    logger.debug("AutoCert add column annotate field confirmed");
 
     try {
       const values = await form.validateFields();
       onColumnAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
     } catch (error) {
-      logger.error("AutoCert add column field failed", error);
+      logger.error("AutoCert add column annotate field failed", error);
     }
   };
 
@@ -70,7 +74,7 @@ export default function ColumnAnnotateAdd({
         title="Add Column Field"
         open={modalOpen}
         onCancel={onModalCancel}
-        onOk={handleAddField}
+        onOk={handleAddAnnotate}
       >
         {Array.isArray(columns) && columns.length === 0 && (
           <Alert
