@@ -30,7 +30,7 @@ export default function ColumnAnnotateEdit({
   const resetForm = (): void => {
     form.setFieldsValue({
       value: columnAnnotate.value,
-      fontName: columnAnnotate.font.name,
+      fontName: columnAnnotate.fontName,
       color: columnAnnotate.color,
     });
   };
@@ -95,7 +95,7 @@ export default function ColumnAnnotateEdit({
           <Form.Item
             name="fontName"
             label="Font Name"
-            initialValue={columnAnnotate.font.name}
+            initialValue={columnAnnotate.fontName}
           >
             <Select>
               {fontOptions.map((font) => (

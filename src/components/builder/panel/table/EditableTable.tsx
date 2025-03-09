@@ -35,7 +35,7 @@ interface EditableRowProps {
 }
 
 // Refer to doc: https://ant.design/components/table#table-demo-edit-cell
-export const EditableBodyRow = memo(({ index, ...props }: EditableRowProps) => {
+const EditableBodyRowComponent = ({ index, ...props }: EditableRowProps) => {
   const [form] = Form.useForm();
   return (
     <Form form={form} component={false}>
@@ -44,7 +44,9 @@ export const EditableBodyRow = memo(({ index, ...props }: EditableRowProps) => {
       </EditableContext.Provider>
     </Form>
   );
-});
+};
+EditableBodyRowComponent.displayName = "EditableBodyRow";
+export const EditableBodyRow = memo(EditableBodyRowComponent);
 
 export interface EditableBodyCellProps extends AutoCertTableColumn {
   record: AutoCertTableRow;
@@ -52,161 +54,164 @@ export interface EditableBodyCellProps extends AutoCertTableColumn {
 }
 
 // Refer to doc: https://ant.design/components/table#table-demo-edit-cell
-export const EditableBodyCell = memo(
-  ({
-    title,
-    editable,
-    children,
-    dataIndex,
-    record,
-    onSaveBodyRow,
-    ...restProps
-  }: PropsWithChildren<EditableBodyCellProps>) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef<InputRef>(null);
-    const form = useContext(EditableContext)!;
+const EditableBodyCellComponent = ({
+  title,
+  editable,
+  children,
+  dataIndex,
+  record,
+  onSaveBodyRow,
+  ...restProps
+}: PropsWithChildren<EditableBodyCellProps>) => {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<InputRef>(null);
+  const form = useContext(EditableContext)!;
 
-    useEffect(() => {
-      if (editing) {
-        inputRef.current?.focus();
-      }
-    }, [editing]);
-
-    const toggleEdit = (): void => {
-      setEditing(!editing);
-      form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-    };
-
-    const save = async (): Promise<void> => {
-      try {
-        const values = await form.validateFields();
-
-        toggleEdit();
-        onSaveBodyRow({ ...record, ...values });
-      } catch (err) {
-        logger.error("Editable cell save failed:", err);
-      }
-    };
-
-    let childNode = children;
-
-    if (editable) {
-      childNode = editing ? (
-        <Form.Item
-          style={{ margin: 0 }}
-          name={dataIndex}
-          // rules={[{ required: true, message: `${title} is required.` }]}
-        >
-          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-        </Form.Item>
-      ) : (
-        <div className="editable-cell-value-wrap min-h-6" onClick={toggleEdit}>
-          {children}
-        </div>
-      );
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
     }
+  }, [editing]);
 
-    return <td {...restProps}>{childNode}</td>;
-  },
-);
+  const toggleEdit = (): void => {
+    setEditing(!editing);
+    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+  };
+
+  const save = async (): Promise<void> => {
+    try {
+      const values = await form.validateFields();
+
+      toggleEdit();
+      onSaveBodyRow({ ...record, ...values });
+    } catch (err) {
+      logger.error("Editable cell save failed:", err);
+    }
+  };
+
+  let childNode = children;
+
+  if (editable) {
+    childNode = editing ? (
+      <Form.Item
+        style={{ margin: 0 }}
+        name={dataIndex}
+        // rules={[{ required: true, message: `${title} is required.` }]}
+      >
+        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+      </Form.Item>
+    ) : (
+      <div className="editable-cell-value-wrap min-h-6" onClick={toggleEdit}>
+        {children}
+      </div>
+    );
+  }
+
+  return <td {...restProps}>{childNode}</td>;
+};
+EditableBodyCellComponent.displayName = "EditableBodyCell";
+export const EditableBodyCell = memo(EditableBodyCellComponent);
 
 // Verify similar to the above components but for header
 interface EditableHeaderRowProps {
   index: number;
 }
 
-export const EditableHeaderRow = memo(
-  ({ index, ...props }: EditableHeaderRowProps) => {
-    const [form] = Form.useForm();
-    return (
-      <Form form={form} component={false}>
-        <EditableContext.Provider value={form}>
-          <tr {...props} />
-        </EditableContext.Provider>
-      </Form>
-    );
-  },
-);
+const EditableHeaderRowComponent = ({
+  index,
+  ...props
+}: EditableHeaderRowProps) => {
+  const [form] = Form.useForm();
+  return (
+    <Form form={form} component={false}>
+      <EditableContext.Provider value={form}>
+        <tr {...props} />
+      </EditableContext.Provider>
+    </Form>
+  );
+};
+EditableHeaderRowComponent.displayName = "EditableHeaderRow";
+export const EditableHeaderRow = memo(EditableHeaderRowComponent);
 
 export interface EditableHeaderCellProps extends AutoCertTableColumn {
   onDeleteHeaderColumn: (dataIndex: string) => void;
   onSaveHeaderRow: (dataIndex: string, value: any) => void;
 }
 
-export const EditableHeaderCell = memo(
-  ({
-    title,
-    dataIndex,
-    editable,
-    onDeleteHeaderColumn,
-    onSaveHeaderRow,
-    children,
-    ...restProps
-  }: PropsWithChildren<EditableHeaderCellProps>) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef<InputRef>(null);
-    const form = useContext(EditableContext)!;
+const EditableHeaderCellComponent = ({
+  title,
+  dataIndex,
+  editable,
+  onDeleteHeaderColumn,
+  onSaveHeaderRow,
+  children,
+  ...restProps
+}: PropsWithChildren<EditableHeaderCellProps>) => {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<InputRef>(null);
+  const form = useContext(EditableContext)!;
 
-    useEffect(() => {
-      if (editing) {
-        inputRef.current?.focus();
-      }
-    }, [editing]);
-
-    const toggleEdit = (): void => {
-      setEditing(!editing);
-      form.setFieldsValue({ [dataIndex]: title });
-    };
-
-    const save = async (): Promise<void> => {
-      try {
-        const values = await form.validateFields();
-        toggleEdit();
-        onSaveHeaderRow(dataIndex, values[dataIndex]);
-      } catch (err) {
-        logger.error("Editable cell save failed:", err);
-        setEditing(false);
-      }
-    };
-
-    let childNode = children;
-
-    if (editable) {
-      childNode = editing ? (
-        <Form.Item
-          style={{ margin: 0 }}
-          name={dataIndex}
-          rules={[{ required: true, message: `Column title is required.` }]}
-        >
-          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-        </Form.Item>
-      ) : (
-        <Flex
-          justify="space-between"
-          align="center"
-          className="editable-cell-value-wrap min-h-6 group"
-          onClick={toggleEdit}
-        >
-          <div>{children}</div>
-          <Popconfirm
-            title="All rows and annotations under this column will be deleted. Are you sure?"
-            onConfirm={() => onDeleteHeaderColumn(dataIndex)}
-          >
-            <Tooltip title="Delete column">
-              <Button
-                className="opacity-0 group-hover:opacity-100"
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                // Prevent the click event from propagating to the parent element which trigger edit mode
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Flex>
-      );
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
     }
+  }, [editing]);
 
-    return <th {...restProps}>{childNode}</th>;
-  },
-);
+  const toggleEdit = (): void => {
+    setEditing(!editing);
+    form.setFieldsValue({ [dataIndex]: title });
+  };
+
+  const save = async (): Promise<void> => {
+    try {
+      const values = await form.validateFields();
+      toggleEdit();
+      onSaveHeaderRow(dataIndex, values[dataIndex]);
+    } catch (err) {
+      logger.error("Editable cell save failed:", err);
+      setEditing(false);
+    }
+  };
+
+  let childNode = children;
+
+  if (editable) {
+    childNode = editing ? (
+      <Form.Item
+        style={{ margin: 0 }}
+        name={dataIndex}
+        rules={[{ required: true, message: `Column title is required.` }]}
+      >
+        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+      </Form.Item>
+    ) : (
+      <Flex
+        justify="space-between"
+        align="center"
+        className="editable-cell-value-wrap min-h-6 group"
+        onClick={toggleEdit}
+      >
+        <div>{children}</div>
+        <Popconfirm
+          title="All rows and annotations under this column will be deleted. Are you sure?"
+          onConfirm={() => onDeleteHeaderColumn(dataIndex)}
+        >
+          <Tooltip title="Delete column">
+            <Button
+              className="opacity-0 group-hover:opacity-100"
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              // Prevent the click event from propagating to the parent element which trigger edit mode
+              onClick={(e) => e.stopPropagation()}
+            />
+          </Tooltip>
+        </Popconfirm>
+      </Flex>
+    );
+  }
+
+  return <th {...restProps}>{childNode}</th>;
+};
+EditableHeaderCellComponent.displayName = "EditableHeaderCell";
+export const EditableHeaderCell = memo(EditableHeaderCellComponent);

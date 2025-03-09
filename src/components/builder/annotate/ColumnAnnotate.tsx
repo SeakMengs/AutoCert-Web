@@ -2,22 +2,28 @@ import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 import { memo } from "react";
 
 export type ColumnAnnotateFont = {
-  name: string;
-  size: number;
-  weight: number;
-  color: string;
+  fontName: string;
+  fontSize: number;
+  fontWeight: number;
+  fontColor: string;
 };
 
-export type BaseColumnAnnotate = {
+export type BaseColumnAnnotate = ColumnAnnotateFont & {
   value: string;
-  font: ColumnAnnotateFont;
 };
 
 export interface ColumnAnnotateProps
   extends Omit<BaseAnnotateProps, "children">,
     BaseColumnAnnotate {}
 
-function ColumnAnnotate({ font, value, ...restProps }: ColumnAnnotateProps) {
+function ColumnAnnotate({
+  fontName,
+  fontSize,
+  fontColor,
+  fontWeight,
+  value,
+  ...restProps
+}: ColumnAnnotateProps) {
   return (
     <BaseAnnotate {...restProps} lockResizeY={true}>
       <span
@@ -25,11 +31,11 @@ function ColumnAnnotate({ font, value, ...restProps }: ColumnAnnotateProps) {
         suppressContentEditableWarning
         className={`text-center border-none bg-transparent outline-none resize-none`}
         style={{
-          fontFamily: font.name,
+          fontFamily: fontName,
           // fontSize: `${font.size}px`,
           fontSize: `1.6vw`,
-          fontWeight: font.weight,
-          color: font.color,
+          fontWeight: fontWeight,
+          color: fontColor,
           lineHeight: "1.2",
         }}
       >

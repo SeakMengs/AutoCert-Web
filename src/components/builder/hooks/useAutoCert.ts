@@ -62,12 +62,10 @@ const newColumnAnnotate = (): ColumnAnnotateState => {
     position: { x: 0, y: 0 },
     value: "",
     size: { width: ColumnAnnotateWidth, height: ColumnAnnotateHeight },
-    font: {
-      name: "Arial",
-      size: 24,
-      weight: 400,
-      color: "#000000",
-    },
+    fontName: "Arial",
+    fontSize: AnnotateFontSize,
+    fontWeight: 400,
+    fontColor: "#000000",
     color: AnnotateColor,
   };
 };
@@ -159,6 +157,11 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   };
 
   const onZoomScaleChange = (newZoomScale: number): void => {
+    if (zoomScale === newZoomScale) {
+      logger.debug(`Zoom scale not changed: ${zoomScale} skip state update`);
+      return;
+    }
+
     setZoomScale(newZoomScale);
   };
 
@@ -189,10 +192,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       ...newCA,
       value,
       color,
-      font: {
-        ...newCA.font,
-        name: fontName,
-      },
+      fontName,
     };
 
     setAnnotates((prev) => ({
@@ -224,10 +224,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
     const updatedAnnotate = {
       ...annotate,
-      font: {
-        ...annotate.font,
-        name: data.fontName,
-      },
+      fontName: data.fontName,
       value: data.value,
       color: data.color,
     } satisfies ColumnAnnotateState;
@@ -386,7 +383,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
   const onAnnotateSelect = (id: string | undefined): void => {
     if (id === selectedAnnotateId) {
-      logger.debug(`Select annotation event: ${id} (skip ui update)`);
+      logger.debug(`Select annotation event: ${id} (skip state update)`);
       return;
     }
 

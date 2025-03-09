@@ -73,16 +73,28 @@ export default function ProjectCard({
     switch (userRole) {
       case "owner":
         return [
-          <EyeOutlined disabled={status != ProjectStatus.Completed} />,
-          <Link href={`/dashboard/projects/${id}/builder`}>
+          <EyeOutlined
+            key={`${id}:owner:view`}
+            disabled={status != ProjectStatus.Completed}
+          />,
+          <Link
+            key={`${id}:owner:builder`}
+            href={`/dashboard/projects/${id}/builder`}
+          >
             <ToolOutlined />
           </Link>,
           // <DeleteOutlined className="hover:text-red-500" />,
         ];
       case "signatory":
         return [
-          <EyeOutlined disabled={status != ProjectStatus.Completed} />,
-          <Link href={`/dashboard/projects/${id}/sign`}>
+          <EyeOutlined
+            key={`${id}:signatory:view`}
+            disabled={status != ProjectStatus.Completed}
+          />,
+          <Link
+            key={`${id}:signatory:sign`}
+            href={`/dashboard/projects/${id}/sign`}
+          >
             <SignatureOutlined />
           </Link>,
         ];

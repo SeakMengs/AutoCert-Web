@@ -20,6 +20,7 @@ function SignatureAnnotate({
   return (
     <BaseAnnotate {...restProps}>
       {signatureData ? (
+        // eslint-disable-next-line
         <img
           src={signatureData}
           alt="Signature"
