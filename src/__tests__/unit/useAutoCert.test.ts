@@ -81,7 +81,7 @@ describe("useAutoCert", () => {
 
     expect(columnAnnotate.value).toBe(columnAnnotateData.value);
     expect(columnAnnotate.color).toBe(columnAnnotateData.color);
-    expect(columnAnnotate.font.name).toBe(columnAnnotateData.fontName);
+    expect(columnAnnotate.fontName).toBe(columnAnnotateData.fontName);
   });
 
   it("should add a signature annotate", () => {
@@ -193,7 +193,7 @@ describe("useAutoCert", () => {
 
     expect(updatedColumnAnnotate.value).toBe(updatedColumnAnnotateData.value);
     expect(updatedColumnAnnotate.color).toBe(updatedColumnAnnotateData.color);
-    expect(updatedColumnAnnotate.font.name).toBe(
+    expect(updatedColumnAnnotate.fontName).toBe(
       updatedColumnAnnotateData.fontName,
     );
   });
@@ -278,10 +278,8 @@ describe("useAutoCert", () => {
 
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];
 
-    expect(updatedAnnotate.position).toEqual({
-      x: newPosition.x,
-      y: newPosition.y,
-    } satisfies XYPosition);
+    expect(updatedAnnotate.x).toEqual(newPosition.x);
+    expect(updatedAnnotate.y).toEqual(newPosition.y);
   });
 
   it("should handle annotation resize", () => {
@@ -319,14 +317,10 @@ describe("useAutoCert", () => {
 
     const updatedAnnotate = result.current.annotates[initialPdfPage][0];
 
-    expect(updatedAnnotate.size).toEqual({
-      width: rect.width,
-      height: rect.height,
-    } satisfies WHSize);
-    expect(updatedAnnotate.position).toEqual({
-      x: rect.x,
-      y: rect.y,
-    } satisfies XYPosition);
+    expect(updatedAnnotate.width).toEqual(rect.width);
+    expect(updatedAnnotate.height).toEqual(rect.height);
+    expect(updatedAnnotate.x).toEqual(rect.x);
+    expect(updatedAnnotate.y).toEqual(rect.y);
   });
 
   it("should update zoom scale", () => {

@@ -6,6 +6,7 @@ import {
   Tabs,
   TabsProps,
   theme,
+  Typography,
 } from "antd";
 import ColumnTool, { ColumnToolProps } from "./tool/column/ColumnTool";
 import SignatureTool, {
@@ -15,18 +16,23 @@ import AutoCertTable, { AutoCertTableProps } from "./table/AutoCertTable";
 import {
   FontSizeOutlined,
   FormOutlined,
+  SettingOutlined,
   TableOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
 import { BarSize } from "@/app/dashboard/layout_client";
 import { memo, PropsWithChildren } from "react";
+import SettingsTool, { SettingsToolProps } from "./tool/settings/settings";
 
 export interface AutoCertPanelProps
   extends ColumnToolProps,
     SignatureToolProps,
-    AutoCertTableProps {
+    AutoCertTableProps,
+    SettingsToolProps {
   onGenerateCertificates: () => void;
 }
+
+const {Text} = Typography
 
 function AutoCertPanel({
   // Annotate
@@ -34,6 +40,10 @@ function AutoCertPanel({
   currentPdfPage,
   columnAnnotates,
   signatureAnnotates,
+  qrCodeEnabled,
+  textFitRectBox,
+  onQrCodeEnabledChange,
+  onTextFitRectBoxChange,
   onAnnotateSelect,
   onColumnAnnotateAdd,
   onColumnAnnotateUpdate,
@@ -54,9 +64,9 @@ function AutoCertPanel({
     {
       key: "1",
       label: (
-        <span>
+        <Text className="select-none">
           <FontSizeOutlined /> Column Fields
-        </span>
+        </Text>
       ),
       children: (
         <ColumnTool
@@ -74,9 +84,9 @@ function AutoCertPanel({
     {
       key: "2",
       label: (
-        <span>
+        <Text className="select-none">
           <FormOutlined /> Signatories
-        </span>
+        </Text>
       ),
       children: (
         <SignatureTool
@@ -90,15 +100,31 @@ function AutoCertPanel({
         />
       ),
     },
+    {
+      key: "3",
+      label: (
+        <Text className="select-none">
+          <SettingOutlined /> Settings
+        </Text>
+      ),
+      children: (
+        <SettingsTool
+          qrCodeEnabled={qrCodeEnabled}
+          textFitRectBox={textFitRectBox}
+          onQrCodeEnabledChange={onQrCodeEnabledChange}
+          onTextFitRectBoxChange={onTextFitRectBoxChange}
+        />
+      ),
+    },
   ] satisfies CollapseProps["items"];
 
   const tabs = [
     {
       key: "1",
       label: (
-        <span>
+        <Text className="select-none">
           <ToolOutlined /> Tools
-        </span>
+        </Text>
       ),
       children: (
         <Layout onGenerateCertificates={onGenerateCertificates}>
@@ -114,9 +140,9 @@ function AutoCertPanel({
     {
       key: "2",
       label: (
-        <span>
+        <Text className="select-none">
           <TableOutlined /> Data
-        </span>
+        </Text>
       ),
       children: (
         <Layout onGenerateCertificates={onGenerateCertificates}>

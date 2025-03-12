@@ -15,8 +15,10 @@ import Rnd, {
 export interface BaseAnnotateProps
   extends Pick<RndProps, "containerRef" | "lockResizeX" | "lockResizeY"> {
   id: string;
-  position: XYPosition;
-  size: WHSize;
+  x: XYPosition["x"];
+  y: XYPosition["y"];
+  width: WHSize["width"];
+  height: WHSize["height"];
   selected: boolean;
   // When enable, annotate cannot be resized, dragged, or edited.
   previewMode: boolean;
@@ -44,8 +46,10 @@ export interface BaseAnnotateProps
 
 function BaseAnnotate({
   id,
-  position,
-  size,
+  x,
+  y,
+  width,
+  height,
   children,
   previewMode,
   selected,
@@ -102,8 +106,14 @@ function BaseAnnotate({
   return (
     <Rnd
       originalSize={pageOriginalSize}
-      size={size}
-      position={position}
+      size={{
+        width: width,
+        height: height,
+      }}
+      position={{
+        x: x,
+        y: y,
+      }}
       showResizeHandle={selected}
       onDragStart={(e) => {
         onAnnotateSelectWithStopPropagation(id, e);

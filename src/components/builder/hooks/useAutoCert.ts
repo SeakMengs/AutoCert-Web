@@ -11,12 +11,13 @@ import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signature/SignatureTool";
 import { ColumnAnnotateFormSchema } from "../panel/tool/column/ColumnTool";
+import { SettingsToolProps } from "../panel/tool/settings/settings";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
 type BaseAnnotateState = Pick<
   BaseAnnotateProps,
-  "id" | "position" | "size" | "color"
+  "id" | "x" | "y" | "width" | "height" | "color"
 > & {
   type: "column" | "signature";
 };
@@ -59,12 +60,14 @@ const newColumnAnnotate = (): ColumnAnnotateState => {
   return {
     id: nanoid(),
     type: "column",
-    position: { x: 0, y: 0 },
+    x: 0,
+    y: 0,
     value: "",
-    size: { width: ColumnAnnotateWidth, height: ColumnAnnotateHeight },
+    width: ColumnAnnotateWidth,
+    height: ColumnAnnotateHeight,
     fontName: "Arial",
     fontSize: AnnotateFontSize,
-    fontWeight: 400,
+    fontWeight: "regular",
     fontColor: "#000000",
     color: AnnotateColor,
   };
@@ -74,17 +77,21 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
   return {
     id: nanoid(),
     type: "signature",
-    position: { x: 0, y: 0 },
+    x: 0,
+    y: 0,
+    width: SignatureAnnotateWidth,
+    height: SignatureAnnotateHeight,
     signatureData: tempSignData,
     email: "",
     status: "not_invited",
-    size: {
-      width: SignatureAnnotateWidth,
-      height: SignatureAnnotateHeight,
-    },
     color: AnnotateColor,
   };
 };
+
+export type AutoCertSettings = Pick<
+  SettingsToolProps,
+  "qrCodeEnabled" | "textFitRectBox"
+> & {};
 
 export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   // currently not use
@@ -100,6 +107,10 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   // For zoom pan and pinch
   const [zoomScale, setZoomScale] = useState<number>(1);
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
+  const [settings, setSettings] = useState<AutoCertSettings>({
+    qrCodeEnabled: false,
+    textFitRectBox: false,
+  });
 
   /**
    * Update column and signature annotates when annotates change
@@ -344,14 +355,14 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       ...prev,
       [pageNumber]: (prev[pageNumber] || []).map((annotation) =>
         annotation.id === id
-          ? {
+          ? ({
               ...annotation,
-              position: {
-                x: rect.x,
-                y: rect.y,
-              },
-              size: { width: rect.width, height: rect.height },
-            }
+
+              x: rect.x,
+              y: rect.y,
+              width: rect.width,
+              height: rect.height,
+            } satisfies BaseAnnotateState)
           : annotation,
       ),
     }));
@@ -369,13 +380,11 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       ...prev,
       [pageNumber]: (prev[pageNumber] || []).map((annotation) =>
         annotation.id === id
-          ? {
+          ? ({
               ...annotation,
-              position: {
-                x: position.x,
-                y: position.y,
-              },
-            }
+              x: position.x,
+              y: position.y,
+            } satisfies BaseAnnotateState)
           : annotation,
       ),
     }));
@@ -394,6 +403,26 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
   const onGenerateCertificates = (): void => {
     console.log(annotates);
+  };
+
+  const onQrCodeEnabledChange: SettingsToolProps["onQrCodeEnabledChange"] = (
+    enabled: boolean,
+  ): void => {
+    logger.debug(`QR code enabled: ${enabled}`);
+    setSettings((prev) => ({
+      ...prev,
+      qrCodeEnabled: enabled,
+    }));
+  };
+  
+  const onTextFitRectBoxChange: SettingsToolProps["onTextFitRectBoxChange"] = (
+    enabled: boolean,
+  ): void => {
+    logger.debug(`Text fit rect box enabled: ${enabled}`);
+    setSettings((prev) => ({
+      ...prev,
+      textFitRectBox: enabled,
+    }));
   };
 
   const replaceAnnotatesColumnValue = (
@@ -440,6 +469,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     totalPdfPage,
     transformWrapperRef,
     zoomScale,
+    settings,
     onZoomScaleChange,
     onDocumentLoadSuccess,
     onPageClick,
@@ -453,6 +483,8 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onAnnotateDragStop,
     onAnnotateSelect,
     onGenerateCertificates,
+    onQrCodeEnabledChange,
+    onTextFitRectBoxChange,
     replaceAnnotatesColumnValue,
     removeUnnecessaryAnnotates,
   };

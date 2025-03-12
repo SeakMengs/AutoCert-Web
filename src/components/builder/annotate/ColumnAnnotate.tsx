@@ -4,7 +4,7 @@ import { memo } from "react";
 export type ColumnAnnotateFont = {
   fontName: string;
   fontSize: number;
-  fontWeight: number;
+  fontWeight: "regular" | "bold";
   fontColor: string;
 };
 
@@ -34,7 +34,7 @@ function ColumnAnnotate({
           fontFamily: fontName,
           // fontSize: `${font.size}px`,
           fontSize: `1.6vw`,
-          fontWeight: fontWeight,
+          fontWeight: fontWeight === "bold" ? 700 : 400,
           color: fontColor,
           lineHeight: "1.2",
         }}
