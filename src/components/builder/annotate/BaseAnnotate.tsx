@@ -57,6 +57,7 @@ function BaseAnnotate({
   containerRef,
   lockResizeX,
   lockResizeY,
+  zoomScale,
   // pdf page size which will be used to convert percentage of resized page to actual page size
   pageOriginalSize,
   // zoomScale,
@@ -114,6 +115,7 @@ function BaseAnnotate({
         x: x,
         y: y,
       }}
+      scale={zoomScale}
       showResizeHandle={selected}
       onDragStart={(e) => {
         onAnnotateSelectWithStopPropagation(id, e);

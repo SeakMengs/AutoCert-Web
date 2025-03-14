@@ -36,6 +36,8 @@ export interface RndProps {
   // Initial values in pixels
   position: XYPosition;
   size: WHSize;
+  // Current transformed scale (to ensure moving and resizing works correctly)
+  scale: number;
   minWidth?: number;
   minHeight?: number;
   // The design reference container size in px which will be used to convert percentage of resized component to actual position and size
@@ -62,6 +64,7 @@ export interface RndProps {
 function Rnd({
   position,
   size,
+  scale = 1,
   minHeight = 0,
   minWidth = 0,
   originalSize,
@@ -112,17 +115,18 @@ function Rnd({
   // Rect as percentage values.
   const [startRect, setStartRect] = useState<RectPercent | null>(null);
 
-  // Get container dimensions (responsive container or fallback to viewport)
+  // Get container dimensions (responsive container or fallback to viewport, when use viewport, dragging and resizing will feel slow or buggy)
   const getContainerDimensions = () => {
     if (containerRef && containerRef.current) {
       return {
-        width: containerRef.current.clientWidth,
-        height: containerRef.current.clientHeight,
+        width: containerRef.current.clientWidth * scale,
+        height: containerRef.current.clientHeight * scale,
       };
     }
+
     return {
-      width: document.documentElement.clientWidth,
-      height: document.documentElement.clientHeight,
+      width: document.documentElement.clientWidth * scale,
+      height: document.documentElement.clientHeight * scale,
     };
   };
 
@@ -139,9 +143,11 @@ function Rnd({
     if ("clientX" in e) {
       return { clientX: e.clientX, clientY: e.clientY };
     }
+
     if ("touches" in e && e.touches.length > 0) {
       return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
     }
+
     return { clientX: 0, clientY: 0 };
   };
 
