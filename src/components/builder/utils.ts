@@ -5,11 +5,10 @@ import {
 } from "./panel/table/AutoCertTable";
 import Papa from "papaparse";
 import { nanoid } from "nanoid";
+import { WHSize } from "./rnd/Rnd";
+
 
 const logger = createScopedLogger("components:builder:utils");
-
-// Scale threshold to determine if the scale is too small to update annotates
-export const MIN_SCALE = 0;
 
 /**
  * Parse a csv file or url and return the columns and rows compatible with AutoCertTable types
