@@ -143,8 +143,8 @@ export default function CertificateProjectSection() {
           </Flex>
         ) : (
           <Row gutter={[16, 16]}>
-            {filteredProjects.map((project, index) => (
-              <Col key={index} xs={24} sm={12} md={8} lg={4}>
+            {filteredProjects.map((project) => (
+              <Col key={project.id} xs={24} sm={12} md={8} lg={4}>
                 <ProjectCard {...project} />
               </Col>
             ))}

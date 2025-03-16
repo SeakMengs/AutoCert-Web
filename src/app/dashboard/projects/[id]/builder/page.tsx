@@ -4,10 +4,9 @@ import { useAutoCertTable, useAutoCert } from "@/hooks/useAutoCert";
 import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
 import { Flex, Splitter, theme, Typography } from "antd";
-import { BarSize, headerStyle } from "@/app/dashboard/layout_client";
+import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
-
-const { Title } = Typography;
+import Header from "./header";
 
 export default function ProjectBuilderByID() {
   const {
@@ -144,29 +143,5 @@ export default function ProjectBuilderByID() {
         />
       </Splitter.Panel>
     </Splitter>
-  );
-}
-
-function Header() {
-  const {
-    token: { colorSplit, colorBgContainer },
-  } = theme.useToken();
-
-  return (
-    <header
-      style={{
-        ...headerStyle,
-        padding: 0,
-        background: colorBgContainer,
-        height: BarSize,
-        borderBottom: `1px solid ${colorSplit}`,
-      }}
-    >
-      <Flex className="w-full h-full p-2" align="center">
-        <Title level={4} style={{ margin: 0 }}>
-          Certificate of Achievement
-        </Title>
-      </Flex>
-    </header>
   );
 }

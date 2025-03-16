@@ -73,30 +73,38 @@ export default function ProjectCard({
     switch (userRole) {
       case "owner":
         return [
-          <EyeOutlined
-            key={`${id}:owner:view`}
-            disabled={status != ProjectStatus.Completed}
-          />,
-          <Link
-            key={`${id}:owner:builder`}
-            href={`/dashboard/projects/${id}/builder`}
+          <Tooltip
+            title="View Generated Certificates"
+            key={`${id}:owner:view_generated_certificates`}
           >
-            <ToolOutlined />
-          </Link>,
-          // <DeleteOutlined className="hover:text-red-500" />,
+            <Link href={`/dashboard/projects/${id}/certificates`}>
+              <EyeOutlined disabled={status != ProjectStatus.Completed} />
+            </Link>
+          </Tooltip>,
+          <Tooltip title="Template Builder" key={`${id}:owner:builder`}>
+            <Link href={`/dashboard/projects/${id}/builder`}>
+              <ToolOutlined />
+            </Link>
+          </Tooltip>,
         ];
       case "signatory":
         return [
-          <EyeOutlined
-            key={`${id}:signatory:view`}
-            disabled={status != ProjectStatus.Completed}
-          />,
-          <Link
-            key={`${id}:signatory:sign`}
-            href={`/dashboard/projects/${id}/sign`}
+          <Tooltip
+            title="View Generated Certificates"
+            key={`${id}:signatory:view_generated_certificates`}
           >
-            <SignatureOutlined />
-          </Link>,
+            <Link href={`/dashboard/projects/${id}/certificates`}>
+              <EyeOutlined disabled={status != ProjectStatus.Completed} />
+            </Link>
+          </Tooltip>,
+          <Tooltip
+            title="Approve signature request"
+            key={`${id}:signatory:sign`}
+          >
+            <Link href={`/dashboard/projects/${id}/sign`}>
+              <SignatureOutlined />
+            </Link>
+          </Tooltip>,
         ];
     }
   };

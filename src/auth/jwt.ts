@@ -18,6 +18,7 @@ export const validJwtTokenSchema = z.object({
 export type ValidJwtToken = z.infer<typeof validJwtTokenSchema> & {
   isAuthenticated: true;
   accessToken: string;
+  error: null;
 };
 
 export type InvalidJwtToken = {
