@@ -1,53 +1,24 @@
 "use server";
-import { AuthUser, JwtToken } from "@/types/models";
+import { JWT_COOKIE_TYPE } from "@/types/cookie";
+import { cookies } from "next/headers";
+import { ResponseJson } from "@/types/response";
+import { HttpStatusCode } from "@/types/http";
+import { AxiosResponse } from "axios";
 import {
   getJwtCookieName,
   JWT_COOKIE_NAME,
   RefreshTokenCookie,
   setRefreshAndAccessTokenToCookie,
-} from ".";
-import { JWT_COOKIE_TYPE } from "@/types/cookie";
-import { cookies } from "next/headers";
-import { api } from "./axios";
-import { ResponseJson } from "@/types/response";
-import { getCookie } from "./server_cookie";
-import { HttpStatusCode } from "@/types/http";
-import { AxiosResponse } from "axios";
-import { createScopedLogger } from "./logger";
+} from "@/utils";
+import { api } from "@/utils/axios";
+import { createScopedLogger } from "@/utils/logger";
+import { getCookie } from "@/utils/server/cookie";
+import { invalidJwtToken, JwtTokenValidationResult, verifyJwtAccessToken } from "../jwt";
 
-const logger = createScopedLogger("utils:auth");
-
-export type JwtTokenValidationResult = ValidJwtToken | InvalidJwtToken;
-
-type ValidJwtToken = {
-  isAuthenticated: true;
-  accessToken: JwtToken;
-  user: AuthUser;
-  iat: number;
-  exp: number;
-  error: null;
-};
-
-type InvalidJwtToken = {
-  isAuthenticated: false;
-  accessToken: null;
-  user: null;
-  iat: null;
-  exp: null;
-  error: string | null;
-};
-
-const invalidJwtToken = {
-  isAuthenticated: false,
-  user: null,
-  accessToken: null,
-  exp: null,
-  iat: null,
-  error: null,
-} satisfies InvalidJwtToken;
+const logger = createScopedLogger("auth:action");
 
 // If use in client side, use the useAuth hook instead as it handle loading state and refresh token rotation
-export async function validateAccessToken(): Promise<JwtTokenValidationResult> {
+export const validateAccessToken = async (): Promise<JwtTokenValidationResult> => {
   try {
     logger.debug("Validate access token");
 
@@ -65,44 +36,46 @@ export async function validateAccessToken(): Promise<JwtTokenValidationResult> {
       return invalidJwtToken;
     }
 
-    type Data = {
-      payload: ValidJwtToken;
-      tokenValid: boolean;
-    };
+    // If use api to verify the token, uncomment this code
+    // type Data = {
+    //   payload: ValidJwtToken;
+    //   tokenValid: boolean;
+    // };
 
-    type DataError = Omit<Data, "payload">;
+    // type DataError = Omit<Data, "payload">;
 
-    type FormBody = {
-      token: string;
-    };
+    // type FormBody = {
+    //   token: string;
+    // };
 
-    type ResponseData = ResponseJson<Data, DataError>;
+    // type ResponseData = ResponseJson<Data, DataError>;
 
-    const res = await api.postForm<
-      ResponseData,
-      AxiosResponse<ResponseData>,
-      FormBody
-    >(`/api/v1/auth/jwt/access/verify`, {
-      token: accessToken.value,
-    });
-    const data = res.data.data;
+    // const res = await api.postForm<
+    //   ResponseData,
+    //   AxiosResponse<ResponseData>,
+    //   FormBody
+    // >(`/api/v1/auth/jwt/access/verify`, {
+    //   token: accessToken.value,
+    // });
+    // const data = res.data.data;
 
-    if (!res.data.success || !data.tokenValid) {
-      return invalidJwtToken;
-    }
+    // if (!res.data.success || !data.tokenValid) {
+    //   return invalidJwtToken;
+    // }
+    // return {
+    //   ...data.payload,
+    //   accessToken: accessToken.value,
+    //   isAuthenticated: true,
+    // };
 
-    return {
-      ...data.payload,
-      accessToken: accessToken.value,
-      isAuthenticated: true,
-    };
+    return verifyJwtAccessToken(accessToken.value);
   } catch (error: any) {
     return {
       ...invalidJwtToken,
       error: error instanceof Error ? error.message : String(error),
     };
   }
-}
+};
 
 export async function refreshAccessToken(): Promise<boolean> {
   logger.debug("Refreshing access token");

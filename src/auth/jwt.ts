@@ -1,0 +1,76 @@
+import { JWT_SECRET } from "@/utils";
+import jwt from "jsonwebtoken";
+import { JWT_COOKIE_TYPE } from "@/types/cookie";
+import { createScopedLogger } from "@/utils/logger";
+import { z } from "zod";
+import { authUserSchema } from ".";
+
+const logger = createScopedLogger("auth:jwt");
+
+export type JwtTokenValidationResult = ValidJwtToken | InvalidJwtToken;
+
+export const validJwtTokenSchema = z.object({
+  user: authUserSchema,
+  iat: z.number(),
+  exp: z.number(),
+});
+
+export type ValidJwtToken = z.infer<typeof validJwtTokenSchema> & {
+  isAuthenticated: true;
+  accessToken: string;
+};
+
+export type InvalidJwtToken = {
+  isAuthenticated: false;
+  accessToken: null;
+  user: null;
+  iat: null;
+  exp: null;
+  error: string | null;
+};
+
+export const invalidJwtToken = {
+  isAuthenticated: false,
+  user: null,
+  accessToken: null,
+  exp: null,
+  iat: null,
+  error: null,
+} satisfies InvalidJwtToken;
+
+export async function verifyJwtAccessToken(
+  token: string,
+): Promise<JwtTokenValidationResult> {
+  try {
+    if (!token || token.trim() === "") {
+      logger.debug("Token is empty");
+      return invalidJwtToken;
+    }
+
+    // jwt.verify will throw an error if the token is invalid or expired.
+    const jwtClaims = jwt.verify(token, JWT_SECRET) as ValidJwtToken & {
+      type: string;
+    };
+
+    const validate = validJwtTokenSchema.safeParse(jwtClaims);
+    if (!validate.success) {
+      logger.debug("Invalid JWT token claims", validate.error);
+      return invalidJwtToken;
+    }
+
+    if (jwtClaims.type !== JWT_COOKIE_TYPE.ACCESS) {
+      logger.debug("Invalid JWT token type");
+      return invalidJwtToken;
+    }
+
+    const { type, ...claims } = jwtClaims;
+    return {
+      ...claims,
+      accessToken: token,
+      isAuthenticated: true,
+    };
+  } catch (error) {
+    logger.error("Error verifying JWT token", error);
+    return invalidJwtToken;
+  }
+}

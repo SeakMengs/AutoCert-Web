@@ -1,4 +1,4 @@
-import { validateAccessToken } from "@/utils/auth";
+import { validateAccessToken } from "@/auth/server/action";
 import { Button } from "antd";
 import Link from "next/link";
 

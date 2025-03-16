@@ -1,17 +1,14 @@
 "use client";
 import { AccessTokenCookie, RefreshTokenCookie } from "@/utils";
-import {
-  JwtTokenValidationResult,
-  refreshAccessToken,
-  validateAccessToken,
-} from "@/utils/auth";
 import { createScopedLogger } from "@/utils/logger";
-import { clientRevalidatePath } from "@/utils/server";
-import { getCookie } from "@/utils/server_cookie";
+import { clientRevalidatePath } from "@/utils/server/host";
+import { getCookie } from "@/utils/server/cookie";
 import { App } from "antd";
 import moment from "moment";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
+import { validateAccessToken, refreshAccessToken } from "@/auth/server/action";
+import { JwtTokenValidationResult } from "@/auth/jwt";
 
 const logger = createScopedLogger("app:auth_provider");
 

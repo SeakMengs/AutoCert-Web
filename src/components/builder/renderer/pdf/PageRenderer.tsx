@@ -78,6 +78,7 @@ function PageRenderer({
         canvasRef={(ref) => {
           if (ref) {
             ref.style.border = selected ? `1px solid ${colorPrimary}` : "";
+            ref.style.imageRendering = "crisp-edges";
           }
         }}
       />

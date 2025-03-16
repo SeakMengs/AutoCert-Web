@@ -1,10 +1,12 @@
 import { JWT_COOKIE_TYPE } from "@/types/cookie";
-import { deleteJwtTokenCookie, setJwtTokenCookie } from "./server_cookie";
+import { deleteJwtTokenCookie, setJwtTokenCookie } from "./server/cookie";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import moment from "moment";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+export const JWT_SECRET = process.env.AUTH_JWT_SECRET || "api_jwt_secret";
 
 export const APP_NAME = "AutoCert";
 

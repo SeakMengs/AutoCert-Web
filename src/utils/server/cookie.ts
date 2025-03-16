@@ -1,7 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { JWT_COOKIE_TYPE } from "@/types/cookie";
-import { getJwtCookieName, IS_PRODUCTION, JWT_COOKIE_NAME } from ".";
+import { getJwtCookieName, IS_PRODUCTION, JWT_COOKIE_NAME } from "..";
 
 export async function getCookie(name: string): Promise<string | undefined> {
   const cookieStore = await cookies();

@@ -23,11 +23,9 @@ import {
 } from "antd";
 import Image from "next/image";
 import { APP_NAME } from "@/utils";
-import { AuthUser } from "@/types/models";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
-import { useAuth } from "@/hooks/useAuth";
-import FullScreenSpin from "@/components/loading/FullScreenSpin";
+import { AuthUser } from "@/auth";
 
 const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
@@ -43,13 +41,14 @@ export const headerStyle: React.CSSProperties = {
 
 interface DashboardLayoutClientProps {
   children: ReactNode;
+  user: AuthUser;
 }
 
 export default function DashboardLayoutClient({
   children,
+  user,
 }: DashboardLayoutClientProps) {
   const [collapsed, setCollapsed] = useState<boolean>(true);
-  const { user, isAuthenticated } = useAuth();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -57,10 +56,6 @@ export default function DashboardLayoutClient({
   const toggleCollapse = (): void => {
     setCollapsed(!collapsed);
   };
-
-  if (!isAuthenticated) {
-    return <FullScreenSpin />;
-  }
 
   return (
     <Layout className="h-screen overflow-hidden" hasSider>

@@ -133,7 +133,7 @@ function BaseAnnotate({
     >
       <div
         onClick={handleClick}
-        className="relative z-19 rounded cursor-text w-full h-full"
+        className="relative z-19 rounded w-full h-full cursor-move"
         style={{
           border: selected ? `1px solid ${bgColor}` : `1px solid transparent`,
         }}
