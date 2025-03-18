@@ -2,7 +2,7 @@
 export type DebugLevel = "trace" | "debug" | "info" | "warn" | "error";
 import { Chalk } from "chalk";
 import moment from "moment";
-import { IS_PRODUCTION } from ".";
+import { IS_PRODUCTION } from "./env";
 
 const chalk = new Chalk({ level: 3 });
 

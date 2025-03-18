@@ -1,5 +1,4 @@
 "use client";
-import { AccessTokenCookie, RefreshTokenCookie } from "@/utils";
 import { createScopedLogger } from "@/utils/logger";
 import { clientRevalidatePath } from "@/utils/server/host";
 import { getCookie } from "@/utils/server/cookie";
@@ -9,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { validateAccessToken, refreshAccessToken } from "@/auth/server/action";
 import { JwtTokenValidationResult } from "@/auth/jwt";
+import { AccessTokenCookie, RefreshTokenCookie } from "@/auth/cookie";
 
 const logger = createScopedLogger("app:auth_provider");
 

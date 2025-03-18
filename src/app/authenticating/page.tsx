@@ -2,10 +2,10 @@
 import { Suspense, useEffect, useState } from "react";
 import { Spin, Alert, Button } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setRefreshAndAccessTokenToCookie } from "@/utils";
 import { fetchGoogleOAuthCallBack, GoogleOAuthCallBackData } from "./action";
 import { useAuth } from "@/hooks/useAuth";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
+import { setRefreshAndAccessTokenToCookie } from "@/auth/cookie";
 
 // https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
 export default function Authenticating() {

@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { IS_PRODUCTION } from "..";
+import { IS_PRODUCTION } from "../env";
 
 export async function getProtocol(): Promise<string> {
   // For the protocol, we will check based on env HTTP_PROTOCOL, if not check by x-forwarded-proto, if not check by NODE_ENV (production or not), if not default to http

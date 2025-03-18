@@ -3,11 +3,12 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { AccessTokenCookie, getApiBaseUrl } from ".";
 import { ResponseJson } from "@/types/response";
 import { HttpStatusCode } from "@/types/http";
 import { getCookie } from "./server/cookie";
 import { refreshAccessToken } from "@/auth/server/action";
+import { AccessTokenCookie } from "@/auth/cookie";
+import { getApiBaseUrl } from ".";
 
 const apiBaseUrl = getApiBaseUrl();
 

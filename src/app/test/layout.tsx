@@ -1,4 +1,4 @@
-import { IS_PRODUCTION } from "@/utils";
+import { IS_PRODUCTION } from "@/utils/env";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 

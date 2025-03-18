@@ -1,9 +1,9 @@
-import { JWT_SECRET } from "@/utils";
 import jwt from "jsonwebtoken";
-import { JWT_COOKIE_TYPE } from "@/types/cookie";
 import { createScopedLogger } from "@/utils/logger";
 import { z } from "zod";
 import { authUserSchema } from ".";
+import { JWT_SECRET } from "@/utils/env";
+import { JWT_COOKIE_TYPE } from "./cookie";
 
 const logger = createScopedLogger("auth:jwt");
 
