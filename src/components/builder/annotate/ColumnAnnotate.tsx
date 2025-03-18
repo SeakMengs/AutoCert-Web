@@ -10,6 +10,7 @@ export type ColumnAnnotateFont = {
 
 export type BaseColumnAnnotate = ColumnAnnotateFont & {
   value: string;
+  textFitRectBox: boolean;
 };
 
 export interface ColumnAnnotateProps

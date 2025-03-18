@@ -4,8 +4,6 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
 export interface SettingsToolProps {
   qrCodeEnabled: boolean;
   onQrCodeEnabledChange: (enabled: boolean) => void;
-  textFitRectBox: boolean;
-  onTextFitRectBoxChange: (enabled: boolean) => void;
 }
 
 const { Text } = Typography;
@@ -13,8 +11,6 @@ const { Text } = Typography;
 export default function SettingsTool({
   qrCodeEnabled,
   onQrCodeEnabledChange,
-  textFitRectBox,
-  onTextFitRectBoxChange,
 }: SettingsToolProps) {
   return (
     <Space direction="vertical" className="w-full">
@@ -27,8 +23,8 @@ export default function SettingsTool({
         </Text>
         <Switch checked={qrCodeEnabled} onChange={onQrCodeEnabledChange} />
       </Flex>
-      <Divider className="p-0 m-0" />
-      <Flex justify="space-between" align="center">
+      {/* <Divider className="p-0 m-0" /> */}
+     {/* <Flex justify="space-between" align="center">
         <Text>
           Text fit rectangle box
           <Tooltip title="Automatically adjusts font size to fit text within the rectangle box.">
@@ -36,7 +32,7 @@ export default function SettingsTool({
           </Tooltip>
         </Text>
         <Switch checked={textFitRectBox} onChange={onTextFitRectBoxChange} />
-      </Flex>
+      </Flex>  */}
     </Space>
   );
 }

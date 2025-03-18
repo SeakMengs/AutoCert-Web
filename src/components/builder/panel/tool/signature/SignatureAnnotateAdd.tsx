@@ -73,6 +73,7 @@ export default function SignatureAnnotateAdd({
       >
         <Form form={form} layout="horizontal">
           <Form.Item
+            required
             name="email"
             label="Email"
             rules={[
@@ -86,6 +87,7 @@ export default function SignatureAnnotateAdd({
             <Input />
           </Form.Item>
           <Form.Item
+            required
             name="color"
             label="Color"
             initialValue={AnnotateColor}

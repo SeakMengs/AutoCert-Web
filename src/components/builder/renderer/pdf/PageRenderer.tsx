@@ -2,7 +2,7 @@
 import { memo, useRef, useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
-import { IS_PRODUCTION } from "@/utils";
+import { IS_PRODUCTION } from "@/utils/env";
 import AnnotateRenderer, {
   AnnotateRendererProps,
 } from "../annotate/AnnotateRenderer";

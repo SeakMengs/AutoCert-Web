@@ -6,7 +6,7 @@ import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { tempSignData } from "./temp";
 import { BaseColumnAnnotate } from "../annotate/ColumnAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
-import { IS_PRODUCTION } from "@/utils";
+import { IS_PRODUCTION } from "@/utils/env";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signature/SignatureTool";
@@ -70,6 +70,7 @@ const newColumnAnnotate = (): ColumnAnnotateState => {
     fontWeight: "regular",
     fontColor: "#000000",
     color: AnnotateColor,
+    textFitRectBox: true,
   };
 };
 
@@ -88,10 +89,7 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
   };
 };
 
-export type AutoCertSettings = Pick<
-  SettingsToolProps,
-  "qrCodeEnabled" | "textFitRectBox"
-> & {};
+export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
 
 export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   // currently not use
@@ -109,7 +107,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
   const [settings, setSettings] = useState<AutoCertSettings>({
     qrCodeEnabled: false,
-    textFitRectBox: false,
   });
 
   /**
@@ -194,17 +191,18 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
 
   const onColumnAnnotateAdd = (
     page: number,
-    { value, color, fontName }: ColumnAnnotateFormSchema,
+    data: ColumnAnnotateFormSchema,
   ): void => {
     logger.debug("Adding column annotate");
-
+    
     let newCA = newColumnAnnotate();
     newCA = {
       ...newCA,
-      value,
-      color,
-      fontName,
-    };
+      fontName: data.fontName,
+      value: data.value,
+      color: data.color,
+      textFitRectBox: data.textFitRectBox,
+    } satisfies ColumnAnnotateState;
 
     setAnnotates((prev) => ({
       ...prev,
@@ -238,6 +236,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       fontName: data.fontName,
       value: data.value,
       color: data.color,
+      textFitRectBox: data.textFitRectBox,
     } satisfies ColumnAnnotateState;
 
     setAnnotates((prev) => ({
@@ -282,7 +281,7 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
       email: data.email,
       color: data.color,
       status: "not_invited",
-    };
+    } satisfies SignatureAnnotateState;
 
     setAnnotates((prev) => ({
       ...prev,
@@ -409,20 +408,13 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     enabled: boolean,
   ): void => {
     logger.debug(`QR code enabled: ${enabled}`);
-    setSettings((prev) => ({
-      ...prev,
-      qrCodeEnabled: enabled,
-    }));
-  };
-  
-  const onTextFitRectBoxChange: SettingsToolProps["onTextFitRectBoxChange"] = (
-    enabled: boolean,
-  ): void => {
-    logger.debug(`Text fit rect box enabled: ${enabled}`);
-    setSettings((prev) => ({
-      ...prev,
-      textFitRectBox: enabled,
-    }));
+    setSettings(
+      (prev) =>
+        ({
+          ...prev,
+          qrCodeEnabled: enabled,
+        }) satisfies AutoCertSettings,
+    );
   };
 
   const replaceAnnotatesColumnValue = (
@@ -484,7 +476,6 @@ export default function useAutoCert({ initialPdfPage = 1 }: UseAutoCertProps) {
     onAnnotateSelect,
     onGenerateCertificates,
     onQrCodeEnabledChange,
-    onTextFitRectBoxChange,
     replaceAnnotatesColumnValue,
     removeUnnecessaryAnnotates,
   };

@@ -7,8 +7,6 @@ import { ColumnAnnotateFormSchema } from "@/components/builder/panel/tool/column
 import { AutoCertTableColumn } from "@/components/builder/panel/table/AutoCertTable";
 import { SignatureAnnotateFormSchema } from "@/components/builder/panel/tool/signature/SignatureTool";
 import {
-  WHSize,
-  XYPosition,
   XYPositionPxAndPercent,
   RectPxAndPercent,
 } from "@/components/builder/rnd/Rnd";
@@ -63,6 +61,7 @@ describe("useAutoCert", () => {
       value: "Test Column",
       fontName: "Arial",
       color: "#FF0000",
+      textFitRectBox: true,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -82,6 +81,7 @@ describe("useAutoCert", () => {
     expect(columnAnnotate.value).toBe(columnAnnotateData.value);
     expect(columnAnnotate.color).toBe(columnAnnotateData.color);
     expect(columnAnnotate.fontName).toBe(columnAnnotateData.fontName);
+    expect(columnAnnotate.textFitRectBox).toBe(columnAnnotateData.textFitRectBox);
   });
 
   it("should add a signature annotate", () => {
@@ -164,6 +164,7 @@ describe("useAutoCert", () => {
       value: "Original Column",
       fontName: "Arial",
       color: "#000000",
+      textFitRectBox: true,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -175,6 +176,7 @@ describe("useAutoCert", () => {
       value: "Updated Column",
       fontName: "Helvetica",
       color: "#FF0000",
+      textFitRectBox: false,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -193,6 +195,9 @@ describe("useAutoCert", () => {
 
     expect(updatedColumnAnnotate.value).toBe(updatedColumnAnnotateData.value);
     expect(updatedColumnAnnotate.color).toBe(updatedColumnAnnotateData.color);
+    expect(updatedColumnAnnotate.textFitRectBox).toBe(
+      updatedColumnAnnotateData.textFitRectBox,
+    );
     expect(updatedColumnAnnotate.fontName).toBe(
       updatedColumnAnnotateData.fontName,
     );
@@ -204,6 +209,7 @@ describe("useAutoCert", () => {
       value: "To Be Deleted",
       fontName: "Arial",
       color: "#000000",
+      textFitRectBox: true,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -226,6 +232,7 @@ describe("useAutoCert", () => {
       value: "Select Me",
       fontName: "Arial",
       color: "#000000",
+      textFitRectBox: true,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -249,11 +256,12 @@ describe("useAutoCert", () => {
 
   it("should handle annotation drag", () => {
     const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
-    const columnAnnotateData: ColumnAnnotateFormSchema = {
+    const columnAnnotateData = {
       value: "Drag Me",
       fontName: "Arial",
       color: "#000000",
-    };
+      textFitRectBox: true,
+    } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
       result.current.onColumnAnnotateAdd(initialPdfPage, columnAnnotateData);
@@ -288,6 +296,7 @@ describe("useAutoCert", () => {
       value: "Resize Me",
       fontName: "Arial",
       color: "#000000",
+      textFitRectBox: true,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -343,6 +352,7 @@ describe("useAutoCert", () => {
       value: "OldTitle",
       fontName: "Arial",
       color: "#000000",
+      textFitRectBox: true,
     } satisfies ColumnAnnotateFormSchema;
 
     act(() => {
@@ -371,6 +381,7 @@ describe("useAutoCert", () => {
         value: "KeepThis",
         fontName: "Arial",
         color: "#000000",
+        textFitRectBox: true,
       });
     });
 
@@ -380,6 +391,7 @@ describe("useAutoCert", () => {
         value: "RemoveThis",
         fontName: "Arial",
         color: "#000000",
+        textFitRectBox: true,
       });
     });
 

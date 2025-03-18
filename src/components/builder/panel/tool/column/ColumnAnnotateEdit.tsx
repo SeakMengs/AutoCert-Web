@@ -1,8 +1,18 @@
 "use client";
-import { Button, ColorPicker, Form, Modal, Select, Tooltip } from "antd";
+import {
+  Button,
+  ColorPicker,
+  Flex,
+  Form,
+  Modal,
+  Select,
+  Switch,
+  Tooltip,
+  Typography,
+} from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { ColumnAnnotateFormSchema, fontOptions } from "./ColumnTool";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { ColumnAnnotateCardProps } from "./ColumnAnnotateCard";
@@ -18,6 +28,7 @@ export interface ColumnAnnotateEditProps
   > {}
 
 const { Option } = Select;
+const { Text } = Typography;
 
 export default function ColumnAnnotateEdit({
   columnAnnotate,
@@ -32,6 +43,7 @@ export default function ColumnAnnotateEdit({
       value: columnAnnotate.value,
       fontName: columnAnnotate.fontName,
       color: columnAnnotate.color,
+      textFitRectBox: columnAnnotate.textFitRectBox,
     });
   };
 
@@ -74,6 +86,7 @@ export default function ColumnAnnotateEdit({
       >
         <Form form={form} layout="horizontal">
           <Form.Item
+            required
             name="value"
             label="Field"
             initialValue={columnAnnotate.value}
@@ -93,6 +106,7 @@ export default function ColumnAnnotateEdit({
             </Select>
           </Form.Item>
           <Form.Item
+            required
             name="fontName"
             label="Font Name"
             initialValue={columnAnnotate.fontName}
@@ -106,6 +120,7 @@ export default function ColumnAnnotateEdit({
             </Select>
           </Form.Item>
           <Form.Item
+            required
             name="color"
             label="Color"
             initialValue={columnAnnotate.color}
@@ -114,6 +129,21 @@ export default function ColumnAnnotateEdit({
             }}
           >
             <ColorPicker size="small" showText />
+          </Form.Item>
+          <Form.Item
+            required
+            name={"textFitRectBox"}
+            initialValue={columnAnnotate.textFitRectBox}
+            label={
+              <Text>
+                Text fit rectangle box
+                <Tooltip title="Automatically adjusts font size to fit text within the rectangle box.">
+                  <QuestionCircleOutlined className="ml-1" />
+                </Tooltip>
+              </Text>
+            }
+          >
+            <Switch />
           </Form.Item>
         </Form>
       </Modal>

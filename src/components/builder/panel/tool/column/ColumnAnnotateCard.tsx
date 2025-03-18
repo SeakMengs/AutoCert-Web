@@ -1,8 +1,18 @@
 import { ColumnAnnotateState } from "@/components/builder/hooks/useAutoCert";
-import { Card, Flex, Space, Tag, theme, Tooltip, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Flex,
+  Space,
+  Tag,
+  theme,
+  Tooltip,
+  Typography,
+} from "antd";
 import { ColumnToolProps } from "./ColumnTool";
 import ColumnAnnotateEdit from "./ColumnAnnotateEdit";
 import ColumnAnnotateRemove from "./ColumnAnnotateRemove";
+import { FontSizeOutlined } from "@ant-design/icons";
 
 export interface ColumnAnnotateCardProps
   extends Pick<
@@ -47,6 +57,15 @@ export default function ColumnAnnotateCard({
         <Space>
           <Tooltip title="Table column">
             <Tag>{columnAnnotate.value}</Tag>
+          </Tooltip>
+          <Tooltip
+            title={`Text fit rectangle box enabled: ${columnAnnotate.textFitRectBox ? "Yes" : "No"}`}
+          >
+            <FontSizeOutlined
+              style={{
+                color: columnAnnotate.textFitRectBox ? colorPrimary : undefined,
+              }}
+            />
           </Tooltip>
           <Text type="secondary" className="text-xs">
             Page: {pageNumber}

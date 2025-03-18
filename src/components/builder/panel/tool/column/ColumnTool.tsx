@@ -22,6 +22,7 @@ export const columnAnnotateFormSchema = z.object({
       // check if hex
       return isHexColor(val);
     }, "Invalid hex color"),
+  textFitRectBox: z.boolean().default(true),
 });
 
 export type ColumnAnnotateFormSchema = z.infer<typeof columnAnnotateFormSchema>;
