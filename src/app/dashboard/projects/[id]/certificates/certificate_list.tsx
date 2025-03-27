@@ -5,16 +5,12 @@ import Image from "next/image";
 import {
   Card,
   Button,
-  Badge,
-  Tabs,
   Tooltip,
   Modal,
   Row,
   Col,
   Typography,
   Space,
-  List,
-  Avatar,
   Flex,
   App,
 } from "antd";
@@ -24,6 +20,7 @@ import {
   LinkOutlined,
   CalendarOutlined,
   UserOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import { CertificateViewer } from "./certificate_viewer";
 import {
@@ -31,9 +28,9 @@ import {
   downloadCertificate,
   generateShareableLink,
 } from "./temp";
+import usePrint from "@/hooks/usePrint";
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 interface CertificateListProps {
   certificates: Certificate[];
@@ -44,172 +41,23 @@ export default function CertificateList({
 }: CertificateListProps) {
   const [selectedCertificate, setSelectedCertificate] =
     useState<Certificate | null>(null);
-  const { message } = App.useApp();
-  const [viewMode, setViewMode] = useState<string>("grid");
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false);
 
-  const handleShareLink = async (id: string) => {
-    const link = await generateShareableLink(id);
-    navigator.clipboard.writeText(link);
-    message.success("Link copied to clipboard");
+  const onCertificateView = (certificate: Certificate): void => {
+    setSelectedCertificate(certificate);
+    setIsViewerOpen(true);
   };
 
-  const renderGridView = () => (
+  const GridViews = (
     <Row gutter={[16, 16]}>
       {certificates.map((certificate) => (
-        <Col key={certificate.id} xs={24} sm={12} md={8} lg={4}>
-          <Card
-            className="border rounded-sm hover:shadow-sm relative group w-full"
-            hoverable
-            cover={
-              <Image
-                className="rounded-sm object-cover w-full h-auto"
-                alt={certificate.name}
-                src={certificate.thumbnailUrl || "/placeholder.svg"}
-                width={256}
-                height={144}
-                unoptimized
-              />
-            }
-          >
-            <Flex
-              justify="space-between"
-              align="start"
-              style={{ marginBottom: 8 }}
-            >
-              <Text
-                strong
-                className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
-              >
-                {certificate.name}
-              </Text>
-              {/* {getStatusBadge(certificate.status)} */}
-            </Flex>
-
-            <Space
-              direction="vertical"
-              size={4}
-              style={{ marginBottom: 8, color: "rgba(0, 0, 0, 0.45)" }}
-            >
-              <Flex align="center" gap={8}>
-                <CalendarOutlined />
-                <Text type="secondary" text-ellipsis>
-                  {certificate.issueDate}
-                </Text>
-              </Flex>
-              <Flex align="center" gap={8}>
-                <UserOutlined />
-                <Text type="secondary">{certificate.recipient}</Text>
-              </Flex>
-            </Space>
-
-            <Flex justify="space-between">
-              <Space>
-                <Tooltip title="Copy Shareable Link">
-                  <Button
-                    icon={<LinkOutlined />}
-                    onClick={() => handleShareLink(certificate.id)}
-                  />
-                </Tooltip>
-
-                <Tooltip title="View Certificate">
-                  <Button
-                    icon={<EyeOutlined />}
-                    onClick={() => {
-                      setSelectedCertificate(certificate);
-                      setIsViewerOpen(true);
-                    }}
-                  />
-                </Tooltip>
-
-                <Tooltip title="Download Certificate">
-                  <Button
-                    icon={<DownloadOutlined />}
-                    onClick={() => downloadCertificate(certificate.id)}
-                  />
-                </Tooltip>
-              </Space>
-            </Flex>
-          </Card>
-        </Col>
+        <GridView
+          key={certificate.id}
+          certificate={certificate}
+          onCertificateView={onCertificateView}
+        />
       ))}
     </Row>
-  );
-
-  const renderListView = () => (
-    <List
-      itemLayout="horizontal"
-      dataSource={certificates}
-      renderItem={(certificate) => (
-        <List.Item
-          key={certificate.id}
-          actions={[
-            <Button
-              key="share"
-              icon={<LinkOutlined />}
-              onClick={() => handleShareLink(certificate.id)}
-            >
-              Share
-            </Button>,
-            <Button
-              key="view"
-              icon={<EyeOutlined />}
-              onClick={() => {
-                setSelectedCertificate(certificate);
-                setIsViewerOpen(true);
-              }}
-            >
-              View
-            </Button>,
-            <Button
-              key="download"
-              icon={<DownloadOutlined />}
-              onClick={() => downloadCertificate(certificate.id)}
-            >
-              Download
-            </Button>,
-          ]}
-        >
-          <List.Item.Meta
-            avatar={
-              <Avatar
-                shape="square"
-                size={64}
-                src={certificate.thumbnailUrl || "/placeholder.svg"}
-                style={{ cursor: "pointer" }}
-                onClick={() => {
-                  setSelectedCertificate(certificate);
-                  setIsViewerOpen(true);
-                }}
-              />
-            }
-            title={
-              <Flex align="center" gap={8}>
-                <Text
-                  strong
-                  className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
-                >
-                  {certificate.name}
-                </Text>
-                {/* {getStatusBadge(certificate.status)} */}
-              </Flex>
-            }
-            description={
-              <Space size={16}>
-                <Flex align="center" gap={4}>
-                  <CalendarOutlined />
-                  <Text type="secondary">{certificate.issueDate}</Text>
-                </Flex>
-                <Flex align="center" gap={4}>
-                  <UserOutlined />
-                  <Text type="secondary">{certificate.recipient}</Text>
-                </Flex>
-              </Space>
-            }
-          />
-        </List.Item>
-      )}
-    />
   );
 
   return (
@@ -219,21 +67,6 @@ export default function CertificateList({
           {certificates.length} Certificate
           {certificates.length !== 1 ? "s" : ""}
         </Title>
-        <Tabs
-          defaultActiveKey="grid"
-          onChange={(key) => setViewMode(key)}
-          size="small"
-          items={[
-            {
-              key: "grid",
-              label: "Grid",
-            },
-            {
-              key: "list",
-              label: "List",
-            },
-          ]}
-        />
       </Flex>
 
       {certificates.length === 0 ? (
@@ -249,10 +82,8 @@ export default function CertificateList({
         >
           <Text type="secondary">No certificates found</Text>
         </div>
-      ) : viewMode === "grid" ? (
-        renderGridView()
       ) : (
-        renderListView()
+        GridViews
       )}
 
       {selectedCertificate && (
@@ -270,5 +101,111 @@ export default function CertificateList({
         </>
       )}
     </div>
+  );
+}
+
+interface GridViewProps {
+  certificate: Certificate;
+  onCertificateView: (certificate: Certificate) => void;
+}
+
+function GridView({ certificate, onCertificateView }: GridViewProps) {
+  const { message } = App.useApp();
+  const { onPrint, printLoading } = usePrint();
+
+  const onGetShareableLink = async (id: string) => {
+    const link = await generateShareableLink(id);
+    navigator.clipboard.writeText(link);
+    message.success("Link copied to clipboard");
+  };
+
+  const onPrintPdf = async (pdfUrl: string) => {
+    onPrint({
+      printable: pdfUrl,
+      type: "pdf",
+      onLoadingEnd() {
+        message.success("Certificate is ready to print");
+      },
+    });
+  };
+
+  return (
+    <Col key={certificate.id} xs={24} sm={12} md={8} lg={4}>
+      <Card
+        className="border rounded-sm hover:shadow-sm relative group w-full"
+        hoverable
+        cover={
+          <Image
+            className="rounded-sm object-cover w-full h-auto"
+            alt={certificate.name}
+            src={certificate.thumbnailUrl || "/placeholder.svg"}
+            width={256}
+            height={144}
+            unoptimized
+          />
+        }
+      >
+        <Flex justify="space-between" align="start" style={{ marginBottom: 8 }}>
+          <Text
+            strong
+            className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
+          >
+            {certificate.name}
+          </Text>
+          {/* {getStatusBadge(certificate.status)} */}
+        </Flex>
+
+        <Space
+          direction="vertical"
+          size={4}
+          style={{ marginBottom: 8, color: "rgba(0, 0, 0, 0.45)" }}
+        >
+          <Flex align="center" gap={8}>
+            <CalendarOutlined />
+            <Text type="secondary">{certificate.issueDate}</Text>
+          </Flex>
+          <Flex align="center" gap={8}>
+            <UserOutlined />
+            <Text type="secondary">{certificate.recipient}</Text>
+          </Flex>
+        </Space>
+
+        <Flex justify="space-between">
+          <Space>
+            <Tooltip title="Copy Shareable Link">
+              <Button
+                icon={<LinkOutlined />}
+                onClick={async () => await onGetShareableLink(certificate.id)}
+              />
+            </Tooltip>
+
+            <Tooltip title="View Certificate">
+              <Button
+                icon={<EyeOutlined />}
+                onClick={() => {
+                  onCertificateView(certificate);
+                }}
+              />
+            </Tooltip>
+
+            <Tooltip title="Download Certificate">
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={() => downloadCertificate(certificate.id)}
+              />
+            </Tooltip>
+            <Tooltip title="Print Certificate">
+              <Button
+                icon={<PrinterOutlined />}
+                onClick={async () =>
+                  await onPrintPdf("/certificate_merged.pdf")
+                }
+                loading={printLoading}
+              />
+            </Tooltip>
+          </Space>
+        </Flex>
+      </Card>
+    </Col>
   );
 }

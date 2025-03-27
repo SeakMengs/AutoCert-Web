@@ -41,9 +41,7 @@ function AutoCertPanel({
   columnAnnotates,
   signatureAnnotates,
   qrCodeEnabled,
-  textFitRectBox,
   onQrCodeEnabledChange,
-  onTextFitRectBoxChange,
   onAnnotateSelect,
   onColumnAnnotateAdd,
   onColumnAnnotateUpdate,
@@ -110,9 +108,7 @@ function AutoCertPanel({
       children: (
         <SettingsTool
           qrCodeEnabled={qrCodeEnabled}
-          textFitRectBox={textFitRectBox}
           onQrCodeEnabledChange={onQrCodeEnabledChange}
-          onTextFitRectBoxChange={onTextFitRectBoxChange}
         />
       ),
     },

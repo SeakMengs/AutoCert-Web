@@ -2,13 +2,13 @@
 import { createScopedLogger } from "@/utils/logger";
 import { clientRevalidatePath } from "@/utils/server/host";
 import { getCookie } from "@/utils/server/cookie";
-import { App } from "antd";
 import moment from "moment";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { validateAccessToken, refreshAccessToken } from "@/auth/server/action";
 import { JwtTokenValidationResult } from "@/auth/jwt";
 import { AccessTokenCookie, RefreshTokenCookie } from "@/auth/cookie";
+import { App } from "antd";
 
 const logger = createScopedLogger("app:auth_provider");
 
@@ -84,6 +84,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     try {
+      const refreshToken = await getCookie(RefreshTokenCookie);
+      if (!refreshToken) {
+        logger.warn(
+          `Missing refresh token in cookie, skipping refresh token: ${type}`,
+        );
+        // If refresh token is missing, we should not try to refresh the access token
+        return;
+      }
+
       const refreshed = await refreshAccessToken();
       // Revalidate auth state
       const result = await fetchAuthState();
@@ -98,25 +107,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
 
-        if (ForbiddenRoutes.some((route) => pathname.startsWith(route))) {
+        if (
+          ForbiddenRoutes.some((route) => pathname.startsWith(route)) ||
+          pathname === "/"
+        ) {
           logger.warn(
             `Failed to refresh access token, redirecting to / page: ${pathname}`,
           );
           // session expire
           router.push("/?error=Session expired");
           message.error("Session expired");
-          return;
-        }
-
-        if (pathname === "/") {
-          router.push("/?error=Failed to reauthenticate");
-          const refreshToken = await getCookie(RefreshTokenCookie);
-
-          const errorMsg = !refreshToken
-            ? "Failed to authenticate"
-            : "Failed to reauthenticate";
-
-          message.error(errorMsg);
           return;
         }
       }
@@ -152,10 +152,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     const now = moment();
-    // `exp` is in seconds
+    // `exp` is in seconds convert to ms
     const expMs = moment.unix(authState.exp);
-    // Refresh token 30 seconds before it expires.
-    const refreshMsBeforeExp = moment.duration(30, "seconds");
+    // Refresh token 5 minutes before it expires.
+    // If change duration, don't forget to change cookie for accessToken expire duration in auth/cookie.ts setRefreshAndAccessTokenToCookie
+    const refreshMsBeforeExp = moment.duration(5, "minute");
     const timeUntilRefresh =
       expMs.diff(now) - refreshMsBeforeExp.asMilliseconds();
     const tokenExpired = timeUntilRefresh <= 0;

@@ -32,7 +32,7 @@ export async function setRefreshAndAccessTokenToCookie(
 ): Promise<void> {
   await setJwtTokenCookie(
     accessToken,
-    moment().add(5, "minutes").toDate(),
+    moment().add(15, "minutes").toDate(),
     JWT_COOKIE_TYPE.ACCESS,
   );
 

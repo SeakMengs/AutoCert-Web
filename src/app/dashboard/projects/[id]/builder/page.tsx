@@ -25,7 +25,6 @@ export default function ProjectBuilderByID() {
     transformWrapperRef,
     settings,
     onQrCodeEnabledChange,
-    onTextFitRectBoxChange,
     onZoomScaleChange,
     onColumnAnnotateAdd,
     onColumnAnnotateUpdate,
@@ -124,9 +123,7 @@ export default function ProjectBuilderByID() {
           signatureAnnotates={signatureAnnotates}
           columns={columns}
           qrCodeEnabled={settings.qrCodeEnabled}
-          textFitRectBox={settings.textFitRectBox}
           onQrCodeEnabledChange={onQrCodeEnabledChange}
-          onTextFitRectBoxChange={onTextFitRectBoxChange}
           onColumnUpdate={onAutoCertTableColumnTitleUpdate}
           // End of table props
           currentPdfPage={currentPdfPage}

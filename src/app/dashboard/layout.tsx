@@ -2,6 +2,9 @@ import { ReactNode } from "react";
 import DashboardLayoutClient from "./layout_client";
 import { validateAccessToken } from "@/auth/server/action";
 import { redirect } from "next/navigation";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger("app:dashboard:layout");
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +16,8 @@ export default async function DashboardLayout({
   const result = await validateAccessToken();
 
   if (!result.isAuthenticated) {
-    return redirect("/?error=Failed to authenticate");
+    logger.warn("User is not authenticated, redirecting to '/' page");
+    return redirect("/");
   }
 
   return (

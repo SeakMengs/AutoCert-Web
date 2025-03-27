@@ -25,6 +25,7 @@
     "nanoid": "5.1.2",
     "next": "15.2.0",
     "papaparse": "^5.5.2",
+    "print-js-updated": "^1.6.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-fast-marquee": "^1.6.5",

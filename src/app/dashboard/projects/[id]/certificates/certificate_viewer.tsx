@@ -1,64 +1,76 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button, Space, Flex, Typography, Spin } from "antd"
-import { DownloadOutlined, LeftOutlined, RightOutlined, ZoomInOutlined, ZoomOutOutlined } from "@ant-design/icons"
-import { Certificate, downloadCertificate } from "./temp"
+import { useState, useEffect } from "react";
+import { Button, Space, Flex, Typography, Spin } from "antd";
+import {
+  DownloadOutlined,
+  LeftOutlined,
+  RightOutlined,
+  ZoomInOutlined,
+  ZoomOutOutlined,
+} from "@ant-design/icons";
+import { Certificate, downloadCertificate } from "./temp";
 
-const { Text } = Typography
+const { Text } = Typography;
 
 interface CertificateViewerProps {
-  certificate: Certificate
+  certificate: Certificate;
 }
 
 export function CertificateViewer({ certificate }: CertificateViewerProps) {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [zoom, setZoom] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [zoom, setZoom] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // In a real implementation, you would load the PDF and get the total pages
     // For this example, we'll simulate a loading delay and set a random number of pages
     const timer = setTimeout(() => {
-      setTotalPages(Math.floor(Math.random() * 3) + 1)
-      setIsLoading(false)
-    }, 1000)
+      setTotalPages(Math.floor(Math.random() * 3) + 1);
+      setIsLoading(false);
+    }, 1000);
 
-    return () => clearTimeout(timer)
-  }, [certificate.id])
+    return () => clearTimeout(timer);
+  }, [certificate.id]);
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
+      setCurrentPage(currentPage - 1);
     }
-  }
+  };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1)
+      setCurrentPage(currentPage + 1);
     }
-  }
+  };
 
   const handleZoomIn = () => {
     if (zoom < 2) {
-      setZoom(zoom + 0.1)
+      setZoom(zoom + 0.1);
     }
-  }
+  };
 
   const handleZoomOut = () => {
     if (zoom > 0.5) {
-      setZoom(zoom - 0.1)
+      setZoom(zoom - 0.1);
     }
-  }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <Flex justify="space-between" align="center">
         <Space>
-          <Button icon={<LeftOutlined />} onClick={handlePrevPage} disabled={currentPage === 1 || isLoading} />
+          <Button
+            icon={<LeftOutlined />}
+            onClick={handlePrevPage}
+            disabled={currentPage === 1 || isLoading}
+          />
 
-          <Text>{isLoading ? "Loading..." : `Page ${currentPage} of ${totalPages}`}</Text>
+          <Text>
+            {isLoading ? "Loading..." : `Page ${currentPage} of ${totalPages}`}
+          </Text>
 
           <Button
             icon={<RightOutlined />}
@@ -68,13 +80,27 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
         </Space>
 
         <Space>
-          <Button icon={<ZoomOutOutlined />} onClick={handleZoomOut} disabled={zoom <= 0.5 || isLoading} />
+          <Button
+            icon={<ZoomOutOutlined />}
+            onClick={handleZoomOut}
+            disabled={zoom <= 0.5 || isLoading}
+          />
 
-          <Text style={{ width: 60, textAlign: "center" }}>{isLoading ? "..." : `${Math.round(zoom * 100)}%`}</Text>
+          <Text style={{ width: 60, textAlign: "center" }}>
+            {isLoading ? "..." : `${Math.round(zoom * 100)}%`}
+          </Text>
 
-          <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} disabled={zoom >= 2 || isLoading} />
+          <Button
+            icon={<ZoomInOutlined />}
+            onClick={handleZoomIn}
+            disabled={zoom >= 2 || isLoading}
+          />
 
-          <Button icon={<DownloadOutlined />} onClick={() => downloadCertificate(certificate.id)} disabled={isLoading}>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() => downloadCertificate(certificate.id)}
+            disabled={isLoading}
+          >
             Download
           </Button>
         </Space>
@@ -110,12 +136,15 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
             <img
               src={certificate.pdfUrl || certificate.thumbnailUrl}
               alt={certificate.name}
-              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+              }}
             />
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
-

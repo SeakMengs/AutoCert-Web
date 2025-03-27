@@ -1,10 +1,12 @@
 "use client";
 import { headerStyle, BarSize } from "@/app/dashboard/layout_client";
 import {
+  App,
   Button,
   Flex,
   Modal,
   Space,
+  Spin,
   Switch,
   theme,
   Tooltip,
@@ -18,23 +20,41 @@ import {
   FileTextOutlined,
   DownloadOutlined,
   TeamOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import { SignatoryList } from "./signatory_list";
 import { ActivityLogDialog } from "./activity_log_dialog";
+import { createScopedLogger } from "@/utils/logger";
+import usePrint from "@/hooks/usePrint";
 
+const logger = createScopedLogger(
+  "app:dashboard:project:[id]:certificates:header",
+);
 const { Title, Text } = Typography;
 export default function Header() {
   const {
     token: { colorSplit, colorBgContainer },
   } = theme.useToken();
 
-  const [isPublic, setIsPublic] = useState(true);
-  const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
-  const [isSignatoryOpen, setIsSignatoryOpen] = useState(false);
+  const [isPublic, setIsPublic] = useState<boolean>(true);
+  const [isActivityLogOpen, setIsActivityLogOpen] = useState<boolean>(false);
+  const [isSignatoryOpen, setIsSignatoryOpen] = useState<boolean>(false);
+  const { onPrint, printLoading } = usePrint();
+  const { message } = App.useApp();
 
   const handleVisibilityToggle = async (checked: boolean) => {
     setIsPublic(checked);
     await toggleProjectVisibility(checked);
+  };
+
+  const onPrintAllPdf = async (pdfUrl: string) => {
+    await onPrint({
+      printable: pdfUrl,
+      type: "pdf",
+      onLoadingEnd() {
+        message.success("Certificates are ready to print");
+      },
+    });
   };
 
   return (
@@ -72,19 +92,27 @@ export default function Header() {
               onClick={() => setIsActivityLogOpen(true)}
             />
           </Tooltip>
-          <Tooltip title="Download All">
-            <Button
-              type="primary"
-              icon={<DownloadOutlined />}
-              onClick={() => downloadAllCertificates()}
-            />
-          </Tooltip>
           <Tooltip title="View Signatories">
             <Button
               icon={<TeamOutlined />}
               onClick={() => {
                 setIsSignatoryOpen(true);
               }}
+            />
+          </Tooltip>
+          <Tooltip title="Download All Certificates">
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={() => downloadAllCertificates()}
+            />
+          </Tooltip>
+          <Tooltip title="Print All Certificates">
+            <Button
+              icon={<PrinterOutlined />}
+              onClick={async () => {
+                await onPrintAllPdf("/certificate_merged.pdf");
+              }}
+              loading={printLoading}
             />
           </Tooltip>
         </Flex>
