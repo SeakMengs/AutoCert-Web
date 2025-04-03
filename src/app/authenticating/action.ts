@@ -1,7 +1,10 @@
 "use server";
 
-import { ResponseJson } from "@/types/response";
 import { api } from "@/utils/axios";
+import { createScopedLogger } from "@/utils/logger";
+import { ResponseJson } from "@/utils/response";
+
+const logger = createScopedLogger("src:app:authenticating:action");
 
 export type GoogleOAuthCallBackData = {
   accessToken: string;
@@ -16,6 +19,11 @@ export async function fetchGoogleOAuthCallBack(
       `/api/v1/oauth/google/callback?${searchParams}`,
     );
 
+    if (!response.data.success) {
+      logger.error("Error fetching OAuth callback data:", response.data);
+      return null;
+    }
+
     if (!response.data || !response.data.data) {
       return null;
     }
@@ -25,7 +33,7 @@ export async function fetchGoogleOAuthCallBack(
       refreshToken: response.data.data.refreshToken,
     };
   } catch (error: any) {
-    console.error("Error fetching OAuth callback data:", error.response.data);
+    logger.error("Error fetching OAuth callback data:", error.response.data);
     return null;
   }
 }

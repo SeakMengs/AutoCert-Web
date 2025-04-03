@@ -8,9 +8,11 @@ import ProjectCard, {
 import moment from "moment";
 import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import {
+  Button,
   Col,
   Empty,
   Flex,
+  FloatButton,
   Input,
   Row,
   Select,
@@ -20,6 +22,7 @@ import {
 } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
+import CreateProjectDialog from "./create_project_dioalog";
 
 const { Search } = Input;
 const { Title } = Typography;
@@ -116,6 +119,8 @@ export default function CertificateProjectSection() {
     <>
       <Title level={5}>Certificate Project</Title>
       <Space direction="vertical" size={"middle"} className="w-full">
+        {/* TODO: restyle the ui */}
+        <CreateProjectDialog onCreated={() => {}} />
         <Flex vertical gap={16}>
           <Search
             placeholder="Search by project title"

@@ -3,17 +3,28 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { ResponseJson } from "@/types/response";
 import { HttpStatusCode } from "@/types/http";
 import { getCookie } from "./server/cookie";
 import { refreshAccessToken } from "@/auth/server/action";
 import { AccessTokenCookie } from "@/auth/cookie";
 import { getApiBaseUrl } from ".";
+import { ResponseJson } from "./response";
+import {
+  autocertToFormattedZodError,
+  T_AutocertError,
+  T_ZodErrorFormatted,
+} from "./error";
 
 const apiBaseUrl = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
+  transformResponse: [
+    (data: string) => {
+      // transform error response to zod formatted error
+      return transformAutoCertErrorToZodFormattedError(JSON.parse(data));
+    },
+  ],
 });
 
 // Handle auto refresh token and set bearer token in the header. Does not handle auto refresh token for server side call.
@@ -21,6 +32,12 @@ export const apiWithAuth = axios.create({
   baseURL: apiBaseUrl,
   // If you want to send cookies with the request. | Keep in mind that api allow origin should not be "*".
   // withCredentials: true,
+  transformResponse: [
+    (data: string) => {
+      // transform error response to zod formatted error
+      return transformAutoCertErrorToZodFormattedError(JSON.parse(data));
+    },
+  ],
 });
 
 apiWithAuth.interceptors.request.use(
@@ -64,3 +81,16 @@ apiWithAuth.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+const transformAutoCertErrorToZodFormattedError = (data: any) => {
+  if (!data.success) {
+    return {
+      ...data,
+      errors: autocertToFormattedZodError(data.errors as T_AutocertError[]),
+      message: data.message,
+      success: false,
+    } satisfies ResponseJson<any, T_ZodErrorFormatted>;
+  }
+
+  return data;
+};

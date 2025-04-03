@@ -1,6 +1,5 @@
 "use server";
 import { cookies } from "next/headers";
-import { ResponseJson } from "@/types/response";
 import { HttpStatusCode } from "@/types/http";
 // import { AxiosResponse } from "axios";
 import { api } from "@/utils/axios";
@@ -8,6 +7,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { getCookie } from "@/utils/server/cookie";
 import { invalidJwtToken, JwtTokenValidationResult, verifyJwtAccessToken } from "../jwt";
 import { getJwtCookieName, JWT_COOKIE_NAME, JWT_COOKIE_TYPE, RefreshTokenCookie, setRefreshAndAccessTokenToCookie } from "../cookie";
+import { ResponseJson } from "@/utils/response";
 
 const logger = createScopedLogger("auth:action");
 
@@ -91,7 +91,7 @@ export async function refreshAccessToken(): Promise<boolean> {
         },
       );
 
-      if (res.status === HttpStatusCode.OK_200) {
+      if (res.status === HttpStatusCode.OK_200 && res.data.success) {
         const { refreshToken, accessToken } = res.data.data;
         if (!refreshToken || !accessToken) {
           // await clearRefreshAndAccessTokenCookie();
