@@ -89,8 +89,8 @@ export default function SignatureSection({
 
   return (
     <div>
-      <Title level={5}>Your Signature</Title>
       <Space direction="vertical">
+      <Title level={4} className="m-0">Your Signature</Title>
         <Alert
           banner
           message={

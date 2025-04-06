@@ -13,7 +13,7 @@ export const authUserSchema = z.object({
   lastName: z.string().trim().min(1, {
     message: "Last name is required",
   }),
-  profileURL: z.string().url(),
+  profileUrl: z.string().url(),
 });
 
 export type AuthUser = z.infer<typeof authUserSchema>;

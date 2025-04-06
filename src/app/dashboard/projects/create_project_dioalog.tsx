@@ -59,14 +59,7 @@ export default function CreateProjectDialog({
 
   return (
     <>
-      <Button
-        className=""
-        type="dashed"
-        icon={<PlusOutlined />}
-        onClick={toggleModal}
-      >
-        Add Project
-      </Button>
+      <Button className="" icon={<PlusOutlined />} onClick={toggleModal} />
       <Modal
         title="Create New Project"
         open={modalOpen}

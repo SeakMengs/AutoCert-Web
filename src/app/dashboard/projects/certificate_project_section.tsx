@@ -117,10 +117,13 @@ export default function CertificateProjectSection() {
 
   return (
     <>
-      <Title level={5}>Certificate Project</Title>
       <Space direction="vertical" size={"middle"} className="w-full">
-        {/* TODO: restyle the ui */}
-        <CreateProjectDialog onCreated={() => {}} />
+        <div className="flex justify-between items-center">
+          <Title level={4} className="m-0">
+            Certificate Project
+          </Title>
+          <CreateProjectDialog onCreated={() => {}} />
+        </div>
         <Flex vertical gap={16}>
           <Search
             placeholder="Search by project title"
