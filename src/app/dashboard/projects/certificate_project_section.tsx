@@ -1,18 +1,11 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import ProjectCard, {
-  ProjectCardProps,
-  ProjectSignatory,
-  ProjectStatus,
-} from "@/components/card/ProjectCard";
-import moment from "moment";
+import React, { useEffect, useRef, useState } from "react";
+import ProjectCard from "@/components/card/ProjectCard";
 import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import {
-  Button,
   Col,
   Empty,
   Flex,
-  FloatButton,
   Input,
   Row,
   Select,
@@ -23,97 +16,85 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
 import CreateProjectDialog from "./create_project_dioalog";
+import {
+  ProjectRole,
+  ProjectStatus,
+  ProjectStatusLabels,
+} from "@/types/project";
+import useAsync from "@/hooks/useAsync";
+import { getOwnProjects, GetOwnProjectsParams } from "./action";
+import { PageSize } from "@/utils/pagination";
+import FetchLoading from "@/components/loading/FetchLoading";
+import debounce from "lodash.debounce";
+import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 
 const { Search } = Input;
 const { Title } = Typography;
+
+// 0.5 seconds
+const DEBOUNCE_MS = 300;
 
 export default function CertificateProjectSection() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const mockProject = {
-    id: "0",
-    title: "Environmental Protection Initiative",
-    createdAt: moment().subtract(1, "day").toDate(),
-    cover:
-      "https://marketplace.canva.com/EAFy42rCTA0/1/0/1600w/canva-blue-minimalist-certificate-of-achievement-_asVJz8YgJE.jpg",
-    status: "Completed",
-    userRole: "owner",
-    signatories: [
-      {
-        id: 1,
-        name: "Alice Johnson",
-        avatar: "https://i.pravatar.cc/40?u=alice",
-        signed: true,
-      },
-      {
-        id: 2,
-        name: "Bob Smith",
-        avatar: "https://i.pravatar.cc/40?u=bob",
-        signed: false,
-      },
-      {
-        id: 3,
-        name: "Charlie Davis",
-        avatar: "https://i.pravatar.cc/40?u=jonh",
-        signed: true,
-      },
-      {
-        id: 4,
-        name: "Diana Ross",
-        avatar: "https://i.pravatar.cc/40?u=jack",
-        signed: false,
-      },
-    ] satisfies ProjectSignatory[],
-  } satisfies ProjectCardProps;
-
-  // Copy but random date and name
-  const mockProjects = Array.from({ length: 20 }, (_, index) => ({
-    ...mockProject,
-    id: index.toString(),
-    title: `Project ${index + 1}`,
-    createdAt: moment().subtract(index, "days").toDate(),
-    status: Object.values(ProjectStatus)[index % 4],
-  }));
-
+  const page = searchParams.get("page") || 1;
   const querySearch = searchParams.get("search") || "";
-  const queryFilters = searchParams.get("filters")
-    ? searchParams.get("filters")!.split(",")
-    : Object.values(ProjectStatus);
+  const queryStatus =
+    searchParams
+      .get("filters")
+      ?.split(",")
+      .filter((f) => f !== "") || Object.values(ProjectStatus);
 
   const [searchQuery, setSearchQuery] = useState<string>(querySearch);
-  const [selectedFilters, setSelectedFilters] =
-    useState<string[]>(queryFilters);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (searchQuery) {
-      params.set("search", searchQuery);
-    }
-
-    if (Array.isArray(selectedFilters) && selectedFilters.length) {
-      params.set("filters", selectedFilters.join(","));
-    } else {
-      params.delete("filters");
-    }
-
-    router.replace(`?${params.toString()}`);
-  }, [searchQuery, selectedFilters, router]);
+  const [selectedStatus, setSelectedStatus] = useState<
+    string[] | ProjectStatus[]
+  >(queryStatus);
 
   const statusOptions = Object.values(ProjectStatus).map((status) => ({
     value: status,
-    label: status,
+    label: ProjectStatusLabels[status],
   })) satisfies SelectProps["options"];
 
-  const filteredProjects = mockProjects.filter((project) => {
-    const matchesSearch = project.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      Array.isArray(selectedFilters) &&
-      selectedFilters.includes(project.status);
-    return matchesSearch && matchesStatus;
+  const getProject = useAsync(getOwnProjects, {
+    defaultLoading: true,
   });
+
+  const debounceSearch = useRef(
+    debounce(async (val: GetOwnProjectsParams) => {
+      const newSearchParams = new URLSearchParams({
+        search: val.search || "",
+        page: String(page),
+      });
+
+      selectedStatus.forEach((s) => {
+        newSearchParams.append("status", s.toString());
+      });
+
+      router.replace(`?${newSearchParams.toString()}`);
+      await getProject.fetchData(val);
+    }, DEBOUNCE_MS),
+  ).current;
+
+  const projects = getProject.data?.projects || [];
+
+  useEffect(() => {
+    debounceSearch({
+      page: Number(page),
+      pageSize: PageSize,
+      search: searchQuery,
+      status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
+    });
+  }, [searchQuery, selectedStatus, router, debounceSearch]);
+
+  const onErrorRetry = async () => {
+    await debounceSearch({
+      page: Number(page),
+      pageSize: PageSize,
+      search: searchQuery,
+      status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
+    });
+  };
 
   return (
     <>
@@ -133,11 +114,12 @@ export default function CertificateProjectSection() {
             className="w-full max-w-[450px]"
           />
           <Select
-            defaultValue={selectedFilters}
+            defaultValue={selectedStatus}
+            labelRender={(labelProps) => labelProps.label}
             mode="multiple"
             placeholder="Filter by status"
             options={statusOptions}
-            onChange={(value) => setSelectedFilters(value as string[])}
+            onChange={(value) => setSelectedStatus(value as string[])}
             allowClear
             suffixIcon={<FilterOutlined />}
             className="w-full max-w-[450px]"
@@ -145,15 +127,26 @@ export default function CertificateProjectSection() {
           />
         </Flex>
 
-        {Array.isArray(filteredProjects) && filteredProjects.length === 0 ? (
+        {getProject.loading ? (
+          <Flex vertical align="center" justify="center">
+            <FetchLoading />
+          </Flex>
+        ) : getProject.error ? (
+          <Flex vertical align="center" justify="center">
+            <DisplayZodErrors
+              errors={getProject.error}
+              onRetry={onErrorRetry}
+            />
+          </Flex>
+        ) : Array.isArray(projects) && projects.length === 0 ? (
           <Flex vertical align="center" justify="center">
             <Empty description="No projects found" />
           </Flex>
         ) : (
           <Row gutter={[16, 16]}>
-            {filteredProjects.map((project) => (
-              <Col key={project.id} xs={24} sm={12} md={8} lg={4}>
-                <ProjectCard {...project} />
+            {projects.map((p) => (
+              <Col key={p.id} xs={24} sm={12} md={8} lg={4}>
+                <ProjectCard project={p} projectRole={ProjectRole.Owner} />
               </Col>
             ))}
           </Row>

@@ -1,23 +1,6 @@
+import { ProjectSchema } from "@/schemas/autocert_api/project";
 import { ProjectStatus } from "@/types/project";
 import { z } from "zod";
-
-const ProjectSignatorySchema = z.object({
-  email: z.string().email(),
-  profileUrl: z.string().url(),
-  status: z.nativeEnum(ProjectStatus),
-});
-
-const ProjectSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  templateUrl: z.string(),
-  isPublic: z.boolean(),
-  signatories: z
-    .array(ProjectSignatorySchema)
-    .default([]),
-  status: z.nativeEnum(ProjectStatus),
-  createdAt: z.string().nullable(),
-});
 
 export const GetOwnProjectsSuccessResponseSchema = z.object({
   total: z.number(),

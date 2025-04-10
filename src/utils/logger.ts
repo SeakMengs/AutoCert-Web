@@ -40,10 +40,7 @@ export function createScopedLogger(scope: string): Logger {
 }
 
 function setLevel(level: DebugLevel) {
-  if (
-    (level === "trace" || level === "debug") &&
-    process.env.NODE_ENV === "production"
-  ) {
+  if ((level === "trace" || level === "debug") && IS_PRODUCTION) {
     return;
   }
 

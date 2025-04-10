@@ -1,0 +1,1 @@
+Schemas designed for reuse across the project, specifically for the AutoCert API.

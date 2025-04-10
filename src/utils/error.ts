@@ -59,17 +59,23 @@ export const autocertToFormattedZodError = (
   error: T_AutocertError[],
 ): T_ZodErrorFormatted => {
   try {
+    if (!error) {
+      return generateAndFormatZodError("unknown", "Something went wrong");
+    }
+
     let formattedError = {} as T_ZodErrorFormatted;
+    // TODO: remove
+    console.log("error", error);
     for (const issue of error) {
-      const fieldKey = issue.field.charAt(0).toLowerCase() + issue.field.slice(1);
+      const fieldKey = issue.field
+        ? issue.field.charAt(0).toLowerCase() + issue.field.slice(1)
+        : "unknown";
       formattedError[fieldKey] = issue.message;
     }
     return formattedError;
   } catch (error) {
     logger.error("Error formatting autocert error", error);
 
-    return {
-      unknown: "Unknown error",
-    } satisfies T_ZodErrorFormatted;
+    return generateAndFormatZodError("unknown", "Something went wrong");
   }
 };

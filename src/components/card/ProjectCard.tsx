@@ -21,34 +21,22 @@ import Image from "next/image";
 import moment from "moment";
 import { createScopedLogger } from "@/utils/logger";
 import Link from "next/link";
+import { z } from "zod";
+import { ProjectSchema } from "@/schemas/autocert_api/project";
+import {
+  ProjectRole,
+  ProjectStatus,
+  ProjectStatusLabels,
+  SignatoryStatus,
+  SignatoryStatusLabels,
+} from "@/types/project";
 
 const logger = createScopedLogger("components:card:ProjectCard");
 
-export type ProjectSignatory = {
-  id: number;
-  name: string;
-  avatar: string;
-  signed: boolean;
-};
-
 export type ProjectCardProps = {
-  id: string;
-  title: string;
-  cover: string;
-  status: (typeof ProjectStatus)[keyof typeof ProjectStatus];
-  createdAt: Date | string;
-  signatories: ProjectSignatory[];
-  userRole: "owner" | "signatory";
+  project: z.infer<typeof ProjectSchema>;
+  projectRole: ProjectRole;
 };
-
-export const ProjectStatus = {
-  // When the project is being prepared
-  Preparing: "Preparing",
-  // When all signatories have signed the project and the server is processing the certificates
-  Processing: "Processing",
-  // When the certificates are ready
-  Completed: "Completed",
-} as const;
 
 export const StatusColorMap = {
   [ProjectStatus.Preparing]: "default",
@@ -59,49 +47,48 @@ export const StatusColorMap = {
 const { Meta } = Card;
 
 export default function ProjectCard({
-  id,
-  title,
-  cover,
-  status,
-  createdAt,
-  signatories,
-  userRole,
+  project,
+  projectRole,
 }: ProjectCardProps) {
   const [loading, setLoading] = useState<boolean>(true);
 
   const getActions = (): CardProps["actions"] => {
-    switch (userRole) {
-      case "owner":
+    switch (projectRole) {
+      case ProjectRole.Owner:
         return [
           <Tooltip
             title="View Generated Certificates"
-            key={`${id}:owner:view_generated_certificates`}
+            key={`${project.id}:owner:view_generated_certificates`}
           >
-            <Link href={`/dashboard/projects/${id}/certificates`}>
-              <EyeOutlined disabled={status != ProjectStatus.Completed} />
+            <Link href={`/dashboard/projects/${project.id}/certificates`}>
+              <EyeOutlined
+                disabled={project.status != ProjectStatus.Completed}
+              />
             </Link>
           </Tooltip>,
-          <Tooltip title="Template Builder" key={`${id}:owner:builder`}>
-            <Link href={`/dashboard/projects/${id}/builder`}>
+          <Tooltip title="Template Builder" key={`${project.id}:owner:builder`}>
+            <Link href={`/dashboard/projects/${project.id}/builder`}>
               <ToolOutlined />
             </Link>
           </Tooltip>,
         ];
-      case "signatory":
+      case ProjectRole.Signatory:
         return [
           <Tooltip
             title="View Generated Certificates"
-            key={`${id}:signatory:view_generated_certificates`}
+            key={`${project.id}:signatory:view_generated_certificates`}
           >
-            <Link href={`/dashboard/projects/${id}/certificates`}>
-              <EyeOutlined disabled={status != ProjectStatus.Completed} />
+            <Link href={`/dashboard/projects/${project.id}/certificates`}>
+              <EyeOutlined
+                disabled={project.status != ProjectStatus.Completed}
+              />
             </Link>
           </Tooltip>,
           <Tooltip
             title="Approve signature request"
-            key={`${id}:signatory:sign`}
+            key={`${project.id}:signatory:sign`}
           >
-            <Link href={`/dashboard/projects/${id}/sign`}>
+            <Link href={`/dashboard/projects/${project.id}/sign`}>
               <SignatureOutlined />
             </Link>
           </Tooltip>,
@@ -113,7 +100,7 @@ export default function ProjectCard({
     // delay loading state for 1 second
     const timeout = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 300);
     return () => clearTimeout(timeout);
   }, []);
 
@@ -135,7 +122,7 @@ export default function ProjectCard({
           <Image
             className="rounded-sm object-cover w-full h-auto"
             alt="Certificate Template"
-            src={cover}
+            src={"/placeholder.svg"}
             width={256}
             height={144}
             unoptimized
@@ -145,11 +132,19 @@ export default function ProjectCard({
       actions={getActions()}
     >
       <Meta
-        title={<Tooltip title={`Project title: ${title}`}>{title}</Tooltip>}
+        title={
+          <Tooltip title={`Project title: ${project.title}`}>
+            {project.title}
+          </Tooltip>
+        }
         description={
           <Flex gap={8} align="center" justify="space-between">
-            <Tag color={StatusColorMap[status]}>{status}</Tag>
-            <span>{moment(createdAt).fromNow()}</span>
+            <Tooltip title="Project status">
+              <Tag color={StatusColorMap[project.status]}>
+                {ProjectStatusLabels[project.status]}
+              </Tag>
+            </Tooltip>
+            <span>{moment(project.createdAt).fromNow()}</span>
           </Flex>
         }
       />
@@ -158,18 +153,21 @@ export default function ProjectCard({
       <div style={{ marginTop: "1rem" }}>
         <div style={{ marginBottom: "0.5rem" }}>
           <strong>Signatories signed:</strong>{" "}
-          {`${signatories.filter((s) => s.signed).length}/${
-            signatories.length
+          {`${project.signatories.filter((s) => s.status === SignatoryStatus.Signed).length}/${
+            project.signatories.length
           }`}
         </div>
 
         {/* Avatars (with check or close badges) */}
         <Flex gap={8} wrap>
-          {signatories.map((signatory) => (
-            <Tooltip title={signatory.name} key={signatory.id}>
+          {project.signatories.map((s, i) => (
+            <Tooltip
+              title={`${s.email}: ${SignatoryStatusLabels[s.status].toLowerCase()}`}
+              key={`${s.email}-${i}`}
+            >
               <Badge
                 count={
-                  signatory.signed ? (
+                  s.status === SignatoryStatus.Signed ? (
                     <CheckCircleFilled
                       style={{
                         color: "#52c41a",
@@ -187,9 +185,7 @@ export default function ProjectCard({
                 }
                 offset={[-5, 5]}
               >
-                <Avatar src={signatory.avatar}>
-                  {signatory.name.charAt(0)}
-                </Avatar>
+                <Avatar src={s.profileUrl} alt={s.email}></Avatar>
               </Badge>
             </Tooltip>
           ))}

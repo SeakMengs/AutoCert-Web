@@ -1,3 +1,5 @@
+// All type here is based on the autocert api.
+
 export const ProjectStatus = {
   Preparing: 0,
   Processing: 1,

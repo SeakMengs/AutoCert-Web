@@ -1,4 +1,4 @@
-import { T_ZodErrorFormatted } from "./error";
+import { generateAndFormatZodError, T_ZodErrorFormatted } from "./error";
 
 export type SuccessResponse<T> = {
   data: T;
@@ -33,3 +33,10 @@ export const responseFailed = <T = any>(
   errors,
   success: false,
 });
+
+export const responseSomethingWentWrong = (message: string) => {
+  return responseFailed(
+    message,
+    generateAndFormatZodError("wentWrong", "Something went wrong"),
+  );
+};
