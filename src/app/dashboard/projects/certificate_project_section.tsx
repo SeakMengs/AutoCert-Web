@@ -32,7 +32,7 @@ const { Search } = Input;
 const { Title } = Typography;
 
 // 0.5 seconds
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 500;
 
 export default function CertificateProjectSection() {
   const searchParams = useSearchParams();
@@ -85,7 +85,20 @@ export default function CertificateProjectSection() {
       search: searchQuery,
       status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
     });
+
+    return () => {
+      // Cancel the debounce on unmount
+      debounceSearch.cancel();
+    };
   }, [searchQuery, selectedStatus, router, debounceSearch]);
+
+  const onSearchChange = (value: string) => {
+    setSearchQuery(value);
+  };
+
+  const onStatusChange = (value: string[]) => {
+    setSelectedStatus(value);
+  };
 
   const onErrorRetry = async () => {
     await debounceSearch({
@@ -110,7 +123,7 @@ export default function CertificateProjectSection() {
             placeholder="Search by project title"
             allowClear
             enterButton={<SearchOutlined />}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="w-full max-w-[450px]"
           />
           <Select
@@ -119,7 +132,7 @@ export default function CertificateProjectSection() {
             mode="multiple"
             placeholder="Filter by status"
             options={statusOptions}
-            onChange={(value) => setSelectedStatus(value as string[])}
+            onChange={(value) => onStatusChange(value as string[])}
             allowClear
             suffixIcon={<FilterOutlined />}
             className="w-full max-w-[450px]"

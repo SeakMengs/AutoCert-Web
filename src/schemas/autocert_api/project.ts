@@ -4,7 +4,7 @@ import { z } from "zod";
 export const ProjectSignatorySchema = z.object({
   email: z.string().email(),
   profileUrl: z.string().url(),
-  status: z.nativeEnum(SignatoryStatus),
+  status: z.nativeEnum(SignatoryStatus).catch(SignatoryStatus.NotInvited),
 });
 
 export const ProjectSchema = z.object({
@@ -13,6 +13,6 @@ export const ProjectSchema = z.object({
   templateUrl: z.string(),
   isPublic: z.boolean(),
   signatories: z.array(ProjectSignatorySchema).default([]),
-  status: z.nativeEnum(ProjectStatus),
+  status: z.nativeEnum(ProjectStatus).catch(ProjectStatus.Preparing),
   createdAt: z.string().nullable(),
 });

@@ -70,7 +70,7 @@ export async function getOwnProjects(
       data: parseData.data,
     };
   } catch (error) {
-    logger.error("Failed to get own projects");
+    logger.error("Failed to get own projects", error);
 
     return responseSomethingWentWrong("Failed to get own projects");
   }
