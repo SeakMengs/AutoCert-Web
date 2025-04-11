@@ -7,6 +7,7 @@ import {
   Empty,
   Flex,
   Input,
+  Pagination,
   Row,
   Select,
   SelectProps,
@@ -22,7 +23,7 @@ import {
   ProjectStatusLabels,
 } from "@/types/project";
 import useAsync from "@/hooks/useAsync";
-import { getOwnProjects, GetOwnProjectsParams } from "./action";
+import { getOwnProjectsAction, GetOwnProjectsParams } from "./action";
 import { PageSize } from "@/utils/pagination";
 import FetchLoading from "@/components/loading/FetchLoading";
 import debounce from "lodash.debounce";
@@ -38,7 +39,7 @@ export default function CertificateProjectSection() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const page = searchParams.get("page") || 1;
+  const queryPage = searchParams.get("page") || 1;
   const querySearch = searchParams.get("search") || "";
   const queryStatus =
     searchParams
@@ -46,17 +47,23 @@ export default function CertificateProjectSection() {
       ?.split(",")
       .filter((f) => f !== "") || Object.values(ProjectStatus);
 
-  const [searchQuery, setSearchQuery] = useState<string>(querySearch);
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(
+    querySearch,
+  );
   const [selectedStatus, setSelectedStatus] = useState<
     string[] | ProjectStatus[]
   >(queryStatus);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<
+    string | undefined
+  >(searchQuery);
+  const [page, setPage] = useState<number>(Number(queryPage));
 
   const statusOptions = Object.values(ProjectStatus).map((status) => ({
     value: status,
     label: ProjectStatusLabels[status],
   })) satisfies SelectProps["options"];
 
-  const getProject = useAsync(getOwnProjects, {
+  const getOwnProjects = useAsync(getOwnProjectsAction, {
     defaultLoading: true,
   });
 
@@ -64,24 +71,31 @@ export default function CertificateProjectSection() {
     debounce(async (val: GetOwnProjectsParams) => {
       const newSearchParams = new URLSearchParams({
         search: val.search || "",
-        page: String(page),
+        page: String(val.page),
       });
 
-      selectedStatus.forEach((s) => {
-        newSearchParams.append("status", s.toString());
-      });
+      Array.isArray(val.status) &&
+        val.status.forEach((s) => {
+          newSearchParams.append("status", s.toString());
+        });
 
       router.replace(`?${newSearchParams.toString()}`);
-      await getProject.fetchData(val);
+      await getOwnProjects.fetchData(val);
+
+      setDebouncedSearchQuery(val.search);
     }, DEBOUNCE_MS),
   ).current;
 
-  const projects = getProject.data?.projects || [];
+  const projects = getOwnProjects.data?.projects || [];
+  const totalPage = getOwnProjects.data?.totalPage || 0;
+  const total = getOwnProjects.data?.total || 0;
+  const pageSize = getOwnProjects.data?.pageSize || PageSize;
 
   useEffect(() => {
     debounceSearch({
-      page: Number(page),
-      pageSize: PageSize,
+      page: page > totalPage ? 1 : page,
+      // pageSize: PageSize,
+      pageSize: 2,
       search: searchQuery,
       status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
     });
@@ -90,14 +104,18 @@ export default function CertificateProjectSection() {
       // Cancel the debounce on unmount
       debounceSearch.cancel();
     };
-  }, [searchQuery, selectedStatus, router, debounceSearch]);
+  }, [searchQuery, selectedStatus, page, router, debounceSearch]);
 
-  const onSearchChange = (value: string) => {
+  const onSearchChange = (value: string): void => {
     setSearchQuery(value);
   };
 
-  const onStatusChange = (value: string[]) => {
+  const onStatusChange = (value: string[]): void => {
     setSelectedStatus(value);
+  };
+
+  const onPageChange = (p: number, pSize: number): void => {
+    setPage(p);
   };
 
   const onErrorRetry = async () => {
@@ -140,30 +158,55 @@ export default function CertificateProjectSection() {
           />
         </Flex>
 
-        {getProject.loading ? (
+        {getOwnProjects.loading ? (
           <Flex vertical align="center" justify="center">
             <FetchLoading />
           </Flex>
-        ) : getProject.error ? (
+        ) : getOwnProjects.error ? (
           <Flex vertical align="center" justify="center">
             <DisplayZodErrors
-              errors={getProject.error}
+              errors={getOwnProjects.error}
               onRetry={onErrorRetry}
             />
           </Flex>
         ) : Array.isArray(projects) && projects.length === 0 ? (
           <Flex vertical align="center" justify="center">
-            <Empty description="No projects found" />
+            <Empty
+              description={
+                <p className="text-muted-foreground">
+                  No project found{" "}
+                  {debouncedSearchQuery && (
+                    <>
+                      for <strong>{debouncedSearchQuery}</strong>
+                    </>
+                  )}
+                </p>
+              }
+            />
           </Flex>
         ) : (
-          <Row gutter={[16, 16]}>
-            {projects.map((p) => (
-              <Col key={p.id} xs={24} sm={12} md={8} lg={4}>
-                <ProjectCard project={p} projectRole={ProjectRole.Owner} />
-              </Col>
-            ))}
-          </Row>
+          <>
+            <Row gutter={[16, 16]}>
+              {projects.map((p) => (
+                <Col key={p.id} xs={24} sm={12} md={8} lg={4}>
+                  <ProjectCard project={p} projectRole={ProjectRole.Owner} />
+                </Col>
+              ))}
+            </Row>
+          </>
         )}
+        <Pagination
+          align="end"
+          onChange={onPageChange}
+          pageSize={pageSize}
+          defaultCurrent={page}
+          total={total}
+          showQuickJumper
+          responsive
+          showTotal={(total, range): string =>
+            `Showing ${range[0]}-${range[1]} of ${total} items`
+          }
+        />
       </Space>
     </>
   );

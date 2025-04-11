@@ -22,7 +22,7 @@ export type GetOwnProjectsSucessResponse = z.infer<
   typeof GetOwnProjectsSuccessResponseSchema
 >;
 
-export async function getOwnProjects(
+export async function getOwnProjectsAction(
   data: GetOwnProjectsParams,
 ): Promise<ResponseJson<GetOwnProjectsSucessResponse, any>> {
   try {
