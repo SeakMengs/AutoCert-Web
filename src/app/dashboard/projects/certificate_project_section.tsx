@@ -16,7 +16,9 @@ import {
 } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
-import CreateProjectDialog from "./create_project_dioalog";
+import CreateProjectDialog, {
+  CreateProjectFormValue,
+} from "./create_project_dioalog";
 import {
   ProjectRole,
   ProjectStatus,
@@ -80,7 +82,7 @@ export default function CertificateProjectSection() {
         });
 
       router.replace(`?${newSearchParams.toString()}`);
-      await getOwnProjects.fetchData(val);
+      await getOwnProjects.fetch(val);
 
       setDebouncedSearchQuery(val.search);
     }, DEBOUNCE_MS),
@@ -92,13 +94,7 @@ export default function CertificateProjectSection() {
   const pageSize = getOwnProjects.data?.pageSize || PageSize;
 
   useEffect(() => {
-    debounceSearch({
-      page: page > totalPage ? 1 : page,
-      // pageSize: PageSize,
-      pageSize: 2,
-      search: searchQuery,
-      status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
-    });
+    search();
 
     return () => {
       // Cancel the debounce on unmount
@@ -118,13 +114,23 @@ export default function CertificateProjectSection() {
     setPage(p);
   };
 
-  const onErrorRetry = async () => {
+  const search = async (): Promise<void> => {
     await debounceSearch({
       page: Number(page),
       pageSize: PageSize,
       search: searchQuery,
       status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
     });
+  };
+
+  const onErrorRetry = async () => {
+    await search();
+  };
+
+  const onProjectCreated = async (
+    data: CreateProjectFormValue,
+  ): Promise<void> => {
+    await search();
   };
 
   return (
@@ -134,7 +140,7 @@ export default function CertificateProjectSection() {
           <Title level={4} className="m-0">
             Certificate Project
           </Title>
-          <CreateProjectDialog onCreated={() => {}} />
+          <CreateProjectDialog onCreated={onProjectCreated} />
         </div>
         <Flex vertical gap={16}>
           <Search
@@ -195,18 +201,20 @@ export default function CertificateProjectSection() {
             </Row>
           </>
         )}
-        <Pagination
-          align="end"
-          onChange={onPageChange}
-          pageSize={pageSize}
-          defaultCurrent={page}
-          total={total}
-          showQuickJumper
-          responsive
-          showTotal={(total, range): string =>
-            `Showing ${range[0]}-${range[1]} of ${total} items`
-          }
-        />
+        {!getOwnProjects.loading && (
+          <Pagination
+            align="end"
+            onChange={onPageChange}
+            pageSize={pageSize}
+            defaultCurrent={page}
+            total={total}
+            showQuickJumper
+            responsive
+            showTotal={(total, range): string =>
+              `Showing ${range[0]}-${range[1]} of ${total} items`
+            }
+          />
+        )}
       </Space>
     </>
   );

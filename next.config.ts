@@ -26,6 +26,9 @@ const nextConfig: NextConfig = {
       },
     },
     reactCompiler: true,
+    serverActions: {
+      bodySizeLimit: "11mb",
+    },
   },
   devIndicators: false,
 };

@@ -1,6 +1,6 @@
 "use client";
+
 import {
-  Select,
   Form,
   Button,
   Modal,
@@ -8,6 +8,8 @@ import {
   Input,
   Upload,
   App,
+  UploadProps,
+  UploadFile,
 } from "antd";
 import { useState } from "react";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
@@ -16,7 +18,11 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { FormItem } from "react-hook-form-antd";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UploadChangeParam, UploadFile } from "antd/es/upload";
+import { createProjectSchema } from "./schema";
+import { createProjectAction } from "./action";
+import { UploadChangeParam } from "antd/es/upload";
+import useAsync from "@/hooks/useAsync";
+import FormErrorMessages from "@/components/error/FormErrorMessages";
 import { pdfjs } from "react-pdf";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -28,8 +34,10 @@ const logger = createScopedLogger(
   "src:app:dashboard:projects:create_project_dioalog",
 );
 
+export type CreateProjectFormValue = z.infer<typeof createProjectSchema>;
+
 interface CreateProjectDialogProps {
-  onCreated: () => void;
+  onCreated: (data: CreateProjectFormValue) => void;
 }
 
 export default function CreateProjectDialog({
@@ -39,34 +47,13 @@ export default function CreateProjectDialog({
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [pdfPageCount, setPdfPageCount] = useState<number>(0);
 
-  const formSchema = z.object({
-    title: z
-      .string({
-        required_error: "Title is required",
-      })
-      .trim()
-      .min(1, "Title is required")
-      .max(100, {
-        message: "Title must be less than 100 characters",
-      }),
-    pdfFile: z.any().refine((file) => {
-      if (file instanceof File) {
-        return file.type === "application/pdf";
-      }
-      return false;
-    }, "Please upload a valid PDF file"),
-
-    pageNumber: z.coerce.number({
-      required_error: "Page number is required",
-    }),
-  });
-  type CreateProjectFormValue = z.infer<typeof formSchema>;
+  const createProject = useAsync(createProjectAction);
 
   const form = useForm({
     defaultValues: {
-      pageNumber: 1,
+      page: 1,
     },
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createProjectSchema),
   });
 
   const reset = (): void => {
@@ -92,8 +79,8 @@ export default function CreateProjectDialog({
 
       await form.trigger();
 
-      if (data.pageNumber && data.pageNumber > pdfPageCount) {
-        form.setError("pageNumber", {
+      if (data.page && data.page > pdfPageCount) {
+        form.setError("page", {
           type: "max",
           message: `Page number must be between 1 and ${pdfPageCount}`,
         });
@@ -106,7 +93,13 @@ export default function CreateProjectDialog({
         return;
       }
 
-      onCreated();
+      const ok = await createProject.fetch(data);
+      if (!ok) {
+        message.error("Failed to create project");
+        return;
+      }
+
+      onCreated(data);
 
       message.success("Project created successfully");
       toggleModal();
@@ -132,6 +125,25 @@ export default function CreateProjectDialog({
     });
   };
 
+  const handleBeforeFileUpload: UploadProps["beforeUpload"] = async (file) => {
+    const isPdf = file.type === "application/pdf";
+    if (!isPdf) return false;
+
+    const pageCount = await getPageCountFromPdf(file);
+    setPdfPageCount(pageCount);
+
+    form.setValue("page", 1);
+    form.setValue("templateFile", file);
+    await form.trigger("templateFile");
+
+    if (form.formState.errors.templateFile) {
+      setPdfPageCount(0);
+      form.setValue("templateFile", null);
+    }
+
+    return false;
+  };
+
   const onFileUploadChange = async (
     info: UploadChangeParam<UploadFile<any>>,
   ) => {
@@ -141,7 +153,7 @@ export default function CreateProjectDialog({
         break;
       case "removed":
         setPdfPageCount(0);
-        form.setValue("pdfFile", null);
+        form.setValue("templateFile", null);
         break;
       case "error":
         message.error(`${info.file.name} file upload failed.`);
@@ -158,7 +170,7 @@ export default function CreateProjectDialog({
         onCancel={onModalCancel}
         onOk={form.handleSubmit(handleCreateProject)}
         confirmLoading={form.formState.isSubmitting}
-        maskClosable={form.formState.isSubmitting}
+        maskClosable={!form.formState.isSubmitting}
         okButtonProps={{
           disabled: form.formState.isSubmitting,
         }}
@@ -180,28 +192,16 @@ export default function CreateProjectDialog({
           <Form.Item
             // control={form.control}
             required
-            name="pdfFile"
+            name="templateFile"
             label="Upload PDF File"
-            valuePropName="pdfFile"
+            valuePropName="templateFile"
             getValueFromEvent={(e) => e?.fileList?.[0] || null}
           >
             <Upload.Dragger
-              name="pdfFile"
+              name="templateFile"
               accept=".pdf"
               showUploadList={true}
-              beforeUpload={async (file, fileList) => {
-                const isPdf = file.type === "application/pdf";
-                if (isPdf) {
-                  const pageCount = await getPageCountFromPdf(file);
-                  setPdfPageCount(pageCount);
-                  form.setValue("pageNumber", 1);
-                  form.setValue("pdfFile", file);
-                }
-
-                await form.trigger("pdfFile");
-
-                return false;
-              }}
+              beforeUpload={handleBeforeFileUpload}
               multiple={false}
               maxCount={1}
               onChange={onFileUploadChange}
@@ -212,9 +212,9 @@ export default function CreateProjectDialog({
               <p className="ant-upload-hint">Only PDF files are supported.</p>
               Click or drag file to this area to upload
             </Upload.Dragger>
-            {form.formState.errors.pdfFile && (
+            {form.formState.errors.templateFile && (
               <Typography.Text type="danger">
-                {form.formState.errors.pdfFile?.message?.toString()}
+                {form.formState.errors.templateFile?.message?.toString()}
               </Typography.Text>
             )}
           </Form.Item>
@@ -222,7 +222,7 @@ export default function CreateProjectDialog({
             <FormItem
               control={form.control}
               required
-              name="pageNumber"
+              name="page"
               label={
                 <>
                   Page Number{" "}
@@ -242,6 +242,9 @@ export default function CreateProjectDialog({
             </FormItem>
           )}
         </Form>
+        {createProject.error && (
+          <FormErrorMessages errors={createProject.error} />
+        )} 
       </Modal>
     </>
   );

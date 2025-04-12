@@ -41,10 +41,6 @@ export default function DisplayZodErrors<T>({
         const isUnknownKey = key.toLowerCase() === "unknown";
         const errorMessage = value as string;
 
-        if (IS_PRODUCTION && isUnknownKey) {
-          return null; // Skip unknown keys in production
-        }
-
         return (
           <Tooltip key={key} title={errorMessage}>
             <Paragraph
@@ -62,7 +58,9 @@ export default function DisplayZodErrors<T>({
                 }}
               />
               {IS_PRODUCTION ? (
-                <Text type="danger">{errorMessage}</Text>
+                <Text type="danger">
+                  {isUnknownKey ? "Something went wrong" : errorMessage}
+                </Text>
               ) : (
                 <>
                   <Text strong>

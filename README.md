@@ -4,7 +4,7 @@ AutoCert is a platform for **Variable Data Printing**, **E-Signing**, and **Cert
 
 ## ✨ Setup
 
-Make sure you have **Node.js** installed and install the dependencies:
+Make sure you have **Node.js v22.0** installed and install the dependencies:
 
 ```bash
 npm install

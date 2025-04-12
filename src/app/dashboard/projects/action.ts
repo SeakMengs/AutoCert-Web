@@ -9,26 +9,27 @@ import {
 } from "@/utils/response";
 import { z } from "zod";
 import {
-  GetOwnProjectsParamsSchema,
-  GetOwnProjectsSuccessResponseSchema,
+  createProjectSchema,
+  getOwnProjectsParamsSchema,
+  getOwnProjectsSuccessResponseSchema,
 } from "./schema";
 import { createScopedLogger } from "@/utils/logger";
 import { PageSize } from "@/utils/pagination";
 
 const logger = createScopedLogger("src:app:dashboard:projects:action.ts");
 
-export type GetOwnProjectsParams = z.infer<typeof GetOwnProjectsParamsSchema>;
-export type GetOwnProjectsSucessResponse = z.infer<
-  typeof GetOwnProjectsSuccessResponseSchema
+export type GetOwnProjectsParams = z.infer<typeof getOwnProjectsParamsSchema>;
+export type GetOwnProjectsSuccessResponse = z.infer<
+  typeof getOwnProjectsSuccessResponseSchema
 >;
 
 export async function getOwnProjectsAction(
   data: GetOwnProjectsParams,
-): Promise<ResponseJson<GetOwnProjectsSucessResponse, any>> {
+): Promise<ResponseJson<GetOwnProjectsSuccessResponse, {} | undefined>> {
   try {
-    logger.info("getOwnProjects", data);
+    logger.info("get own project action", data);
 
-    const params = GetOwnProjectsParamsSchema.safeParse(data);
+    const params = getOwnProjectsParamsSchema.safeParse(data);
     if (!params.success) {
       return responseFailed("Invalid params", formatZodError(params.error));
     }
@@ -47,15 +48,15 @@ export async function getOwnProjectsAction(
     const url = `/api/v1/me/projects/?${searchParams.toString()}`;
 
     const res =
-      await apiWithAuth.get<ResponseJson<GetOwnProjectsSucessResponse, any>>(
-        url,
-      );
+      await apiWithAuth.get<
+        ResponseJson<GetOwnProjectsSuccessResponse, {} | undefined>
+      >(url);
 
     if (!res.data.success) {
       return res.data;
     }
 
-    const parseData = GetOwnProjectsSuccessResponseSchema.safeParse(
+    const parseData = getOwnProjectsSuccessResponseSchema.safeParse(
       res.data.data,
     );
     if (!parseData.success) {
@@ -73,5 +74,40 @@ export async function getOwnProjectsAction(
     logger.error("Failed to get own projects", error);
 
     return responseSomethingWentWrong("Failed to get own projects");
+  }
+}
+
+export type CreateProjectParams = z.infer<typeof createProjectSchema>;
+export type CreateProjectSuccessResponse = {};
+
+export async function createProjectAction(
+  data: CreateProjectParams,
+): Promise<ResponseJson<CreateProjectSuccessResponse, {} | undefined>> {
+  try {
+    logger.info("create project action", data);
+
+    const form = new FormData();
+    form.append("page", data.page.toString());
+    form.append("title", data.title);
+    if (data.templateFile) {
+      form.append("templateFile", data.templateFile);
+    }
+
+    const url = `/api/v1/projects/`;
+    const res = await apiWithAuth.postForm<
+      ResponseJson<CreateProjectSuccessResponse, {} | undefined>
+    >(url, form);
+
+    if (!res.data.success) {
+      return res.data;
+    }
+
+    return {
+      ...res.data,
+    };
+  } catch (error) {
+    logger.error("Failed to create project", error);
+
+    return responseSomethingWentWrong("Failed to create project");
   }
 }

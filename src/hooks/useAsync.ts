@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const logger = createScopedLogger("src:hooks:useAsync");
 
-export default function useAsync<P = void, T = any, E = T_ZodErrorFormatted>(
+export default function useAsync<P = void, T = any, E = T_ZodErrorFormatted | undefined>(
   cb: (params: P) => Promise<ResponseJson<T, E>>,
   { defaultLoading = false } = {},
 ) {
@@ -48,7 +48,7 @@ export default function useAsync<P = void, T = any, E = T_ZodErrorFormatted>(
     data,
     loading,
     error,
-    fetchData,
+    fetch: fetchData,
     reset,
   };
 }
