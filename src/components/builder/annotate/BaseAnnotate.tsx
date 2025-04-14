@@ -1,6 +1,6 @@
 // import { createScopedLogger } from "@/utils/logger";
 import { memo } from "react";
-import { AnnotateColor } from "../hooks/useAutoCert";
+import { AnnotateColor } from "../hooks/useAutoCertAnnotate";
 import { isHexColor } from "@/utils/color";
 import Rnd, {
   RectPxAndPercent,

@@ -54,19 +54,16 @@ export default function ProjectCard({
 
   const getActions = (): CardProps["actions"] => {
     switch (projectRole) {
-      case ProjectRole.Owner:
+      case ProjectRole.Requestor:
         return [
-          <Tooltip
-            title="View Generated Certificates"
-            key={`${project.id}:owner:view_generated_certificates`}
-          >
+          <Tooltip title="View Generated Certificates">
             <Link href={`/dashboard/projects/${project.id}/certificates`}>
               <EyeOutlined
                 disabled={project.status != ProjectStatus.Completed}
               />
             </Link>
           </Tooltip>,
-          <Tooltip title="Template Builder" key={`${project.id}:owner:builder`}>
+          <Tooltip title="Template Builder">
             <Link href={`/dashboard/projects/${project.id}/builder`}>
               <ToolOutlined />
             </Link>
@@ -74,20 +71,14 @@ export default function ProjectCard({
         ];
       case ProjectRole.Signatory:
         return [
-          <Tooltip
-            title="View Generated Certificates"
-            key={`${project.id}:signatory:view_generated_certificates`}
-          >
+          <Tooltip title="View Generated Certificates">
             <Link href={`/dashboard/projects/${project.id}/certificates`}>
               <EyeOutlined
                 disabled={project.status != ProjectStatus.Completed}
               />
             </Link>
           </Tooltip>,
-          <Tooltip
-            title="Approve signature request"
-            key={`${project.id}:signatory:sign`}
-          >
+          <Tooltip title="Approve signature request">
             <Link href={`/dashboard/projects/${project.id}/sign`}>
               <SignatureOutlined />
             </Link>

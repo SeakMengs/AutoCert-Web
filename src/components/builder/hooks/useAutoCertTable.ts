@@ -1,26 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AutoCertTableColumn,
   AutoCertTableRow,
 } from "../panel/table/AutoCertTable";
+import useAutoCertChange, { AutoCertChangeType } from "./useAutoCertChange";
+import { UseAutoCertProps } from "./useAutoCert";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { createScopedLogger } from "@/utils/logger";
+import { App } from "antd";
 
-// Mostly only handle set state such that I can easily integrate api calls later
+const logger = createScopedLogger("components:builder:hook:useAutoCertTable");
+
+export interface UseAutoCertTableProps
+  extends Pick<
+    UseAutoCertProps,
+    "projectId" | "initialColumns" | "initialRows" | "roles"
+  > {
+  onChange: ReturnType<typeof useAutoCertChange>["onChange"];
+}
+
+const denyMsg = "You do not have permission to update table";
 
 export default function useAutoCertTable({
+  roles,
+  projectId,
+  onChange,
   initialRows = [],
   initialColumns = [],
-}: {
-  initialRows?: AutoCertTableRow[];
-  initialColumns?: AutoCertTableColumn[];
-}) {
+}: UseAutoCertTableProps) {
   const [rows, setRows] = useState<AutoCertTableRow[]>(initialRows);
   const [columns, setColumns] = useState<AutoCertTableColumn[]>(initialColumns);
+  const { message } = App.useApp();
+
+  const onTableChange = (): void => {
+    const csvContent = toCSv();
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+    onChange({
+      type: AutoCertChangeType.TableUpdate,
+      data: {
+        csvFile: new File([blob], `${projectId}.csv`, {
+          type: "text/csv",
+        }),
+      },
+    });
+  };
 
   const onRowAdd = (newRow: AutoCertTableRow): void => {
+    logger.debug(`Add row key: ${newRow.key}`);
+
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to add row");
+      message.error(denyMsg);
+      return;
+    }
+
     setRows((prevRows) => [...prevRows, newRow]);
+    onTableChange();
   };
 
   const onRowUpdate = (updatedRow: AutoCertTableRow): void => {
+    logger.debug(`Update row key: ${updatedRow.key}`);
+
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to update row");
+      message.error(denyMsg);
+      return;
+    }
+
     const newRows = [...rows];
 
     // Find the row by key and replace it with the new row data
@@ -33,9 +80,19 @@ export default function useAutoCertTable({
 
     newRows[index] = updatedRow;
     setRows(newRows);
+
+    onTableChange();
   };
 
   const onColumnAdd = (newColumn: AutoCertTableColumn): void => {
+    logger.debug(`Add column title: ${newColumn.title}`);
+
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to add column");
+      message.error(denyMsg);
+      return;
+    }
+
     setColumns((prevCols) => [...prevCols, newColumn]);
 
     // Add an empty value for the new column to each existing row
@@ -45,9 +102,19 @@ export default function useAutoCertTable({
         [newColumn.title]: "",
       })),
     );
+
+    onTableChange();
   };
 
   const onColumnDelete = (columnTitle: string): void => {
+    logger.debug(`Delete column title: ${columnTitle}`);
+
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to delete column");
+      message.error(denyMsg);
+      return;
+    }
+
     // remove column from columns
     setColumns((prevCols) => prevCols.filter((c) => c.title !== columnTitle));
 
@@ -59,9 +126,19 @@ export default function useAutoCertTable({
         return newRow;
       }),
     );
+
+    onTableChange();
   };
 
   const onColumnUpdate = (oldTitle: string, newTitle: string): void => {
+    logger.debug(`Update column title: ${oldTitle} to ${newTitle}`);
+
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to update column");
+      message.error(denyMsg);
+      return;
+    }
+
     setColumns((prevCols) =>
       prevCols.map((c) =>
         c.title === oldTitle
@@ -80,20 +157,43 @@ export default function useAutoCertTable({
         return r;
       }),
     );
+
+    onTableChange();
   };
 
   const onRowsDelete = (selectedKeys: React.Key[]): void => {
+    logger.debug(`Delete rows keys: ${selectedKeys}`);
+
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to delete rows");
+      message.error(denyMsg);
+      return;
+    }
+
     setRows((prevRows) =>
       prevRows.filter((r) => !selectedKeys.includes(r.key)),
     );
+
+    onTableChange();
   };
 
   const onImportFromCSV = (
     newRows: AutoCertTableRow[],
     newColumns: AutoCertTableColumn[],
   ): void => {
+    logger.debug("Import from CSV");
+    if (!hasPermission(roles, [ProjectPermission.TableUpdate])) {
+      logger.warn("Permission denied to import from CSV");
+      message.error(denyMsg);
+      return;
+    }
+
     setRows(newRows);
     setColumns(newColumns);
+
+    onTableChange();
+
+    message.success("Imported CSV successfully");
   };
 
   const toCSv = (): string => {

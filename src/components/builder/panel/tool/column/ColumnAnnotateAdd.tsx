@@ -1,4 +1,4 @@
-import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
+import { AnnotateColor } from "@/components/builder/hooks/useAutoCertAnnotate";
 import {
   Select,
   Form,

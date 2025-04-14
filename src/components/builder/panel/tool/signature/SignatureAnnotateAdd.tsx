@@ -6,7 +6,7 @@ import {
   SignatureAnnotateFormSchema,
   SignatureToolProps,
 } from "./SignatureTool";
-import { AnnotateColor } from "@/components/builder/hooks/useAutoCert";
+import { AnnotateColor } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger(

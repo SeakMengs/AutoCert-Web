@@ -3,9 +3,10 @@ import {
   AutoCertSettings,
   ColumnAnnotateState,
   SignatureAnnotateState,
-} from "./useAutoCert";
+} from "./useAutoCertAnnotate";
 import debounce from "lodash.debounce";
 import { createScopedLogger } from "@/utils/logger";
+import { SECOND } from "@/utils/time";
 
 export const AutoCertChangeType = {
   AnnotateColumnAdd: "annotate:column:add",
@@ -15,6 +16,7 @@ export const AutoCertChangeType = {
   AnnotateSignatureUpdate: "annotate:signature:update",
   AnnotateSignatureRemove: "annotate:signature:remove",
   SettingsUpdate: "settings:update",
+  TableUpdate: "table:update",
 } as const;
 
 export type AutoCertChangeType =
@@ -52,7 +54,14 @@ export type AnnotateSignatureRemove = {
 
 export type SettingsUpdate = {
   type: typeof AutoCertChangeType.SettingsUpdate;
-  data: Pick<AutoCertSettings, "qrCodeEnabled">;
+  data: AutoCertSettings;
+};
+
+export type TableUpdate = {
+  type: typeof AutoCertChangeType.TableUpdate;
+  data: {
+    csvFile: File;
+  };
 };
 
 export type AutoCertChangeEvent =
@@ -62,9 +71,10 @@ export type AutoCertChangeEvent =
   | AnnotateSignatureAdd
   | AnnotateSignatureUpdate
   | AnnotateSignatureRemove
-  | SettingsUpdate;
+  | SettingsUpdate
+  | TableUpdate;
 
-const CHANGE_DEBOUNCE_TIME = 1000; // 1 second
+const CHANGE_DEBOUNCE_TIME = 5 * SECOND;
 const logger = createScopedLogger("components:builder/hooks/useAutoCertChange");
 
 export interface UseAutoCertChangeProps {
@@ -96,14 +106,19 @@ export default function useAutoCertChange({
         return `${change.type}-${change.data.id}`;
       case AutoCertChangeType.AnnotateSignatureRemove:
         return `${change.type}-${change.data.id}`;
-      default:
-        // For settings or any change without a specific id
-        return change.type;
+      case AutoCertChangeType.SettingsUpdate:
+        return `${change.type}}`;
+      case AutoCertChangeType.TableUpdate:
+        return `${change.type}-${change.data.csvFile.name}`;
+      default: {
+        const exhaustiveCheck: never = change;
+        throw new Error(`Unhandled change type: ${exhaustiveCheck}`);
+      }
     }
   };
 
   // Adds a change to the batch. If a change with the same key exists, replace it so backend only receives the latest change.
-  const onChange = (change: AutoCertChangeEvent) => {
+  const onChange = (change: AutoCertChangeEvent): void => {
     const key = getChangeKey(change);
     changeMap.current.set(key, change);
     setChanges(Array.from(changeMap.current.values()));
@@ -111,12 +126,12 @@ export default function useAutoCertChange({
     debouncedPushChanges();
   };
 
-  const clearChanges = () => {
+  const clearChanges = (): void => {
     changeMap.current.clear();
     setChanges([]);
   };
 
-  const pushChanges = async () => {
+  const pushChanges = async (): Promise<void> => {
     if (changeMap.current.size === 0) return;
     setIsPushingChanges(true);
     const batchedChanges = Array.from(changeMap.current.values());

@@ -1,5 +1,5 @@
 import { Tag, Card, Avatar, Space, Typography, Flex, theme } from "antd";
-import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCert";
+import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";

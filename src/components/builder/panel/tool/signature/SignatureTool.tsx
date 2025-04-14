@@ -1,5 +1,5 @@
 import { Space } from "antd";
-import { SignatureAnnotateStates } from "@/components/builder/hooks/useAutoCert";
+import { SignatureAnnotateStates } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import SignatureAnnotateAdd from "./SignatureAnnotateAdd";

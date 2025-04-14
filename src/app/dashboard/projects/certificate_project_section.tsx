@@ -195,7 +195,10 @@ export default function CertificateProjectSection() {
             <Row gutter={[16, 16]}>
               {projects.map((p) => (
                 <Col key={p.id} xs={24} sm={12} md={8} lg={4}>
-                  <ProjectCard project={p} projectRole={ProjectRole.Owner} />
+                  <ProjectCard
+                    project={p}
+                    projectRole={ProjectRole.Requestor}
+                  />
                 </Col>
               ))}
             </Row>

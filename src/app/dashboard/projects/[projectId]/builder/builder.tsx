@@ -1,18 +1,22 @@
 "use client";
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
-import { useAutoCertTable, useAutoCert } from "@/hooks/useAutoCert";
+import { useAutoCert } from "@/hooks/useAutoCert";
 import { useEffect, useState } from "react";
 import PdfUploader from "./pdf_uploader";
-import { Button, Flex, Splitter, theme, Typography } from "antd";
+import { Flex, Splitter, theme, Typography } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
+import { ProjectRole } from "@/types/project";
 
-export default function Builder() {
+interface ProjectBuilderProps {
+  projectId: string;
+}
+
+export default function Builder({ projectId }: ProjectBuilderProps) {
   const {
     token: { colorSplit },
   } = theme.useToken();
-  // const [pdfFile, setPdfFile] = useState<string>("");
   const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
   // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
   const {
@@ -38,9 +42,20 @@ export default function Builder() {
     onDocumentLoadSuccess,
     onGenerateCertificates,
     onPageClick,
-    replaceAnnotatesColumnValue,
-    removeUnnecessaryAnnotates,
+
+    rows,
+    columns,
+    onRowAdd,
+    onRowUpdate,
+    onRowsDelete,
+    onColumnAdd,
+    onColumnDelete,
+    onAutoCertTableColumnTitleUpdate,
+    onImportFromCSV,
+    onExportToCSV,
   } = useAutoCert({
+    roles: [ProjectRole.Signatory],
+    projectId,
     initialPdfPage: 1,
     // TOOD: update change
     saveChanges: async (changes) => {
@@ -48,23 +63,6 @@ export default function Builder() {
       return true;
     },
   });
-  const { columns, onColumnUpdate, ...autoCertTableProps } = useAutoCertTable({
-    initialRows: [],
-    initialColumns: [],
-  });
-
-  useEffect(() => {
-    removeUnnecessaryAnnotates(columns);
-  }, [columns]);
-
-  // Update column title in the table and in the annotates that used the column title
-  const onAutoCertTableColumnTitleUpdate = (
-    oldTitle: string,
-    newTitle: string,
-  ): void => {
-    onColumnUpdate(oldTitle, newTitle);
-    replaceAnnotatesColumnValue(oldTitle, newTitle);
-  };
 
   if (!pdfFile) {
     return <PdfUploader setPdfFile={setPdfFile} />;
@@ -115,8 +113,8 @@ export default function Builder() {
         </Flex>
       </Splitter.Panel>
       <Splitter.Panel
-        defaultSize={window.innerWidth / 5}
-        max={window.innerWidth / 2}
+        defaultSize={"30%"}
+        max={"50%"}
         style={{
           borderLeft: `1px solid ${colorSplit}`,
         }}
@@ -124,12 +122,19 @@ export default function Builder() {
         collapsible
       >
         <AutoCertPanel
-          {...autoCertTableProps}
           signatureAnnotates={signatureAnnotates}
           columns={columns}
+          rows={rows}
           qrCodeEnabled={settings.qrCodeEnabled}
           onQrCodeEnabledChange={onQrCodeEnabledChange}
           onColumnUpdate={onAutoCertTableColumnTitleUpdate}
+          onRowAdd={onRowAdd}
+          onRowUpdate={onRowUpdate}
+          onRowsDelete={onRowsDelete}
+          onColumnAdd={onColumnAdd}
+          onColumnDelete={onColumnDelete}
+          onImportFromCSV={onImportFromCSV}
+          onExportToCSV={onExportToCSV}
           // End of table props
           currentPdfPage={currentPdfPage}
           selectedAnnotateId={selectedAnnotateId}

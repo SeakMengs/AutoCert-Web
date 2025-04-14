@@ -1,18 +1,32 @@
-type Role = keyof typeof ROLES;
-type Permission = (typeof ROLES)[Role][number];
+import { AutoCertChangeType } from "@/components/builder/hooks/useAutoCertChange";
+import { ProjectRole } from "@/types/project";
 
-const ROLES = {
-  requestor: [
-    "view:comments",
-    "create:comments",
-    "update:comments",
-    "delete:comments",
-  ],
-  signatory: ["view:comments", "create:comments"],
+export const ProjectPermission = {
+  ...AutoCertChangeType,
 } as const;
+export type ProjectPermission =
+  (typeof ProjectPermission)[keyof typeof ProjectPermission];
 
-export function hasPermission(role: Role, permissions: Permission[]) {
-  return ROLES[role].some((permission) => permissions.includes(permission));
+type Permission = (typeof ROLES)[ProjectRole][number];
+
+const ROLES: Record<ProjectRole, ProjectPermission[]> = {
+  [ProjectRole.Requestor]: [
+    ProjectPermission.AnnotateColumnAdd,
+    ProjectPermission.AnnotateColumnUpdate,
+    ProjectPermission.AnnotateColumnRemove,
+    ProjectPermission.AnnotateSignatureAdd,
+    ProjectPermission.AnnotateSignatureUpdate,
+    ProjectPermission.AnnotateSignatureRemove,
+    ProjectPermission.SettingsUpdate,
+  ],
+  [ProjectRole.Signatory]: [ProjectPermission.AnnotateSignatureAdd],
+  [ProjectRole.None]: [],
+};
+
+export function hasPermission(role: ProjectRole[], permissions: Permission[]) {
+  return permissions.every((permission) =>
+    role.some((r) => ROLES[r].includes(permission)),
+  );
 }
 
 // Example usage

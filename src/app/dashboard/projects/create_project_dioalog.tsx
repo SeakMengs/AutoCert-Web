@@ -244,7 +244,7 @@ export default function CreateProjectDialog({
         </Form>
         {createProject.error && (
           <FormErrorMessages errors={createProject.error} />
-        )} 
+        )}
       </Modal>
     </>
   );

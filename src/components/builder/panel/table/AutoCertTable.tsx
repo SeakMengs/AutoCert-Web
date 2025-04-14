@@ -235,7 +235,6 @@ function AutoCertTable({
       const { columns, rows } = await parseCSV(file);
 
       onImportFromCSV(rows, columns);
-      message.success("CSV file parsed successfully.");
     } catch (error) {
       message.error("Failed to parse csv file.");
     } finally {

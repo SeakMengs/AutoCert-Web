@@ -1,6 +1,6 @@
 "use client";
 import { Space } from "antd";
-import { ColumnAnnotateStates } from "@/components/builder/hooks/useAutoCert";
+import { ColumnAnnotateStates } from "@/components/builder/hooks/useAutoCertAnnotate";
 // import { createScopedLogger } from "@/utils/logger";
 import { AutoCertTableColumn } from "../../table/AutoCertTable";
 import { z } from "zod";

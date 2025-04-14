@@ -30,7 +30,7 @@ export const SignatoryStatusLabels: Record<SignatoryStatus, string> = {
 };
 
 export const ProjectRole = {
-  Owner: 0,
+  Requestor: 0,
   Signatory: 1,
   None: 2,
 } as const;
@@ -38,7 +38,7 @@ export const ProjectRole = {
 export type ProjectRole = (typeof ProjectRole)[keyof typeof ProjectRole];
 
 export const ProjectRoleLabels: Record<ProjectRole, string> = {
-  [ProjectRole.Owner]: "Owner",
+  [ProjectRole.Requestor]: "Requestor",
   [ProjectRole.Signatory]: "Signatory",
   [ProjectRole.None]: "None",
 };

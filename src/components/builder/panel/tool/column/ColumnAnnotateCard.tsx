@@ -1,4 +1,4 @@
-import { ColumnAnnotateState } from "@/components/builder/hooks/useAutoCert";
+import { ColumnAnnotateState } from "@/components/builder/hooks/useAutoCertAnnotate";
 import {
   Button,
   Card,
