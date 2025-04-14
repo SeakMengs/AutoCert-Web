@@ -10,9 +10,13 @@ import {
   XYPositionPxAndPercent,
   RectPxAndPercent,
 } from "@/components/builder/rnd/Rnd";
+import { SignatoryStatus } from "@/types/project";
 
 describe("useAutoCert", () => {
   const initialPdfPage = 1;
+  const saveChanges = async (changes: any) => {
+    return true;
+  };
 
   // Mock necessary objects for PDF.js
   const mockDocument = {
@@ -23,7 +27,9 @@ describe("useAutoCert", () => {
   };
 
   it("should initialize with default values", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     expect(result.current.currentPdfPage).toBe(initialPdfPage);
     expect(result.current.totalPdfPage).toBe(0);
@@ -35,7 +41,9 @@ describe("useAutoCert", () => {
   });
 
   it("should handle document load success", async () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     await act(async () => {
       await result.current.onDocumentLoadSuccess(mockDocument as any);
@@ -46,7 +54,9 @@ describe("useAutoCert", () => {
   });
 
   it("should handle page click", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     act(() => {
       result.current.onPageClick(2);
@@ -56,7 +66,9 @@ describe("useAutoCert", () => {
   });
 
   it("should add a column annotate", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "Test Column",
       fontName: "Arial",
@@ -81,11 +93,15 @@ describe("useAutoCert", () => {
     expect(columnAnnotate.value).toBe(columnAnnotateData.value);
     expect(columnAnnotate.color).toBe(columnAnnotateData.color);
     expect(columnAnnotate.fontName).toBe(columnAnnotateData.fontName);
-    expect(columnAnnotate.textFitRectBox).toBe(columnAnnotateData.textFitRectBox);
+    expect(columnAnnotate.textFitRectBox).toBe(
+      columnAnnotateData.textFitRectBox,
+    );
   });
 
   it("should add a signature annotate", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     const data = {
       email: "test@autocert.com",
@@ -110,7 +126,9 @@ describe("useAutoCert", () => {
   });
 
   it("Should add a signature annotate and invite", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     const data = {
       email: "test@autocert.com",
@@ -134,12 +152,14 @@ describe("useAutoCert", () => {
       result.current.onSignatureAnnotateInvite(signatureAnnotate.id);
     });
     expect(result.current.signatureAnnotates[initialPdfPage][0].status).toBe(
-      "invited",
+      SignatoryStatus.Invited,
     );
   });
 
   it("should remove a signature annotate", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const data = {
       email: "test@autocert.com",
       color: AnnotateColor,
@@ -159,7 +179,9 @@ describe("useAutoCert", () => {
   });
 
   it("should update a column annotate", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "Original Column",
       fontName: "Arial",
@@ -204,7 +226,9 @@ describe("useAutoCert", () => {
   });
 
   it("should delete a column annotate", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "To Be Deleted",
       fontName: "Arial",
@@ -227,7 +251,9 @@ describe("useAutoCert", () => {
   });
 
   it("should handle annotation selection", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "Select Me",
       fontName: "Arial",
@@ -255,7 +281,9 @@ describe("useAutoCert", () => {
   });
 
   it("should handle annotation drag", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "Drag Me",
       fontName: "Arial",
@@ -291,7 +319,9 @@ describe("useAutoCert", () => {
   });
 
   it("should handle annotation resize", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "Resize Me",
       fontName: "Arial",
@@ -333,7 +363,9 @@ describe("useAutoCert", () => {
   });
 
   it("should update zoom scale", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     act(() => {
       result.current.onZoomScaleChange(1.5);
@@ -347,7 +379,9 @@ describe("useAutoCert", () => {
   });
 
   it("should update column titles in annotations", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
     const columnAnnotateData = {
       value: "OldTitle",
       fontName: "Arial",
@@ -373,7 +407,9 @@ describe("useAutoCert", () => {
   });
 
   it("should remove unnecessary annotations", () => {
-    const { result } = renderHook(() => useAutoCert({ initialPdfPage }));
+    const { result } = renderHook(() =>
+      useAutoCert({ initialPdfPage, saveChanges }),
+    );
 
     // Add a column annotate that will be kept
     act(() => {

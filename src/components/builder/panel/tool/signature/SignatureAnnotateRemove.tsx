@@ -2,6 +2,7 @@ import { Button, Popconfirm, Tooltip } from "antd";
 import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
 import { DeleteOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
+import { SignatoryStatus } from "@/types/project";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateRemove",
@@ -29,11 +30,11 @@ export default function SignatureAnnotateRemove({
   const getRemoveConfirmMessage = (): string => {
     const prefix = "Are you sure you want to remove this signatory?";
     switch (signatureAnnotate.status) {
-      case "not_invited":
+      case SignatoryStatus.NotInvited:
         return prefix;
-      case "invited":
+      case SignatoryStatus.Invited:
         return `${prefix} They will no longer be able to sign this certificate.`;
-      case "signed":
+      case SignatoryStatus.Signed:
         return `${prefix} The signature will be removed from the certificate.`;
       default:
         return prefix;

@@ -13,6 +13,7 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
+  ImportOutlined,
   PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
@@ -69,6 +70,7 @@ export interface AutoCertTableProps {
     newRows: AutoCertTableRow[],
     newColumns: AutoCertTableColumn[],
   ) => void;
+  onExportToCSV: (filename: string) => void;
 }
 
 function AutoCertTable({
@@ -81,6 +83,7 @@ function AutoCertTable({
   onRowUpdate,
   onRowsDelete,
   onImportFromCSV,
+  onExportToCSV,
 }: AutoCertTableProps) {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const tblRef: Parameters<typeof Table>[0]["ref"] = React.useRef(null);
@@ -310,14 +313,23 @@ function AutoCertTable({
         Column
       </Button>
       {hasColumns && (
-        <Button
-          onClick={handleAddRow}
-          disabled={!hasColumns}
-          size="small"
-          icon={<PlusOutlined />}
-        >
-          Row
-        </Button>
+        <>
+          <Button
+            onClick={handleAddRow}
+            disabled={!hasColumns}
+            size="small"
+            icon={<PlusOutlined />}
+          >
+            Row
+          </Button>
+          <Button
+            onClick={() => onExportToCSV(new Date().toISOString() + ".csv")}
+            size="small"
+            icon={<UploadOutlined />}
+          >
+            Export to CSV
+          </Button>
+        </>
       )}
       <Input
         ref={csvFileInput}
@@ -336,7 +348,7 @@ function AutoCertTable({
           }
         }}
         size="small"
-        icon={<UploadOutlined />}
+        icon={<ImportOutlined />}
       >
         Import from CSV
       </Button>

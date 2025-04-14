@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from "react";
 import ProjectCard, {
   ProjectCardProps,
-  ProjectSignatory,
-  ProjectStatus,
 } from "@/components/card/ProjectCard";
 import moment from "moment";
 import { SearchOutlined, FilterOutlined } from "@ant-design/icons";

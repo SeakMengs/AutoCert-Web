@@ -395,6 +395,7 @@ function Rnd({
 
   return (
     <div
+      // do not remove classname, it's being used by other components
       className={cn("autocert-drag", dragClassName)}
       onMouseDown={onDragPointerDown}
       onTouchStart={onDragPointerDown}
@@ -418,7 +419,7 @@ function Rnd({
         onResizePointerDown={onResizePointerDown}
         showResizeHandle={showResizeHandle}
         enableResizing={enableResizing}
-        resizeClassName={resizeClassName}
+        resizeClassName={cn(resizeClassName)}
         resizeStyle={resizeStyle}
       />
     </div>

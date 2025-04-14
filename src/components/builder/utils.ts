@@ -5,7 +5,6 @@ import {
 } from "./panel/table/AutoCertTable";
 import Papa from "papaparse";
 import { nanoid } from "nanoid";
-import { WHSize } from "./rnd/Rnd";
 
 
 const logger = createScopedLogger("components:builder:utils");

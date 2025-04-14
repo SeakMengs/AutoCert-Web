@@ -9,6 +9,7 @@ import Rnd, {
   XYPosition,
   XYPositionPxAndPercent,
 } from "../rnd/Rnd";
+import { cn } from "@/utils";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 
@@ -130,10 +131,14 @@ function BaseAnnotate({
       lockResizeX={lockResizeX}
       lockResizeY={lockResizeY}
       containerRef={containerRef}
+      dragClassName={cn({
+        "z-20": selected,
+        "z-10": !selected,
+      })}
     >
       <div
         onClick={handleClick}
-        className="relative z-19 rounded w-full h-full cursor-move"
+        className="relative rounded w-full h-full cursor-move"
         style={{
           border: selected ? `1px solid ${bgColor}` : `1px solid transparent`,
         }}

@@ -1,10 +1,12 @@
 import { memo } from "react";
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
+import { SignatoryStatus } from "@/types/project";
+
 
 export type BaseSignatureAnnotate = {
   signatureData: string | null;
   email: string;
-  status: "not_invited" | "invited" | "signed";
+  status: SignatoryStatus;
 };
 
 export interface SignatureAnnotateProps
@@ -24,7 +26,7 @@ function SignatureAnnotate({
         <img
           src={signatureData}
           alt="Signature"
-          className="w-full h-full pointer-events-none select-none! "
+          className="w-full h-full pointer-events-none select-none!"
         />
       ) : (
         <span>Signature Field</span>

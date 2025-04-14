@@ -1,7 +1,7 @@
 import { BaseAnnotateProps } from "../../annotate/BaseAnnotate";
 import SignatureAnnotate from "../../annotate/SignatureAnnotate";
 import ColumnAnnotate from "../../annotate/ColumnAnnotate";
-import { AnnotateState } from "../../hooks/useAutoCert";
+import { AnnotateState, AnnotateType } from "../../hooks/useAutoCert";
 import { JSX, MouseEvent, memo } from "react";
 
 export interface AnnotateRendererProps
@@ -54,7 +54,7 @@ function AnnotateRenderer({
     return annotatesByPage.map((annotate) => {
       const selected = selectedAnnotateId === annotate.id;
       switch (annotate.type) {
-        case "column":
+        case AnnotateType.Column:
           return (
             <ColumnAnnotate
               {...annotate}
@@ -64,7 +64,7 @@ function AnnotateRenderer({
               onAnnotateSelect={onAnnotationSelect}
             />
           );
-        case "signature":
+        case AnnotateType.Signature:
           return (
             <SignatureAnnotate
               {...annotate}

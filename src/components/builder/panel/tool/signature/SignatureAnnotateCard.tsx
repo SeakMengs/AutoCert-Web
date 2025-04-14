@@ -4,6 +4,7 @@ import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
 import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
+import { SignatoryStatus, SignatoryStatusLabels } from "@/types/project";
 
 export interface SignatureAnnotateCardProps
   extends Pick<
@@ -33,16 +34,18 @@ export default function SignatureAnnotateCard({
   } = theme.useToken();
 
   const getStatusTag = (): JSX.Element | null => {
-    switch (signatureAnnotate.status) {
-      case "not_invited":
-        return <Tag>Not Invited</Tag>;
-      case "invited":
-        return <Tag color="blue">Invited</Tag>;
-      case "signed":
-        return <Tag color="green">Signed</Tag>;
-      default:
-        return null;
-    }
+    const statusColors: Record<SignatoryStatus, string | undefined> = {
+      [SignatoryStatus.NotInvited]: undefined,
+      [SignatoryStatus.Invited]: "blue",
+      [SignatoryStatus.Signed]: "green",
+    };
+
+    const statusColor = statusColors[signatureAnnotate.status];
+    return (
+      <Tag color={statusColor}>
+        {SignatoryStatusLabels[signatureAnnotate.status]}
+      </Tag>
+    );
   };
 
   const getInitialEmail = (email: string): string => {
@@ -51,16 +54,16 @@ export default function SignatureAnnotateCard({
 
   const getActionButton = (): JSX.Element | null => {
     switch (signatureAnnotate.status) {
-      case "not_invited":
+      case SignatoryStatus.NotInvited:
         return (
           <SignatureAnnotateInvite
             signatureAnnotate={signatureAnnotate}
             onSignatureAnnotateInvite={onSignatureAnnotateInvite}
           />
         );
-      case "invited":
+      case SignatoryStatus.Invited:
         return null;
-      case "signed":
+      case SignatoryStatus.Signed:
         return null;
       default:
         return null;
