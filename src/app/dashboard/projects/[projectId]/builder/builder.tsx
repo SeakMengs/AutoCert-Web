@@ -18,6 +18,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
     token: { colorSplit },
   } = theme.useToken();
   const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
+  const roles = [ProjectRole.Requestor];
   // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
   const {
     annotates,
@@ -54,7 +55,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
     onImportFromCSV,
     onExportToCSV,
   } = useAutoCert({
-    roles: [ProjectRole.Signatory],
+    roles,
     projectId,
     initialPdfPage: 1,
     // TOOD: update change
@@ -90,6 +91,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
           }}
         >
           <AutoCert
+            roles={roles}
             transformWrapperRef={transformWrapperRef}
             zoomScale={zoomScale}
             onZoomScaleChange={onZoomScaleChange}

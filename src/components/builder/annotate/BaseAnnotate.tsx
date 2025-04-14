@@ -10,6 +10,8 @@ import Rnd, {
   XYPositionPxAndPercent,
 } from "../rnd/Rnd";
 import { cn } from "@/utils";
+import { ProjectRole } from "@/types/project";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 
@@ -30,6 +32,7 @@ export interface BaseAnnotateProps
   pageNumber: number;
   // pdf page size which will be used to convert percentage of resized page to actual page size
   pageOriginalSize: WHSize;
+  roles: ProjectRole[];
   onAnnotateSelect: (id: string | undefined) => void;
   onDragStop: (
     id: string,
@@ -52,6 +55,7 @@ function BaseAnnotate({
   width,
   height,
   children,
+  roles,
   previewMode,
   selected,
   color,
@@ -105,6 +109,15 @@ function BaseAnnotate({
     onAnnotateSelectWithStopPropagation(id, e as unknown as MouseEvent);
   };
 
+  const canUpdate = hasPermission(roles, [
+    ProjectPermission.AnnotateSignatureUpdate,
+    ProjectPermission.AnnotateColumnUpdate,
+  ]);
+
+  const enableDragging = !previewMode && canUpdate;
+  const enableResizing = !previewMode && canUpdate;
+  const showResizeHandle = selected && !previewMode && canUpdate;
+
   return (
     <Rnd
       originalSize={pageOriginalSize}
@@ -117,7 +130,7 @@ function BaseAnnotate({
         y: y,
       }}
       scale={zoomScale}
-      showResizeHandle={selected}
+      showResizeHandle={showResizeHandle}
       onDragStart={(e) => {
         onAnnotateSelectWithStopPropagation(id, e);
       }}
@@ -126,8 +139,8 @@ function BaseAnnotate({
       }}
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
-      enableDragging={!previewMode}
-      enableResizing={!previewMode}
+      enableDragging={enableDragging}
+      enableResizing={enableResizing}
       lockResizeX={lockResizeX}
       lockResizeY={lockResizeY}
       containerRef={containerRef}

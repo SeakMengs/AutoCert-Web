@@ -7,6 +7,7 @@ import {
 } from "react";
 import { cn } from "@/utils";
 import ResizeHandle, { ResizeProps } from "./ResizeHandle";
+import { pxToPercent } from "../utils";
 
 export type XYPosition = {
   x: number;
@@ -86,12 +87,6 @@ function Rnd({
   onResizeStop,
   children,
 }: PropsWithChildren<RndProps>) {
-  // Convert px values into percentages.
-  const initialXPercent = (position.x / originalSize.width) * 100;
-  const initialYPercent = (position.y / originalSize.height) * 100;
-  const initialWidthPercent = (size.width / originalSize.width) * 100;
-  const initialHeightPercent = (size.height / originalSize.height) * 100;
-
   // Convert min dimensions from design px to percentage.
   const minWidthPercent =
     minWidth !== undefined ? (minWidth / originalSize.width) * 100 : undefined;
@@ -100,13 +95,17 @@ function Rnd({
       ? (minHeight / originalSize.height) * 100
       : undefined;
 
+  const updateRect = (): RectPercent => {
+    return {
+      xPercent: pxToPercent(position.x, originalSize.width),
+      yPercent: pxToPercent(position.y, originalSize.height),
+      widthPercent: pxToPercent(size.width, originalSize.width),
+      heightPercent: pxToPercent(size.height, originalSize.height),
+    };
+  };
+
   // Rect as percentage values.
-  const [rect, setRect] = useState<RectPercent>({
-    xPercent: initialXPercent,
-    yPercent: initialYPercent,
-    widthPercent: initialWidthPercent,
-    heightPercent: initialHeightPercent,
-  });
+  const [rect, setRect] = useState<RectPercent>(updateRect());
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);

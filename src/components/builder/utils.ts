@@ -6,7 +6,6 @@ import {
 import Papa from "papaparse";
 import { nanoid } from "nanoid";
 
-
 const logger = createScopedLogger("components:builder:utils");
 
 /**
@@ -60,4 +59,8 @@ export function parseCSV(
       },
     });
   });
+}
+
+export function pxToPercent(value: number, total: number): number {
+  return (value / total) * 100;
 }

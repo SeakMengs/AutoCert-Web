@@ -18,6 +18,7 @@ export interface AnnotateRendererProps
     | "pageNumber"
     | "pageOriginalSize"
     | "containerRef"
+    | "roles"
   > {
   selectedAnnotateId: string | undefined;
   annotatesByPage: AnnotateState[];

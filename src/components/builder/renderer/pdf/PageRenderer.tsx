@@ -22,6 +22,7 @@ function PageRenderer({
   // pdf page
   pageNumber,
   onPageClick,
+  roles,
 
   // annotate
   annotatesByPage,
@@ -83,6 +84,7 @@ function PageRenderer({
         }}
       />
       <AnnotateRenderer
+        roles={roles}
         containerRef={containerRef}
         pageNumber={pageNumber}
         zoomScale={zoomScale}

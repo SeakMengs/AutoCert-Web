@@ -7,7 +7,8 @@ import { memo, useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
-import { AnnotateStates } from "../../hooks/useAutoCert";
+import { AnnotateStates } from "../../hooks/useAutoCertAnnotate";
+import { ProjectRole } from "@/types/project";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -35,6 +36,7 @@ function PdfRenderer({
   pdfFile,
   onDocumentLoadSuccess,
   onPageClick,
+  roles,
 
   // Annotate
   annotates,
@@ -61,6 +63,7 @@ function PdfRenderer({
         {Array.from({ length: pdfPages }, (_, index) => (
           <PageRenderer
             key={`page_${index + 1}`}
+            roles={roles}
             onPageClick={onPageClick}
             pageNumber={index + 1}
             // Annotate
