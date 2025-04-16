@@ -17,9 +17,11 @@ const ROLES: Record<ProjectRole, ProjectPermission[]> = {
     ProjectPermission.AnnotateSignatureAdd,
     ProjectPermission.AnnotateSignatureUpdate,
     ProjectPermission.AnnotateSignatureRemove,
+    ProjectPermission.AnnotateSignatureInvite,
     ProjectPermission.SettingsUpdate,
+    ProjectPermission.TableUpdate,
   ],
-  [ProjectRole.Signatory]: [ProjectPermission.AnnotateSignatureAdd],
+  [ProjectRole.Signatory]: [ProjectPermission.AnnotateSignatureApprove],
   [ProjectRole.None]: [],
 };
 
@@ -28,6 +30,3 @@ export function hasPermission(role: ProjectRole[], permissions: Permission[]) {
     role.some((r) => ROLES[r].includes(permission)),
   );
 }
-
-// Example usage
-// hasPermission("requestor", ["create:comments"]);

@@ -421,7 +421,7 @@ export default function useAutoCertAnnotate({
       ])
     ) {
       logger.warn("Permission denied to resize annotate");
-      message.error("You do not have permission to update annotate");
+      message.error("You do not have permission to resize annotate");
       return;
     }
 
@@ -483,7 +483,7 @@ export default function useAutoCertAnnotate({
       ])
     ) {
       logger.warn("Permission denied to drag annotate");
-      message.error("You do not have permission to update annotate");
+      message.error("You do not have permission to drag annotate");
       return;
     }
 

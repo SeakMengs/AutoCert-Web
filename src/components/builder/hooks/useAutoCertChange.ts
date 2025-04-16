@@ -7,6 +7,7 @@ import {
 import debounce from "lodash.debounce";
 import { createScopedLogger } from "@/utils/logger";
 import { SECOND } from "@/utils/time";
+import { App } from "antd";
 
 export const AutoCertChangeType = {
   AnnotateColumnAdd: "annotate:column:add",
@@ -15,6 +16,8 @@ export const AutoCertChangeType = {
   AnnotateSignatureAdd: "annotate:signature:add",
   AnnotateSignatureUpdate: "annotate:signature:update",
   AnnotateSignatureRemove: "annotate:signature:remove",
+  AnnotateSignatureInvite: "annotate:signature:invite",
+  AnnotateSignatureApprove: "annotate:signature:approve",
   SettingsUpdate: "settings:update",
   TableUpdate: "table:update",
 } as const;
@@ -52,6 +55,16 @@ export type AnnotateSignatureRemove = {
   data: { id: string };
 };
 
+export type AnnotateSignatureInvite = {
+  type: typeof AutoCertChangeType.AnnotateSignatureInvite;
+  data: { id: string; email: string };
+};
+
+export type AnnotateSignatureApprove = {
+  type: typeof AutoCertChangeType.AnnotateSignatureApprove;
+  data: { id: string };
+};
+
 export type SettingsUpdate = {
   type: typeof AutoCertChangeType.SettingsUpdate;
   data: AutoCertSettings;
@@ -71,10 +84,14 @@ export type AutoCertChangeEvent =
   | AnnotateSignatureAdd
   | AnnotateSignatureUpdate
   | AnnotateSignatureRemove
+  | AnnotateSignatureInvite
+  | AnnotateSignatureApprove
   | SettingsUpdate
   | TableUpdate;
 
-const CHANGE_DEBOUNCE_TIME = 5 * SECOND;
+// const CHANGE_DEBOUNCE_TIME = 0.5 * SECOND;
+const CHANGE_DEBOUNCE_TIME = 0.5 * SECOND;
+const messageKey = "autoCertPushChangesMessageKey";
 const logger = createScopedLogger("components:builder/hooks/useAutoCertChange");
 
 export interface UseAutoCertChangeProps {
@@ -87,6 +104,7 @@ export default function useAutoCertChange({
   const [changes, setChanges] = useState<AutoCertChangeEvent[]>([]);
   // This ensures that only the most recent change is  retained for each unique key, even if multiple changes occur within a short period.
   const changeMap = useRef(new Map<string, AutoCertChangeEvent>());
+  const { message } = App.useApp();
   const [isPushingChanges, setIsPushingChanges] = useState<boolean>(false);
 
   /**
@@ -98,22 +116,18 @@ export default function useAutoCertChange({
     switch (change.type) {
       case AutoCertChangeType.AnnotateColumnAdd:
       case AutoCertChangeType.AnnotateColumnUpdate:
-        return `${change.type}-${change.data.id}`;
       case AutoCertChangeType.AnnotateColumnRemove:
-        return `${change.type}-${change.data.id}`;
       case AutoCertChangeType.AnnotateSignatureAdd:
       case AutoCertChangeType.AnnotateSignatureUpdate:
-        return `${change.type}-${change.data.id}`;
       case AutoCertChangeType.AnnotateSignatureRemove:
+      case AutoCertChangeType.AnnotateSignatureInvite:
+      case AutoCertChangeType.AnnotateSignatureApprove:
+        // Because there can be multiple annotations with the same type, we need to use the id as part of the key to ensure uniqueness.
         return `${change.type}-${change.data.id}`;
       case AutoCertChangeType.SettingsUpdate:
-        return `${change.type}}`;
       case AutoCertChangeType.TableUpdate:
-        return `${change.type}-${change.data.csvFile.name}`;
-      default: {
-        const exhaustiveCheck: never = change;
-        throw new Error(`Unhandled change type: ${exhaustiveCheck}`);
-      }
+      default:
+        return change.type;
     }
   };
 
@@ -134,6 +148,11 @@ export default function useAutoCertChange({
   const pushChanges = async (): Promise<void> => {
     if (changeMap.current.size === 0) return;
     setIsPushingChanges(true);
+    message.loading({
+      content: "Saving changes...",
+      key: messageKey,
+    });
+
     const batchedChanges = Array.from(changeMap.current.values());
 
     logger.debug("Pushing changes:", batchedChanges);
@@ -147,7 +166,19 @@ export default function useAutoCertChange({
 
       // After sending (assuming success), clear the batch.
       clearChanges();
+
+      message.success({
+        content: "Changes saved successfully",
+        key: messageKey,
+        duration: 2,
+      });
     } catch (error) {
+      message.error({
+        content: "Failed to save changes",
+        key: messageKey,
+        duration: 2,
+      });
+
       logger.error("Error pushing changes:", error);
       // Optional: handle the error (retry, notify user, etc.)
     } finally {

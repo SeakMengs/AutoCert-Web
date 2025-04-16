@@ -8,6 +8,8 @@ import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
 import { ProjectRole } from "@/types/project";
+import { apiWithAuth } from "@/utils/axios";
+import { AutoCertChangeType } from "@/components/builder/hooks/useAutoCertChange";
 
 interface ProjectBuilderProps {
   projectId: string;
@@ -60,6 +62,48 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
     initialPdfPage: 1,
     // TOOD: update change
     saveChanges: async (changes) => {
+      const formData = new FormData();
+
+      // Prepare an array to include in the form's "events" field.
+      // Here we make a deep copy of your changes, but remove the csvFile property
+      // from TableUpdate events to avoid issues with JSON.stringify.
+      const changesWithoutFiles = changes.map((change) => {
+        if (change.type === AutoCertChangeType.TableUpdate) {
+          // Clone the change, removing file from the data
+          return {
+            ...change,
+            data: {
+              ...change.data,
+              csvFile: undefined, // You may also want to completely remove this property
+            },
+          };
+        }
+        return change;
+      });
+
+      // Append the events field as JSON string.
+      formData.append("events", JSON.stringify(changesWithoutFiles));
+
+      // Attach file uploads: for each table update, add the corresponding file.
+      changes.forEach((change, index) => {
+        if (
+          change.type === AutoCertChangeType.TableUpdate &&
+          change.data.csvFile
+        ) {
+          // If you may have multiple files for table updates, you could use:
+          // formData.append(`csvFile_${index}`, change.data.csvFile);
+          // For this example, we assume one file per event with the same key:
+          formData.append("csvFile", change.data.csvFile);
+        }
+      });
+
+      const res = await apiWithAuth.patchForm(
+        "/api/v1/projects/306696da-9f29-409b-b8bf-a494f3238e44/builder",
+        formData,
+      );
+
+      console.log("saveChanges res", res.data);
+
       console.log("saveChanges to backend", changes);
       return true;
     },
@@ -116,7 +160,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
       </Splitter.Panel>
       <Splitter.Panel
         defaultSize={"30%"}
-        max={"50%"}
+        max={"70%"}
         style={{
           borderLeft: `1px solid ${colorSplit}`,
         }}

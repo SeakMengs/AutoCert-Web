@@ -87,8 +87,8 @@ const transformAutoCertErrorToZodFormattedError = (data: any) => {
     return {
       ...data,
       errors: autocertToFormattedZodError(data.errors as T_AutocertError[]),
-      message: data.message,
-      success: false,
+      // message: data.message,
+      // success: false,
     } satisfies ResponseJson<any, T_ZodErrorFormatted>;
   }
 
