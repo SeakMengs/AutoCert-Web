@@ -25,8 +25,8 @@ const ROLES: Record<ProjectRole, ProjectPermission[]> = {
   [ProjectRole.None]: [],
 };
 
-export function hasPermission(role: ProjectRole[], permissions: Permission[]) {
+export function hasPermission(roles: ProjectRole[], permissions: Permission[]) {
   return permissions.every((permission) =>
-    role.some((r) => ROLES[r].includes(permission)),
+    roles.some((r) => ROLES[r].includes(permission)),
   );
 }

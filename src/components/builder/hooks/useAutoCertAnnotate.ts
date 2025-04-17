@@ -364,8 +364,7 @@ export default function useAutoCertAnnotate({
   const onSignatureAnnotateInvite = (id: string): void => {
     logger.debug(`Invite signature annotate with id ${id}`);
 
-    // TODO: consider add another permission for invite signature
-    if (!hasPermission(roles, [ProjectPermission.AnnotateSignatureUpdate])) {
+    if (!hasPermission(roles, [ProjectPermission.AnnotateSignatureInvite])) {
       logger.warn("Permission denied to invite signature annotate");
       message.error("You do not have permission to invite signatory");
       return;
@@ -395,11 +394,9 @@ export default function useAutoCertAnnotate({
     }));
 
     onChange({
-      type: AutoCertChangeType.AnnotateSignatureUpdate,
+      type: AutoCertChangeType.AnnotateSignatureInvite,
       data: {
-        ...annotate,
-        status: SignatoryStatus.Invited,
-        page: page,
+        id: id,
       },
     });
   };
@@ -494,6 +491,13 @@ export default function useAutoCertAnnotate({
     }
 
     const { annotate, page } = existingAnnotate;
+
+    if (annotate.x === position.x && annotate.y === position.y) {
+      logger.debug(
+        `Drag annotation event: ${id} (skip state update cause same position)`,
+      );
+      return;
+    }
 
     const updatedAnnotate = {
       ...annotate,

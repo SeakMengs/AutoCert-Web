@@ -33,6 +33,11 @@ export default function useAutoCertTable({
   const { message } = App.useApp();
 
   const onTableChange = (): void => {
+    if (rows.length === 0) {
+      logger.warn("No rows in table skip onTableChange");
+      return;
+    }
+
     const csvContent = toCSv();
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
@@ -46,6 +51,10 @@ export default function useAutoCertTable({
     });
   };
 
+  useEffect(() => {
+    onTableChange();
+  }, [rows, columns]);
+
   const onRowAdd = (newRow: AutoCertTableRow): void => {
     logger.debug(`Add row key: ${newRow.key}`);
 
@@ -56,7 +65,7 @@ export default function useAutoCertTable({
     }
 
     setRows((prevRows) => [...prevRows, newRow]);
-    onTableChange();
+    // onTableChange();
   };
 
   const onRowUpdate = (updatedRow: AutoCertTableRow): void => {
@@ -81,7 +90,7 @@ export default function useAutoCertTable({
     newRows[index] = updatedRow;
     setRows(newRows);
 
-    onTableChange();
+    // onTableChange();
   };
 
   const onColumnAdd = (newColumn: AutoCertTableColumn): void => {
@@ -103,7 +112,7 @@ export default function useAutoCertTable({
       })),
     );
 
-    onTableChange();
+    // onTableChange();
   };
 
   const onColumnDelete = (columnTitle: string): void => {
@@ -127,7 +136,7 @@ export default function useAutoCertTable({
       }),
     );
 
-    onTableChange();
+    // onTableChange();
   };
 
   const onColumnUpdate = (oldTitle: string, newTitle: string): void => {
@@ -158,7 +167,7 @@ export default function useAutoCertTable({
       }),
     );
 
-    onTableChange();
+    // onTableChange();
   };
 
   const onRowsDelete = (selectedKeys: React.Key[]): void => {
@@ -174,7 +183,7 @@ export default function useAutoCertTable({
       prevRows.filter((r) => !selectedKeys.includes(r.key)),
     );
 
-    onTableChange();
+    // onTableChange();
   };
 
   const onImportFromCSV = (
@@ -191,7 +200,7 @@ export default function useAutoCertTable({
     setRows(newRows);
     setColumns(newColumns);
 
-    onTableChange();
+    // onTableChange();
 
     message.success("Imported CSV successfully");
   };

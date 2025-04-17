@@ -65,7 +65,7 @@ export const autocertToFormattedZodError = (
 
     let formattedError = {} as T_ZodErrorFormatted;
     // TODO: remove
-    console.error("errorddddddddddddddddd", error);
+    console.warn("errorddddddddddddddddd", error);
     for (const issue of error) {
       const fieldKey = issue.field
         ? issue.field.charAt(0).toLowerCase() + issue.field.slice(1)

@@ -57,7 +57,7 @@ export type AnnotateSignatureRemove = {
 
 export type AnnotateSignatureInvite = {
   type: typeof AutoCertChangeType.AnnotateSignatureInvite;
-  data: { id: string; email: string };
+  data: { id: string };
 };
 
 export type AnnotateSignatureApprove = {

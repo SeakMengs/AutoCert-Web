@@ -65,16 +65,15 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
       const formData = new FormData();
 
       // Prepare an array to include in the form's "events" field.
-      // Here we make a deep copy of your changes, but remove the csvFile property
+      // Here we make a deep copy of changes, but remove the csvFile property
       // from TableUpdate events to avoid issues with JSON.stringify.
       const changesWithoutFiles = changes.map((change) => {
         if (change.type === AutoCertChangeType.TableUpdate) {
-          // Clone the change, removing file from the data
           return {
             ...change,
             data: {
               ...change.data,
-              csvFile: undefined, // You may also want to completely remove this property
+              csvFile: undefined,
             },
           };
         }
@@ -84,27 +83,28 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
       // Append the events field as JSON string.
       formData.append("events", JSON.stringify(changesWithoutFiles));
 
-      // Attach file uploads: for each table update, add the corresponding file.
       changes.forEach((change, index) => {
         if (
           change.type === AutoCertChangeType.TableUpdate &&
           change.data.csvFile
         ) {
-          // If you may have multiple files for table updates, you could use:
-          // formData.append(`csvFile_${index}`, change.data.csvFile);
-          // For this example, we assume one file per event with the same key:
           formData.append("csvFile", change.data.csvFile);
         }
       });
 
-      const res = await apiWithAuth.patchForm(
-        "/api/v1/projects/306696da-9f29-409b-b8bf-a494f3238e44/builder",
-        formData,
-      );
-
-      console.log("saveChanges res", res.data);
-
       console.log("saveChanges to backend", changes);
+      try {
+        const res = await apiWithAuth.patchForm(
+          "/api/v1/projects/306696da-9f29-409b-b8bf-a494f3238e44/builder",
+          formData,
+        );
+        console.log("saveChanges res", res.data);
+      } catch (error: any) {
+        console.error("Error saving changes:", error.response.data);
+        // Handle error (e.g., show a notification)
+        return false;
+      }
+
       return true;
     },
   });
