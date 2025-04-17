@@ -10,6 +10,7 @@ import useAutoCertChange, {
   UseAutoCertChangeProps,
 } from "./useAutoCertChange";
 import useAutoCertAnnotate, {
+  AnnotateStates,
   UseAutoCertAnnotateProps,
 } from "./useAutoCertAnnotate";
 import useAutoCertTable, { UseAutoCertTableProps } from "./useAutoCertTable";
@@ -28,17 +29,21 @@ export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
 export interface UseAutoCertProps extends UseAutoCertChangeProps {
   roles: ProjectRole[];
   initialPdfPage: number;
+  initialAnnotates: AnnotateStates;
+  initialSettings?: AutoCertSettings;
   projectId: string;
-  initialRows?: AutoCertTableRow[];
-  initialColumns?: AutoCertTableColumn[];
+  csvFileUrl: string;
   saveChanges: (changes: AutoCertChangeEvent[]) => Promise<boolean>;
 }
 
 export default function useAutoCert({
   projectId,
-  initialColumns = [],
-  initialRows = [],
+  csvFileUrl,
   initialPdfPage = 1,
+  initialAnnotates = [],
+  initialSettings = {
+    qrCodeEnabled: false,
+  } satisfies AutoCertSettings,
   roles,
   saveChanges,
 }: UseAutoCertProps) {
@@ -49,11 +54,12 @@ export default function useAutoCert({
   const [zoomScale, setZoomScale] = useState<number>(1);
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
   const [settings, setSettings] = useState<AutoCertSettings>({
-    qrCodeEnabled: false,
+    ...initialSettings,
   });
   const { changes, onChange, isPushingChanges } = useAutoCertChange({
     saveChanges,
   });
+
   const {
     annotates,
     columnAnnotates,
@@ -71,6 +77,7 @@ export default function useAutoCert({
     replaceAnnotatesColumnValue,
     removeUnnecessaryAnnotates,
   } = useAutoCertAnnotate({
+    initialAnnotates,
     roles,
     onChange,
   });
@@ -78,6 +85,7 @@ export default function useAutoCert({
   const {
     rows,
     columns,
+    tableLoading,
     onRowAdd,
     onRowUpdate,
     onRowsDelete,
@@ -89,14 +97,13 @@ export default function useAutoCert({
   } = useAutoCertTable({
     roles,
     projectId,
+    csvFileUrl,
     onChange,
-    initialColumns,
-    initialRows,
   });
 
-  useEffect(() => {
-    removeUnnecessaryAnnotates(columns);
-  }, [columns]);
+  // useEffect(() => {
+  //   removeUnnecessaryAnnotates(columns);
+  // }, [columns]);
 
   const onPageClick = (page: number): void => {
     setCurrentPdfPage(page);
@@ -104,7 +111,7 @@ export default function useAutoCert({
 
   const onZoomScaleChange = (newZoomScale: number): void => {
     if (zoomScale === newZoomScale) {
-      logger.debug(`Zoom scale not changed: ${zoomScale} skip state update`);
+      // logger.debug(`Zoom scale not changed: ${zoomScale} skip state update`);
       return;
     }
 
@@ -200,6 +207,7 @@ export default function useAutoCert({
     // Table
     rows,
     columns,
+    tableLoading,
     onRowAdd,
     onRowUpdate,
     onRowsDelete,

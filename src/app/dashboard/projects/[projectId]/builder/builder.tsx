@@ -1,27 +1,77 @@
 "use client";
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
 import { useAutoCert } from "@/hooks/useAutoCert";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PdfUploader from "./pdf_uploader";
 import { Flex, Splitter, theme, Typography } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
-import { ProjectRole } from "@/types/project";
 import { apiWithAuth } from "@/utils/axios";
 import { AutoCertChangeType } from "@/components/builder/hooks/useAutoCertChange";
+import { z } from "zod";
+import { getProjectByIdSuccessResponseSchema } from "./schema";
+import {
+  AnnotateStates,
+  AutoCertSettings,
+  ColumnAnnotateStates,
+  SignatureAnnotateState,
+  SignatureAnnotateStates,
+} from "@/components/builder/hooks/useAutoCertAnnotate";
 
-interface ProjectBuilderProps {
-  projectId: string;
-}
+interface ProjectBuilderProps
+  extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
 
-export default function Builder({ projectId }: ProjectBuilderProps) {
+export default function Builder({ project, roles }: ProjectBuilderProps) {
+  const sigAnnot: SignatureAnnotateStates = {};
+  const colAnnot: ColumnAnnotateStates = {};
+  const annot: AnnotateStates = {};
+
+  if (project.signatureAnnotates) {
+    for (const sig of project.signatureAnnotates) {
+      sigAnnot[sig.page] = [
+        ...(sigAnnot[sig.page] || []),
+        {
+          ...sig,
+          type: "signature",
+          signatureData: "",
+          status: sig.status,
+        },
+      ];
+      annot[sig.page] = [
+        ...(annot[sig.page] || []),
+        {
+          ...sig,
+          type: "signature",
+          signatureData: "",
+          status: sig.status,
+        },
+      ];
+    }
+  }
+
+  if (project.columnAnnotates) {
+    for (const col of project.columnAnnotates) {
+      colAnnot[col.page] = [
+        ...(colAnnot[col.page] || []),
+        {
+          ...col,
+          type: "column",
+        },
+      ];
+      annot[col.page] = [
+        ...(annot[col.page] || []),
+        {
+          ...col,
+          type: "column",
+        },
+      ];
+    }
+  }
+
   const {
     token: { colorSplit },
   } = theme.useToken();
-  const [pdfFile, setPdfFile] = useState<string>("/certificate_merged.pdf");
-  const roles = [ProjectRole.Requestor];
-  // const [pdfFile, setPdfFile] = useState<string>("/certificate.pdf");
   const {
     annotates,
     columnAnnotates,
@@ -48,6 +98,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
 
     rows,
     columns,
+    tableLoading,
     onRowAdd,
     onRowUpdate,
     onRowsDelete,
@@ -58,8 +109,13 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
     onExportToCSV,
   } = useAutoCert({
     roles,
-    projectId,
+    projectId: project.id,
     initialPdfPage: 1,
+    initialAnnotates: annot,
+    initialSettings: {
+      qrCodeEnabled: project.embedQr,
+    },
+    csvFileUrl: project.csvFileUrl,
     // TOOD: update change
     saveChanges: async (changes) => {
       const formData = new FormData();
@@ -95,7 +151,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
       console.log("saveChanges to backend", changes);
       try {
         const res = await apiWithAuth.patchForm(
-          "/api/v1/projects/306696da-9f29-409b-b8bf-a494f3238e44/builder",
+          `/api/v1/projects/${project.id}/builder`,
           formData,
         );
         console.log("saveChanges res", res.data);
@@ -109,9 +165,9 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
     },
   });
 
-  if (!pdfFile) {
-    return <PdfUploader setPdfFile={setPdfFile} />;
-  }
+  // if (!pdfFile) {
+  //   return <PdfUploader setPdfFile={setPdfFile} />;
+  // }
 
   return (
     <Splitter
@@ -148,7 +204,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
             onDragStop={onAnnotateDragStop}
             onResizeStop={onAnnotateResizeStop}
             onAnnotateSelect={onAnnotateSelect}
-            pdfFile={pdfFile}
+            pdfFile={project.templateUrl}
           />
           <div className="absolute bottom-4 right-4">
             <ZoomPanel
@@ -171,6 +227,7 @@ export default function Builder({ projectId }: ProjectBuilderProps) {
           signatureAnnotates={signatureAnnotates}
           columns={columns}
           rows={rows}
+          tableLoading={tableLoading}
           qrCodeEnabled={settings.qrCodeEnabled}
           onQrCodeEnabledChange={onQrCodeEnabledChange}
           onColumnUpdate={onAutoCertTableColumnTitleUpdate}

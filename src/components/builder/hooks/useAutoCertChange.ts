@@ -1,3 +1,4 @@
+"use client";
 import { useState, useRef } from "react";
 import {
   AutoCertSettings,
@@ -90,7 +91,7 @@ export type AutoCertChangeEvent =
   | TableUpdate;
 
 // const CHANGE_DEBOUNCE_TIME = 0.5 * SECOND;
-const CHANGE_DEBOUNCE_TIME = 0.5 * SECOND;
+const CHANGE_DEBOUNCE_TIME = 2 * SECOND;
 const messageKey = "autoCertPushChangesMessageKey";
 const logger = createScopedLogger("components:builder/hooks/useAutoCertChange");
 
@@ -151,6 +152,7 @@ export default function useAutoCertChange({
     message.loading({
       content: "Saving changes...",
       key: messageKey,
+      duration: 0,
     });
 
     const batchedChanges = Array.from(changeMap.current.values());

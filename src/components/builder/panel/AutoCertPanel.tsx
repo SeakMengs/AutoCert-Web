@@ -41,6 +41,7 @@ function AutoCertPanel({
   columnAnnotates,
   signatureAnnotates,
   qrCodeEnabled,
+  
   onQrCodeEnabledChange,
   onAnnotateSelect,
   onColumnAnnotateAdd,
@@ -125,7 +126,7 @@ function AutoCertPanel({
       children: (
         <Layout onGenerateCertificates={onGenerateCertificates}>
           <Collapse
-            defaultActiveKey={["1", "2"]}
+            defaultActiveKey={["1", "2", "3"]}
             items={collapseItems}
             bordered={false}
             expandIconPosition="end"

@@ -26,7 +26,7 @@ function Zoom({
       positionY: number;
     },
   ): void => {
-    logger.debug("onTransformed", state);
+    // logger.debug("onTransformed", state);
 
     onZoomScaleChange(state.scale);
   };

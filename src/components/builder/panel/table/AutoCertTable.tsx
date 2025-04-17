@@ -26,7 +26,7 @@ import {
   EditableHeaderCell,
   EditableHeaderCellProps,
 } from "./EditableTable";
-import { parseCSV } from "../../utils";
+import { parseCSVFile } from "../../utils";
 
 const logger = createScopedLogger(
   "components:builder:panel:table:AutoCertTable",
@@ -60,6 +60,7 @@ export type AutoCertTableRow = {
 export interface AutoCertTableProps {
   columns: AutoCertTableColumn[];
   rows: AutoCertTableRow[];
+  tableLoading: boolean;
   onColumnAdd: (newColumn: AutoCertTableColumn) => void;
   onColumnDelete: (columnTitle: string) => void;
   onColumnUpdate: (oldTitle: string, newTitle: string) => void;
@@ -76,6 +77,7 @@ export interface AutoCertTableProps {
 function AutoCertTable({
   rows,
   columns,
+  tableLoading,
   onColumnAdd,
   onColumnDelete,
   onColumnUpdate,
@@ -232,9 +234,11 @@ function AutoCertTable({
 
     try {
       // Parse csv already handle duplicate column name by adding a number suffix
-      const { columns, rows } = await parseCSV(file);
+      const { columns, rows } = await parseCSVFile(file);
 
       onImportFromCSV(rows, columns);
+
+      message.success("CSV file imported successfully.");
     } catch (error) {
       message.error("Failed to parse csv file.");
     } finally {
@@ -358,7 +362,7 @@ function AutoCertTable({
     <Flex vertical gap="middle">
       <Table
         title={() => Buttons}
-        loading={parsingCSV}
+        loading={tableLoading || parsingCSV}
         ref={tblRef}
         bordered
         components={components}

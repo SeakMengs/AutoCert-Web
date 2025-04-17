@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { getProjectByIdAction } from "./action";
 import Builder from "./builder";
 
 interface ProjectBuilderByIDProps {
@@ -9,5 +11,18 @@ export default async function ProjectBuilderByID({
 }: ProjectBuilderByIDProps) {
   const { projectId } = await params;
 
-  return <Builder projectId={projectId} />;
+  const res = await getProjectByIdAction({
+    projectId,
+  });
+
+  if (!res.success) {
+    return notFound();
+  }
+
+  return (
+    <Builder
+      project={res.data.project}
+      roles={res.data.roles}
+    />
+  );
 }

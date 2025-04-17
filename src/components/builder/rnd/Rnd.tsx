@@ -1,9 +1,11 @@
+"use client";
 import {
   useState,
   useEffect,
   PropsWithChildren,
   HTMLAttributes,
   memo,
+  useCallback,
 } from "react";
 import { cn } from "@/utils";
 import ResizeHandle, { ResizeProps } from "./ResizeHandle";
@@ -106,6 +108,18 @@ function Rnd({
 
   // Rect as percentage values.
   const [rect, setRect] = useState<RectPercent>(updateRect());
+
+  useEffect(() => {
+    // Update rect when position or size changes.
+    setRect(updateRect());
+  }, [
+    position.x,
+    position.y,
+    size.width,
+    size.height,
+    originalSize.width,
+    originalSize.height,
+  ]);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);

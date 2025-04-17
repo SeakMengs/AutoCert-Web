@@ -82,6 +82,8 @@ function PageRenderer({
             ref.style.imageRendering = "crisp-edges";
           }
         }}
+        renderAnnotationLayer={false}
+        renderTextLayer={false}
       />
       <AnnotateRenderer
         roles={roles}

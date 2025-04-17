@@ -8,14 +8,12 @@ import { UseAutoCertProps } from "./useAutoCert";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
 import { createScopedLogger } from "@/utils/logger";
 import { App } from "antd";
+import { parseCSVUrl } from "../utils";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCertTable");
 
 export interface UseAutoCertTableProps
-  extends Pick<
-    UseAutoCertProps,
-    "projectId" | "initialColumns" | "initialRows" | "roles"
-  > {
+  extends Pick<UseAutoCertProps, "projectId" | "roles" | "csvFileUrl"> {
   onChange: ReturnType<typeof useAutoCertChange>["onChange"];
 }
 
@@ -24,21 +22,46 @@ const denyMsg = "You do not have permission to update table";
 export default function useAutoCertTable({
   roles,
   projectId,
+  csvFileUrl,
   onChange,
-  initialRows = [],
-  initialColumns = [],
 }: UseAutoCertTableProps) {
-  const [rows, setRows] = useState<AutoCertTableRow[]>(initialRows);
-  const [columns, setColumns] = useState<AutoCertTableColumn[]>(initialColumns);
+  const [rows, setRows] = useState<AutoCertTableRow[]>([]);
+  const [columns, setColumns] = useState<AutoCertTableColumn[]>([]);
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
   const { message } = App.useApp();
 
-  const onTableChange = (): void => {
-    if (rows.length === 0) {
+  useEffect(() => {
+    const parseCSV = async () => {
+      try {
+        setTableLoading(true);
+        if (!csvFileUrl) {
+          logger.warn("No CSV file URL provided");
+          return;
+        }
+
+        const { columns, rows } = await parseCSVUrl(csvFileUrl);
+        setColumns(columns);
+        setRows(rows);
+      } catch (error) {
+        logger.error("Failed to parse CSV", error);
+      } finally {
+        setTableLoading(false);
+      }
+    };
+
+    parseCSV();
+  }, [csvFileUrl]);
+
+  const onTableChange = (
+    r: AutoCertTableRow[],
+    c: AutoCertTableColumn[],
+  ): void => {
+    if (r.length === 0) {
       logger.warn("No rows in table skip onTableChange");
       return;
     }
 
-    const csvContent = toCSv();
+    const csvContent = toCSv(r, c);
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
     onChange({
@@ -51,10 +74,6 @@ export default function useAutoCertTable({
     });
   };
 
-  useEffect(() => {
-    onTableChange();
-  }, [rows, columns]);
-
   const onRowAdd = (newRow: AutoCertTableRow): void => {
     logger.debug(`Add row key: ${newRow.key}`);
 
@@ -64,8 +83,10 @@ export default function useAutoCertTable({
       return;
     }
 
-    setRows((prevRows) => [...prevRows, newRow]);
-    // onTableChange();
+    const newRows = [...rows, newRow];
+    setRows(newRows);
+
+    onTableChange(newRows, columns);
   };
 
   const onRowUpdate = (updatedRow: AutoCertTableRow): void => {
@@ -90,7 +111,7 @@ export default function useAutoCertTable({
     newRows[index] = updatedRow;
     setRows(newRows);
 
-    // onTableChange();
+    onTableChange(newRows, columns);
   };
 
   const onColumnAdd = (newColumn: AutoCertTableColumn): void => {
@@ -102,17 +123,18 @@ export default function useAutoCertTable({
       return;
     }
 
-    setColumns((prevCols) => [...prevCols, newColumn]);
+    const newColumns = [...columns, newColumn];
+    setColumns(newColumns);
 
-    // Add an empty value for the new column to each existing row
-    setRows((prevRows) =>
-      prevRows.map((r) => ({
-        ...r,
-        [newColumn.title]: "",
-      })),
-    );
+    const newRows = rows.map((r) => {
+      const newRow = { ...r };
+      // Add an empty value for the new column to each existing row
+      newRow[newColumn.title] = "";
+      return newRow;
+    });
+    setRows(newRows);
 
-    // onTableChange();
+    onTableChange(newRows, newColumns);
   };
 
   const onColumnDelete = (columnTitle: string): void => {
@@ -125,18 +147,18 @@ export default function useAutoCertTable({
     }
 
     // remove column from columns
-    setColumns((prevCols) => prevCols.filter((c) => c.title !== columnTitle));
+    const newColumns = columns.filter((c) => c.title !== columnTitle);
+    setColumns(newColumns);
 
     // remove column from rows
-    setRows((prevRows) =>
-      prevRows.map((r) => {
-        const newRow = { ...r };
-        delete newRow[columnTitle];
-        return newRow;
-      }),
-    );
+    const newRows = rows.map((r) => {
+      const newRow = { ...r };
+      delete newRow[columnTitle];
+      return newRow;
+    });
+    setRows(newRows);
 
-    // onTableChange();
+    onTableChange(newRows, newColumns);
   };
 
   const onColumnUpdate = (oldTitle: string, newTitle: string): void => {
@@ -148,26 +170,25 @@ export default function useAutoCertTable({
       return;
     }
 
-    setColumns((prevCols) =>
-      prevCols.map((c) =>
-        c.title === oldTitle
-          ? { ...c, title: newTitle, dataIndex: newTitle }
-          : c,
-      ),
-    );
+    const newColumns = columns.map((c) => {
+      if (c.title === oldTitle) {
+        return { ...c, title: newTitle, dataIndex: newTitle };
+      }
+      return c;
+    });
+    setColumns(newColumns);
 
-    setRows((prevRows) =>
-      prevRows.map((r) => {
-        if (r.hasOwnProperty(oldTitle)) {
-          r[newTitle] = r[oldTitle];
-          delete r[oldTitle];
-        }
+    const newRows = rows.map((r) => {
+      const newRow = { ...r };
+      if (r.hasOwnProperty(oldTitle)) {
+        newRow[newTitle] = r[oldTitle];
+        delete newRow[oldTitle];
+      }
+      return newRow;
+    });
+    setRows(newRows);
 
-        return r;
-      }),
-    );
-
-    // onTableChange();
+    onTableChange(newRows, newColumns);
   };
 
   const onRowsDelete = (selectedKeys: React.Key[]): void => {
@@ -179,11 +200,10 @@ export default function useAutoCertTable({
       return;
     }
 
-    setRows((prevRows) =>
-      prevRows.filter((r) => !selectedKeys.includes(r.key)),
-    );
+    const newRows = rows.filter((r) => !selectedKeys.includes(r.key));
+    setRows(newRows);
 
-    // onTableChange();
+    onTableChange(newRows, columns);
   };
 
   const onImportFromCSV = (
@@ -200,16 +220,14 @@ export default function useAutoCertTable({
     setRows(newRows);
     setColumns(newColumns);
 
-    // onTableChange();
-
-    message.success("Imported CSV successfully");
+    onTableChange(newRows, newColumns);
   };
 
-  const toCSv = (): string => {
+  const toCSv = (r: AutoCertTableRow[], c: AutoCertTableColumn[]): string => {
     const csvRows = [];
-    const headers = columns.map((col) => col.title);
+    const headers = c.map((col) => col.title);
     csvRows.push(headers.join(","));
-    rows.forEach((row) => {
+    r.forEach((row) => {
       const values = headers.map((header) => {
         return row[header];
       });
@@ -219,7 +237,7 @@ export default function useAutoCertTable({
   };
 
   const onExportToCSV = (filename: string): void => {
-    const csvContent = toCSv();
+    const csvContent = toCSv(rows, columns);
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -235,6 +253,7 @@ export default function useAutoCertTable({
   return {
     rows,
     columns,
+    tableLoading,
     onRowAdd,
     onRowUpdate,
     onRowsDelete,

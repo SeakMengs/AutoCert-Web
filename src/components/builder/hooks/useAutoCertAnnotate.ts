@@ -1,3 +1,4 @@
+"use client";
 import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { nanoid } from "nanoid";
@@ -88,7 +89,7 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
     y: 0,
     width: SignatureAnnotateWidth,
     height: SignatureAnnotateHeight,
-    signatureData: tempSignData,
+    signatureData: "",
     email: "",
     status: SignatoryStatus.NotInvited,
     color: AnnotateColor,
@@ -98,15 +99,16 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
 export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
 
 export interface UseAutoCertAnnotateProps
-  extends Pick<UseAutoCertProps, "roles"> {
+  extends Pick<UseAutoCertProps, "roles" | "initialAnnotates"> {
   onChange: ReturnType<typeof useAutoCertChange>["onChange"];
 }
 
 export default function useAutoCertAnnotate({
+  initialAnnotates,
   onChange,
   roles,
 }: UseAutoCertAnnotateProps) {
-  const [annotates, setAnnotates] = useState<AnnotateStates>({});
+  const [annotates, setAnnotates] = useState<AnnotateStates>(initialAnnotates);
   const [columnAnnotates, setColumnAnnotates] = useState<ColumnAnnotateStates>(
     {},
   );
@@ -114,6 +116,10 @@ export default function useAutoCertAnnotate({
     useState<SignatureAnnotateStates>({});
   const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
   const { message } = App.useApp();
+
+  useEffect(() => {
+    setAnnotates(initialAnnotates);
+  }, [initialAnnotates]);
 
   /**
    * Update column and signature annotates when annotates change
@@ -492,12 +498,12 @@ export default function useAutoCertAnnotate({
 
     const { annotate, page } = existingAnnotate;
 
-    if (annotate.x === position.x && annotate.y === position.y) {
-      logger.debug(
-        `Drag annotation event: ${id} (skip state update cause same position)`,
-      );
-      return;
-    }
+    // if (annotate.x === position.x && annotate.y === position.y) {
+    //   logger.debug(
+    //     `Drag annotation event: ${id} (skip state update cause same position)`,
+    //   );
+    //   return;
+    // }
 
     const updatedAnnotate = {
       ...annotate,
