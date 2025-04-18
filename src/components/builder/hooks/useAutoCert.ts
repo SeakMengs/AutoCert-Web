@@ -33,17 +33,22 @@ export interface UseAutoCertProps extends UseAutoCertChangeProps {
   initialSettings?: AutoCertSettings;
   projectId: string;
   csvFileUrl: string;
+  tableTestConfig?: {
+    rows: AutoCertTableRow[];
+    columns: AutoCertTableColumn[];
+  };
   saveChanges: (changes: AutoCertChangeEvent[]) => Promise<boolean>;
 }
 
 export default function useAutoCert({
   projectId,
-  csvFileUrl,
   initialPdfPage = 1,
   initialAnnotates = [],
   initialSettings = {
     qrCodeEnabled: false,
   } satisfies AutoCertSettings,
+  csvFileUrl,
+  tableTestConfig,
   roles,
   saveChanges,
 }: UseAutoCertProps) {
@@ -56,7 +61,7 @@ export default function useAutoCert({
   const [settings, setSettings] = useState<AutoCertSettings>({
     ...initialSettings,
   });
-  const { changes, onChange, isPushingChanges } = useAutoCertChange({
+  const { changes, enqueueChange, isPushingChanges } = useAutoCertChange({
     saveChanges,
   });
 
@@ -79,13 +84,14 @@ export default function useAutoCert({
   } = useAutoCertAnnotate({
     initialAnnotates,
     roles,
-    onChange,
+    enqueueChange,
   });
 
   const {
     rows,
     columns,
     tableLoading,
+    initialCSVParsed,
     onRowAdd,
     onRowUpdate,
     onRowsDelete,
@@ -98,12 +104,18 @@ export default function useAutoCert({
     roles,
     projectId,
     csvFileUrl,
-    onChange,
+    tableTestConfig,
+    enqueueChange,
   });
 
-  // useEffect(() => {
-  //   removeUnnecessaryAnnotates(columns);
-  // }, [columns]);
+  useEffect(() => {
+    if (!initialCSVParsed) {
+      logger.debug("Initial CSV parsed, skip remove unnecessary annotates");
+      return;
+    }
+
+    removeUnnecessaryAnnotates(columns);
+  }, [columns, initialCSVParsed]);
 
   const onPageClick = (page: number): void => {
     setCurrentPdfPage(page);
@@ -157,7 +169,7 @@ export default function useAutoCert({
         }) satisfies AutoCertSettings,
     );
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.SettingsUpdate,
       data: {
         qrCodeEnabled: enabled,

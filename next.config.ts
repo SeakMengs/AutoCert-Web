@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
         canvas: "./empty-module.ts",
       },
     },
-    reactCompiler: true,
+    // reactCompiler: true,
     serverActions: {
       bodySizeLimit: "11mb",
     },

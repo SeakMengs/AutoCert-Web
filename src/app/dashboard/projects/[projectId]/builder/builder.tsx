@@ -1,9 +1,9 @@
 "use client";
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
 import { useAutoCert } from "@/hooks/useAutoCert";
-import { useState } from "react";
+import { useMemo } from "react";
 import PdfUploader from "./pdf_uploader";
-import { Flex, Splitter, theme, Typography } from "antd";
+import { Flex, Splitter, theme } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
@@ -13,9 +13,7 @@ import { z } from "zod";
 import { getProjectByIdSuccessResponseSchema } from "./schema";
 import {
   AnnotateStates,
-  AutoCertSettings,
   ColumnAnnotateStates,
-  SignatureAnnotateState,
   SignatureAnnotateStates,
 } from "@/components/builder/hooks/useAutoCertAnnotate";
 
@@ -23,51 +21,55 @@ interface ProjectBuilderProps
   extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
 
 export default function Builder({ project, roles }: ProjectBuilderProps) {
-  const sigAnnot: SignatureAnnotateStates = {};
-  const colAnnot: ColumnAnnotateStates = {};
-  const annot: AnnotateStates = {};
+  const { sigAnnot, colAnnot, annot } = useMemo(() => {
+    const sigAnnot: SignatureAnnotateStates = {};
+    const colAnnot: ColumnAnnotateStates = {};
+    const annot: AnnotateStates = {};
 
-  if (project.signatureAnnotates) {
-    for (const sig of project.signatureAnnotates) {
-      sigAnnot[sig.page] = [
-        ...(sigAnnot[sig.page] || []),
-        {
-          ...sig,
-          type: "signature",
-          signatureData: "",
-          status: sig.status,
-        },
-      ];
-      annot[sig.page] = [
-        ...(annot[sig.page] || []),
-        {
-          ...sig,
-          type: "signature",
-          signatureData: "",
-          status: sig.status,
-        },
-      ];
+    if (project.signatureAnnotates) {
+      for (const sig of project.signatureAnnotates) {
+        sigAnnot[sig.page] = [
+          ...(sigAnnot[sig.page] || []),
+          {
+            ...sig,
+            type: "signature",
+            signatureData: "",
+            status: sig.status,
+          },
+        ];
+        annot[sig.page] = [
+          ...(annot[sig.page] || []),
+          {
+            ...sig,
+            type: "signature",
+            signatureData: "",
+            status: sig.status,
+          },
+        ];
+      }
     }
-  }
 
-  if (project.columnAnnotates) {
-    for (const col of project.columnAnnotates) {
-      colAnnot[col.page] = [
-        ...(colAnnot[col.page] || []),
-        {
-          ...col,
-          type: "column",
-        },
-      ];
-      annot[col.page] = [
-        ...(annot[col.page] || []),
-        {
-          ...col,
-          type: "column",
-        },
-      ];
+    if (project.columnAnnotates) {
+      for (const col of project.columnAnnotates) {
+        colAnnot[col.page] = [
+          ...(colAnnot[col.page] || []),
+          {
+            ...col,
+            type: "column",
+          },
+        ];
+        annot[col.page] = [
+          ...(annot[col.page] || []),
+          {
+            ...col,
+            type: "column",
+          },
+        ];
+      }
     }
-  }
+
+    return { sigAnnot, colAnnot, annot };
+  }, [project.signatureAnnotates, project.columnAnnotates]);
 
   const {
     token: { colorSplit },

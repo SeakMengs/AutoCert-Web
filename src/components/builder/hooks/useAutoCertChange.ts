@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
 import {
-  AutoCertSettings,
   ColumnAnnotateState,
   SignatureAnnotateState,
 } from "./useAutoCertAnnotate";
@@ -9,6 +8,7 @@ import debounce from "lodash.debounce";
 import { createScopedLogger } from "@/utils/logger";
 import { SECOND } from "@/utils/time";
 import { App } from "antd";
+import { AutoCertSettings } from "./useAutoCert";
 
 export const AutoCertChangeType = {
   AnnotateColumnAdd: "annotate:column:add",
@@ -91,7 +91,9 @@ export type AutoCertChangeEvent =
   | TableUpdate;
 
 // const CHANGE_DEBOUNCE_TIME = 0.5 * SECOND;
-const CHANGE_DEBOUNCE_TIME = 2 * SECOND;
+const CHANGE_DEBOUNCE_TIME = 1 * SECOND;
+// to make change feel natural with loading state
+export const FAKE_LOADING_TIME = 0.5 * SECOND;
 const messageKey = "autoCertPushChangesMessageKey";
 const logger = createScopedLogger("components:builder/hooks/useAutoCertChange");
 
@@ -133,7 +135,7 @@ export default function useAutoCertChange({
   };
 
   // Adds a change to the batch. If a change with the same key exists, replace it so backend only receives the latest change.
-  const onChange = (change: AutoCertChangeEvent): void => {
+  const enqueueChange = (change: AutoCertChangeEvent): void => {
     const key = getChangeKey(change);
     changeMap.current.set(key, change);
     setChanges(Array.from(changeMap.current.values()));
@@ -195,5 +197,5 @@ export default function useAutoCertChange({
     }, CHANGE_DEBOUNCE_TIME),
   ).current;
 
-  return { changes, onChange, clearChanges, isPushingChanges };
+  return { changes, enqueueChange, clearChanges, isPushingChanges };
 }

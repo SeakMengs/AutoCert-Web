@@ -4,11 +4,9 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { memo, useState } from "react";
-import { createScopedLogger } from "@/utils/logger";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
 import { AnnotateStates } from "../../hooks/useAutoCertAnnotate";
-import { ProjectRole } from "@/types/project";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -59,25 +57,27 @@ function PdfRenderer({
       loading={<DocumentLoading />}
       error={<DocumentError />}
     >
-      <Space direction="vertical">
-        {Array.from({ length: pdfPages }, (_, index) => (
-          <PageRenderer
-            key={`page_${index + 1}`}
-            roles={roles}
-            onPageClick={onPageClick}
-            pageNumber={index + 1}
-            // Annotate
-            annotatesByPage={annotates[index + 1] ?? []}
-            selectedAnnotateId={selectedAnnotateId}
-            onAnnotateSelect={onAnnotateSelect}
-            onDragStop={onDragStop}
-            onResizeStop={onResizeStop}
-            previewMode={previewMode}
-            currentPdfPage={currentPdfPage}
-            zoomScale={zoomScale}
-          />
-        ))}
-      </Space>
+      {pdfPages > 0 && (
+        <Space direction="vertical">
+          {Array.from({ length: pdfPages }, (_, index) => (
+            <PageRenderer
+              key={`page_${index + 1}`}
+              roles={roles}
+              onPageClick={onPageClick}
+              pageNumber={index + 1}
+              // Annotate
+              annotatesByPage={annotates[index + 1] ?? []}
+              selectedAnnotateId={selectedAnnotateId}
+              onAnnotateSelect={onAnnotateSelect}
+              onDragStop={onDragStop}
+              onResizeStop={onResizeStop}
+              previewMode={previewMode}
+              currentPdfPage={currentPdfPage}
+              zoomScale={zoomScale}
+            />
+          ))}
+        </Space>
+      )}
     </Document>
   );
 }

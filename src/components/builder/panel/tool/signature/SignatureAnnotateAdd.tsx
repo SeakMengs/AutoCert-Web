@@ -1,3 +1,4 @@
+"use client";
 import { Form, Button, Modal, ColorPicker, Input } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
@@ -8,6 +9,7 @@ import {
 } from "./SignatureTool";
 import { AnnotateColor } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { createScopedLogger } from "@/utils/logger";
+import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateAdd",
@@ -25,6 +27,7 @@ export default function SignatureAnnotateAdd({
 }: SignatureAnnotateAddProps) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<SignatureAnnotateFormSchema>();
+  const [adding, setAdding] = useState<boolean>(false);
 
   const resetForm = (): void => {
     form.setFieldsValue({
@@ -45,13 +48,18 @@ export default function SignatureAnnotateAdd({
 
   const handleAddAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert add signature annotate confirmed");
-
+    setAdding(true);
     try {
       const values = await form.validateFields();
+
+      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+
       onSignatureAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
     } catch (error) {
       logger.error("AutoCert add signature annotate failed", error);
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -70,8 +78,9 @@ export default function SignatureAnnotateAdd({
         open={modalOpen}
         onCancel={onModalCancel}
         onOk={handleAddAnnotate}
+        confirmLoading={adding}
       >
-        <Form form={form} layout="horizontal">
+        <Form form={form} layout="horizontal" disabled={adding}>
           <Form.Item
             required
             name="email"

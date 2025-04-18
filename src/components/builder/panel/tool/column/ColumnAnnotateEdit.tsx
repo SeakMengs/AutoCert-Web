@@ -16,6 +16,7 @@ import { EditOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { ColumnAnnotateCardProps } from "./ColumnAnnotateCard";
+import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateEdit",
@@ -35,6 +36,7 @@ export default function ColumnAnnotateEdit({
   columns,
   onColumnAnnotateUpdate,
 }: ColumnAnnotateEditProps) {
+  const [editing, setEditing] = useState<boolean>(false);
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<ColumnAnnotateFormSchema>();
 
@@ -59,12 +61,19 @@ export default function ColumnAnnotateEdit({
 
   const handleEditField = async (): Promise<void> => {
     logger.debug("AutoCert edit annotate column field confirmed");
+    setEditing(true);
+
     try {
       const values = await form.validateFields();
+
+      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+
       onColumnAnnotateUpdate(columnAnnotate.id, values);
       setEditModalOpen(false);
     } catch (error) {
       logger.error("AutoCert edit annotate column field failed", error);
+    } finally {
+      setEditing(false);
     }
   };
 
@@ -83,8 +92,9 @@ export default function ColumnAnnotateEdit({
         open={editModalOpen}
         onCancel={onModalCancel}
         onOk={handleEditField}
+        confirmLoading={editing}
       >
-        <Form form={form} layout="horizontal">
+        <Form form={form} layout="horizontal" disabled={editing}>
           <Form.Item
             required
             name="value"

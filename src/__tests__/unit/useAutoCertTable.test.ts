@@ -3,8 +3,22 @@ import {
   AutoCertTableColumn,
 } from "@/components/builder/panel/table/AutoCertTable";
 import { useAutoCertTable } from "@/hooks/useAutoCert";
+import { ProjectRole } from "@/types/project";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
+
+const getUseAutoCertTableParams = (
+  r: AutoCertTableRow[],
+  c: AutoCertTableColumn[],
+) => {
+  return {
+    tableTestConfig: { rows: r, columns: c },
+    csvFileUrl: "",
+    enqueueChange: () => {},
+    projectId: "",
+    roles: [ProjectRole.Requestor],
+  };
+};
 
 describe("useAutoCertTable", () => {
   const initialRows = [
@@ -17,7 +31,7 @@ describe("useAutoCertTable", () => {
 
   it("should initialize with given rows and columns", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     expect(result.current.rows).toEqual(initialRows);
@@ -26,7 +40,7 @@ describe("useAutoCertTable", () => {
 
   it("should add a new row", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const newRow = {
@@ -44,7 +58,7 @@ describe("useAutoCertTable", () => {
 
   it("should update an existing row", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const updatedRow = {
@@ -61,7 +75,7 @@ describe("useAutoCertTable", () => {
 
   it("should add a new column", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const newColumn = {
@@ -81,7 +95,7 @@ describe("useAutoCertTable", () => {
 
   it("should delete a column", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const columnTitle = "name";
@@ -96,7 +110,7 @@ describe("useAutoCertTable", () => {
 
   it("should update a column title", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const oldTitle = "name";
@@ -116,7 +130,7 @@ describe("useAutoCertTable", () => {
 
   it("should delete selected rows", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const selectedRowKeys = [initialRows[0].key];
@@ -131,7 +145,7 @@ describe("useAutoCertTable", () => {
 
   it("should override state with new rows and columns from CSV", () => {
     const { result } = renderHook(() =>
-      useAutoCertTable({ initialRows, initialColumns }),
+      useAutoCertTable(getUseAutoCertTableParams(initialRows, initialColumns)),
     );
 
     const newRows = [

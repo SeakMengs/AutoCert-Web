@@ -20,6 +20,12 @@ export interface SignatureAnnotateCardProps
 
 const { Text } = Typography;
 
+const statusColors: Record<SignatoryStatus, string | undefined> = {
+  [SignatoryStatus.NotInvited]: undefined,
+  [SignatoryStatus.Invited]: "blue",
+  [SignatoryStatus.Signed]: "green",
+};
+
 export default function SignatureAnnotateCard({
   pageNumber,
   signatureAnnotate,
@@ -34,11 +40,6 @@ export default function SignatureAnnotateCard({
   } = theme.useToken();
 
   const getStatusTag = (): JSX.Element | null => {
-    const statusColors: Record<SignatoryStatus, string | undefined> = {
-      [SignatoryStatus.NotInvited]: undefined,
-      [SignatoryStatus.Invited]: "blue",
-      [SignatoryStatus.Signed]: "green",
-    };
 
     const statusColor = statusColors[signatureAnnotate.status];
     return (

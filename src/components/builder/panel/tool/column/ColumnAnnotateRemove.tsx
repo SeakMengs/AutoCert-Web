@@ -2,6 +2,8 @@ import { Button, Popconfirm, Tooltip } from "antd";
 import { ColumnAnnotateCardProps } from "./ColumnAnnotateCard";
 import { DeleteOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
+import { useState } from "react";
+import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateRemove",
@@ -17,12 +19,20 @@ export default function ColumnAnnotateRemove({
   columnAnnotate,
   onColumnAnnotateRemove,
 }: ColumnAnnotateRemoveProps) {
+  const [deleting, setDeleting] = useState<boolean>(false);
+
   const handleRemoveAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert remove column annotate field confirmed");
+    setDeleting(true);
+
     try {
+      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+
       onColumnAnnotateRemove(columnAnnotate.id);
     } catch (error) {
       logger.error("AutoCert remove column annotate field failed", error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -32,7 +42,14 @@ export default function ColumnAnnotateRemove({
       onConfirm={handleRemoveAnnotate}
     >
       <Tooltip title="Remove">
-        <Button size="small" type="text" icon={<DeleteOutlined />} danger />
+        <Button
+          size="small"
+          type="text"
+          icon={<DeleteOutlined />}
+          danger
+          loading={deleting}
+          disabled={deleting}
+        />
       </Tooltip>
     </Popconfirm>
   );

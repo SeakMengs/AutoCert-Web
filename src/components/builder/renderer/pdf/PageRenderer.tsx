@@ -2,7 +2,6 @@
 import { memo, useRef, useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { Page } from "react-pdf";
-import { IS_PRODUCTION } from "@/utils/env";
 import AnnotateRenderer, {
   AnnotateRendererProps,
 } from "../annotate/AnnotateRenderer";
@@ -73,36 +72,46 @@ function PageRenderer({
       <Page
         _className="w-full h-auto object-cover"
         onRenderSuccess={onPageRenderSuccess}
-        scale={1}
+        scale={2}
         pageNumber={pageNumber}
         className="pointer-events-none select-none"
         canvasRef={(ref) => {
           if (ref) {
-            ref.style.border = selected ? `1px solid ${colorPrimary}` : "";
-            ref.style.imageRendering = "crisp-edges";
+            // ref.style.border = selected ? `1px solid ${colorPrimary}` : "";
+            // ref.style.imageRendering = "crisp-edges";
+
+            const ctx = ref.getContext("2d");
+            if (ctx) {
+              ctx.imageSmoothingEnabled = false;
+            }
           }
         }}
         renderAnnotationLayer={false}
         renderTextLayer={false}
       />
-      <AnnotateRenderer
-        roles={roles}
-        containerRef={containerRef}
-        pageNumber={pageNumber}
-        zoomScale={zoomScale}
-        pageOriginalSize={pdfViewPort}
-        previewMode={previewMode}
-        annotatesByPage={annotatesByPage}
-        selectedAnnotateId={selectedAnnotateId}
-        currentPdfPage={currentPdfPage}
-        onDragStop={onDragStop}
-        onResizeStop={onResizeStop}
-        onAnnotateSelect={onAnnotateSelect}
-      />
-      {!IS_PRODUCTION && (
-        <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
-          Dev only! Zoom: {zoomScale}
-        </div>
+      {pdfViewPort.height > 0 && pdfViewPort.width && (
+        <>
+          <AnnotateRenderer
+            roles={roles}
+            containerRef={containerRef}
+            pageNumber={pageNumber}
+            zoomScale={zoomScale}
+            pageOriginalSize={pdfViewPort}
+            previewMode={previewMode}
+            annotatesByPage={annotatesByPage}
+            selectedAnnotateId={selectedAnnotateId}
+            currentPdfPage={currentPdfPage}
+            onDragStop={onDragStop}
+            onResizeStop={onResizeStop}
+            onAnnotateSelect={onAnnotateSelect}
+          />
+
+          {/* {!IS_PRODUCTION && (
+            <div className="absolute top-2 left-2 bg-gray-900 text-white text-sm px-2 py-1 rounded">
+              Dev only! Zoom: {zoomScale}
+            </div>
+          )} */}
+        </>
       )}
     </div>
   );

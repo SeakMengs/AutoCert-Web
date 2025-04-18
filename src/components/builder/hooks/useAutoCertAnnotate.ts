@@ -96,16 +96,14 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
   };
 };
 
-export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
-
 export interface UseAutoCertAnnotateProps
   extends Pick<UseAutoCertProps, "roles" | "initialAnnotates"> {
-  onChange: ReturnType<typeof useAutoCertChange>["onChange"];
+  enqueueChange: ReturnType<typeof useAutoCertChange>["enqueueChange"];
 }
 
 export default function useAutoCertAnnotate({
   initialAnnotates,
-  onChange,
+  enqueueChange,
   roles,
 }: UseAutoCertAnnotateProps) {
   const [annotates, setAnnotates] = useState<AnnotateStates>(initialAnnotates);
@@ -116,10 +114,6 @@ export default function useAutoCertAnnotate({
     useState<SignatureAnnotateStates>({});
   const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
   const { message } = App.useApp();
-
-  useEffect(() => {
-    setAnnotates(initialAnnotates);
-  }, [initialAnnotates]);
 
   /**
    * Update column and signature annotates when annotates change
@@ -199,7 +193,7 @@ export default function useAutoCertAnnotate({
     }));
     setSelectedAnnotateId(newCA.id);
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.AnnotateColumnAdd,
       data: {
         ...newCA,
@@ -248,7 +242,7 @@ export default function useAutoCertAnnotate({
     }));
     setSelectedAnnotateId(updatedAnnotate.id);
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.AnnotateColumnUpdate,
       data: {
         ...updatedAnnotate,
@@ -286,7 +280,7 @@ export default function useAutoCertAnnotate({
     }));
     setSelectedAnnotateId(undefined);
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.AnnotateColumnRemove,
       data: {
         id: id,
@@ -320,7 +314,7 @@ export default function useAutoCertAnnotate({
     }));
     setSelectedAnnotateId(newSA.id);
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.AnnotateSignatureAdd,
       data: {
         ...newSA,
@@ -359,7 +353,7 @@ export default function useAutoCertAnnotate({
     }));
     setSelectedAnnotateId(undefined);
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.AnnotateSignatureRemove,
       data: {
         id: id,
@@ -399,7 +393,7 @@ export default function useAutoCertAnnotate({
       ),
     }));
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.AnnotateSignatureInvite,
       data: {
         id: id,
@@ -451,7 +445,7 @@ export default function useAutoCertAnnotate({
 
     switch (updatedAnnotate.type) {
       case AnnotateType.Column:
-        onChange({
+        enqueueChange({
           type: AutoCertChangeType.AnnotateColumnUpdate,
           data: {
             ...updatedAnnotate,
@@ -460,7 +454,7 @@ export default function useAutoCertAnnotate({
         });
         break;
       case AnnotateType.Signature:
-        onChange({
+        enqueueChange({
           type: AutoCertChangeType.AnnotateSignatureUpdate,
           data: {
             ...updatedAnnotate,
@@ -518,7 +512,7 @@ export default function useAutoCertAnnotate({
 
     switch (updatedAnnotate.type) {
       case AnnotateType.Column:
-        onChange({
+        enqueueChange({
           type: AutoCertChangeType.AnnotateColumnUpdate,
           data: {
             ...updatedAnnotate,
@@ -527,7 +521,7 @@ export default function useAutoCertAnnotate({
         });
         break;
       case AnnotateType.Signature:
-        onChange({
+        enqueueChange({
           type: AutoCertChangeType.AnnotateSignatureUpdate,
           data: {
             ...updatedAnnotate,
@@ -571,7 +565,7 @@ export default function useAutoCertAnnotate({
         if (a.type === AnnotateType.Column && a.value === oldTitle) {
           a.value = newTitle;
 
-          onChange({
+          enqueueChange({
             type: AutoCertChangeType.AnnotateColumnUpdate,
             data: {
               ...a,
@@ -605,7 +599,7 @@ export default function useAutoCertAnnotate({
           a.type === AnnotateType.Column && !tableTitles.includes(a.value)
         );
         if (!shouldKeep) {
-          onChange({
+          enqueueChange({
             type: AutoCertChangeType.AnnotateColumnRemove,
             data: {
               id: a.id,

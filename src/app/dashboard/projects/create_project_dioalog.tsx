@@ -171,9 +171,6 @@ export default function CreateProjectDialog({
         onOk={form.handleSubmit(handleCreateProject)}
         confirmLoading={form.formState.isSubmitting}
         maskClosable={!form.formState.isSubmitting}
-        okButtonProps={{
-          disabled: form.formState.isSubmitting,
-        }}
         destroyOnClose={true}
       >
         <Form

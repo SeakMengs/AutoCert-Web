@@ -20,6 +20,7 @@ import {
 } from "./ColumnTool";
 import { PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
+import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateAdd",
@@ -39,6 +40,7 @@ export default function ColumnAnnotateAdd({
   columns,
   onColumnAnnotateAdd,
 }: ColumnAnnotateAddProps) {
+  const [adding, setAdding] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<ColumnAnnotateFormSchema>();
 
@@ -63,13 +65,19 @@ export default function ColumnAnnotateAdd({
 
   const handleAddAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert add column annotate field confirmed");
+    setAdding(true);
 
     try {
       const values = await form.validateFields();
+
+      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+
       onColumnAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
     } catch (error) {
       logger.error("AutoCert add column annotate field failed", error);
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -88,6 +96,7 @@ export default function ColumnAnnotateAdd({
         open={modalOpen}
         onCancel={onModalCancel}
         onOk={handleAddAnnotate}
+        confirmLoading={adding}
       >
         {Array.isArray(columns) && columns.length === 0 && (
           <Alert
@@ -98,7 +107,7 @@ export default function ColumnAnnotateAdd({
             closable
           />
         )}
-        <Form form={form} layout="horizontal">
+        <Form form={form} layout="horizontal" disabled={adding}>
           <Form.Item
             required
             name="value"
@@ -118,7 +127,12 @@ export default function ColumnAnnotateAdd({
               ))}
             </Select>
           </Form.Item>
-          <Form.Item required name="fontName" label="Font Name" initialValue="Arial">
+          <Form.Item
+            required
+            name="fontName"
+            label="Font Name"
+            initialValue="Arial"
+          >
             <Select>
               {fontOptions.map((font) => (
                 <Option key={font.value} value={font.value}>

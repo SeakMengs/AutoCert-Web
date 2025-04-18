@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AutoCertTableColumn,
   AutoCertTableRow,
@@ -13,8 +13,11 @@ import { parseCSVUrl } from "../utils";
 const logger = createScopedLogger("components:builder:hook:useAutoCertTable");
 
 export interface UseAutoCertTableProps
-  extends Pick<UseAutoCertProps, "projectId" | "roles" | "csvFileUrl"> {
-  onChange: ReturnType<typeof useAutoCertChange>["onChange"];
+  extends Pick<
+    UseAutoCertProps,
+    "projectId" | "roles" | "csvFileUrl" | "tableTestConfig"
+  > {
+  enqueueChange: ReturnType<typeof useAutoCertChange>["enqueueChange"];
 }
 
 const denyMsg = "You do not have permission to update table";
@@ -23,14 +26,22 @@ export default function useAutoCertTable({
   roles,
   projectId,
   csvFileUrl,
-  onChange,
+  enqueueChange,
+  ...rest
 }: UseAutoCertTableProps) {
   const [rows, setRows] = useState<AutoCertTableRow[]>([]);
   const [columns, setColumns] = useState<AutoCertTableColumn[]>([]);
   const [tableLoading, setTableLoading] = useState<boolean>(false);
+  const initialCSVParsed = useRef<boolean>(false);
   const { message } = App.useApp();
 
   useEffect(() => {
+    if (rest.tableTestConfig) {
+      setRows(rest.tableTestConfig.rows);
+      setColumns(rest.tableTestConfig.columns);
+      return;
+    }
+
     const parseCSV = async () => {
       try {
         setTableLoading(true);
@@ -46,10 +57,16 @@ export default function useAutoCertTable({
         logger.error("Failed to parse CSV", error);
       } finally {
         setTableLoading(false);
+        initialCSVParsed.current = true;
       }
     };
 
     parseCSV();
+
+    return () => {
+      setTableLoading(false);
+      initialCSVParsed.current = false;
+    };
   }, [csvFileUrl]);
 
   const onTableChange = (
@@ -64,7 +81,7 @@ export default function useAutoCertTable({
     const csvContent = toCSv(r, c);
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-    onChange({
+    enqueueChange({
       type: AutoCertChangeType.TableUpdate,
       data: {
         csvFile: new File([blob], `${projectId}.csv`, {
@@ -254,6 +271,7 @@ export default function useAutoCertTable({
     rows,
     columns,
     tableLoading,
+    initialCSVParsed: initialCSVParsed.current,
     onRowAdd,
     onRowUpdate,
     onRowsDelete,
