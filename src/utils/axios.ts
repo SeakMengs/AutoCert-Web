@@ -21,6 +21,10 @@ export const api = axios.create({
   baseURL: apiBaseUrl,
   transformResponse: [
     (data: string) => {
+      if (typeof data !== "string") {
+        return data;
+      }
+
       // transform error response to zod formatted error
       return transformAutoCertErrorToZodFormattedError(JSON.parse(data));
     },
@@ -34,6 +38,10 @@ export const apiWithAuth = axios.create({
   // withCredentials: true,
   transformResponse: [
     (data: string) => {
+      if (typeof data !== "string") {
+        return data;
+      }
+
       // transform error response to zod formatted error
       return transformAutoCertErrorToZodFormattedError(JSON.parse(data));
     },

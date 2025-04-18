@@ -30,6 +30,7 @@ import {
   SignatoryStatus,
   SignatoryStatusLabels,
 } from "@/types/project";
+import { apiWithAuth } from "@/utils/axios";
 
 const logger = createScopedLogger("components:card:ProjectCard");
 
@@ -51,53 +52,78 @@ export default function ProjectCard({
   projectRole,
 }: ProjectCardProps) {
   const [loading, setLoading] = useState<boolean>(true);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>("/placeholder.svg");
 
   const getActions = (): CardProps["actions"] => {
+    const actions: CardProps["actions"] = [];
+    if (project.status === ProjectStatus.Completed) {
+      actions.push(
+        <Tooltip title="View Generated Certificates">
+          <Link href={`/dashboard/projects/${project.id}/certificates`}>
+            <EyeOutlined />
+          </Link>
+        </Tooltip>,
+      );
+    }
+
     switch (projectRole) {
       case ProjectRole.Requestor:
-        return [
-          <Tooltip title="View Generated Certificates">
-            <Link href={`/dashboard/projects/${project.id}/certificates`}>
-              <EyeOutlined
-                disabled={project.status != ProjectStatus.Completed}
-              />
-            </Link>
-          </Tooltip>,
+        actions.push(
           <Tooltip title="Template Builder">
             <Link href={`/dashboard/projects/${project.id}/builder`}>
               <ToolOutlined />
             </Link>
           </Tooltip>,
-        ];
+        );
+        break;
       case ProjectRole.Signatory:
-        return [
-          <Tooltip title="View Generated Certificates">
-            <Link href={`/dashboard/projects/${project.id}/certificates`}>
-              <EyeOutlined
-                disabled={project.status != ProjectStatus.Completed}
-              />
-            </Link>
-          </Tooltip>,
+        actions.push(
           <Tooltip title="Approve signature request">
             <Link href={`/dashboard/projects/${project.id}/sign`}>
               <SignatureOutlined />
             </Link>
           </Tooltip>,
-        ];
+        );
+        break;
     }
+
+    return actions;
+  };
+
+  const fetchThumbnail = async (): Promise<string> => {
+    try {
+      const res = await apiWithAuth.get(
+        `/api/v1/projects/${project.id}/thumbnail`,
+        {
+          responseType: "blob",
+        },
+      );
+
+      if (res.status === 200) {
+        const blob = res.data;
+        const url = URL.createObjectURL(blob);
+        return url;
+      }
+    } catch (error) {
+      logger.error("Error fetching thumbnail", error);
+    }
+
+    return "/placeholder.svg";
   };
 
   useEffect(() => {
-    // delay loading state for 1 second
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timeout);
+    fetchThumbnail()
+      .then((url) => {
+        setThumbnailUrl(url);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (
     <Card
-      loading={loading}
+      // loading={loading}
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
         loading ? (
@@ -106,16 +132,16 @@ export default function ProjectCard({
             className="rounded-sm object-cover w-full"
             style={{
               width: 256,
-              height: 144,
+              height: 168,
             }}
           />
         ) : (
           <Image
-            className="rounded-sm object-cover w-full h-auto"
+            className="rounded-sm object-cover w-full"
             alt="Certificate Template"
-            src={"/placeholder.svg"}
+            src={`${thumbnailUrl}`}
             width={256}
-            height={144}
+            height={168}
             unoptimized
           />
         )
@@ -168,7 +194,7 @@ export default function ProjectCard({
                   ) : (
                     <CloseCircleFilled
                       style={{
-                        color: "#ff4d4f",
+                        color: "#1677FF",
                         fontSize: "16px",
                       }}
                     />

@@ -182,7 +182,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
       }
     >
       <Splitter.Panel className="p-0 overflow-hidden">
-        <Header />
+        <Header title={project.title} />
         <Flex
           // className="w-full h-full p-2 overflow-auto scrollbar-hide"
           className="relative w-full overflow-auto"

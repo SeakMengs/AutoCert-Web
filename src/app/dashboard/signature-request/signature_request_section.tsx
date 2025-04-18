@@ -1,154 +1,219 @@
-// "use client";
-// import React, { useEffect, useState } from "react";
-// import ProjectCard, {
-//   ProjectCardProps,
-// } from "@/components/card/ProjectCard";
-// import moment from "moment";
-// import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
-// import {
-//   Col,
-//   Empty,
-//   Flex,
-//   Input,
-//   Row,
-//   Select,
-//   SelectProps,
-//   Space,
-//   Typography,
-// } from "antd";
-// import { useRouter, useSearchParams } from "next/navigation";
-// import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import ProjectCard from "@/components/card/ProjectCard";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import {
+  Col,
+  Empty,
+  Flex,
+  Input,
+  Pagination,
+  Row,
+  Select,
+  SelectProps,
+  Space,
+  Typography,
+} from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
+import {
+  ProjectRole,
+  ProjectStatus,
+  ProjectStatusLabels,
+} from "@/types/project";
+import useAsync from "@/hooks/useAsync";
+import { PageSize } from "@/utils/pagination";
+import FetchLoading from "@/components/loading/FetchLoading";
+import debounce from "lodash.debounce";
+import DisplayZodErrors from "@/components/error/DisplayZodErrors";
+import {
+  getSignatoryProjectsAction,
+  GetSignatoryProjectsParams,
+} from "./action";
 
-// const { Search } = Input;
-// const { Title } = Typography;
+const { Search } = Input;
+const { Title } = Typography;
 
-// export default function SignatureRequestSection() {
-//   const searchParams = useSearchParams();
-//   const router = useRouter();
+// 0.5 seconds
+const DEBOUNCE_MS = 500;
 
-//   const mockProject = {
-//     id: "0",
-//     title: "Environmental Protection Initiative",
-//     createdAt: moment().subtract(1, "day").toDate(),
-//     cover:
-//       "https://marketplace.canva.com/EAFy42rCTA0/1/0/1600w/canva-blue-minimalist-certificate-of-achievement-_asVJz8YgJE.jpg",
-//     status: "Completed",
-//     userRole: "signatory",
-//     signatories: [
-//       {
-//         id: 1,
-//         name: "Alice Johnson",
-//         avatar: "https://i.pravatar.cc/40?u=alice",
-//         signed: true,
-//       },
-//       {
-//         id: 2,
-//         name: "Bob Smith",
-//         avatar: "https://i.pravatar.cc/40?u=bob",
-//         signed: false,
-//       },
-//       {
-//         id: 3,
-//         name: "Charlie Davis",
-//         avatar: "https://i.pravatar.cc/40?u=jonh",
-//         signed: true,
-//       },
-//       {
-//         id: 4,
-//         name: "Diana Ross",
-//         avatar: "https://i.pravatar.cc/40?u=jack",
-//         signed: false,
-//       },
-//     ] satisfies ProjectSignatory[],
-//   } satisfies ProjectCardProps;
+export default function SignatureRequestSection() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-//   // Copy but random date and name
-//   const mockProjects = Array.from({ length: 20 }, (_, index) => ({
-//     ...mockProject,
-//     id: index.toString(),
-//     title: `Project ${index + 1}`,
-//     createdAt: moment().subtract(index, "days").toDate(),
-//     status: Object.values(ProjectStatus)[index % 4],
-//   }));
+  const queryPage = searchParams.get("page") || 1;
+  const querySearch = searchParams.get("search") || "";
+  const queryStatus =
+    searchParams
+      .get("filters")
+      ?.split(",")
+      .filter((f) => f !== "") || Object.values(ProjectStatus);
 
-//   const querySearch = searchParams.get("search") || "";
-//   const queryFilters = searchParams.get("filters")
-//     ? searchParams.get("filters")!.split(",")
-//     : Object.values(ProjectStatus);
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(
+    querySearch,
+  );
+  const [selectedStatus, setSelectedStatus] = useState<
+    string[] | ProjectStatus[]
+  >(queryStatus);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<
+    string | undefined
+  >(searchQuery);
+  const [page, setPage] = useState<number>(Number(queryPage));
 
-//   const [searchQuery, setSearchQuery] = useState<string>(querySearch);
-//   const [selectedFilters, setSelectedFilters] =
-//     useState<string[]>(queryFilters);
+  const statusOptions = Object.values(ProjectStatus).map((status) => ({
+    value: status,
+    label: ProjectStatusLabels[status],
+  })) satisfies SelectProps["options"];
 
-//   useEffect(() => {
-//     const params = new URLSearchParams();
-//     if (searchQuery) {
-//       params.set("search", searchQuery);
-//     }
+  const getSignatoryProjects = useAsync(getSignatoryProjectsAction, {
+    defaultLoading: true,
+  });
 
-//     if (Array.isArray(selectedFilters) && selectedFilters.length) {
-//       params.set("filters", selectedFilters.join(","));
-//     } else {
-//       params.delete("filters");
-//     }
+  const debounceSearch = useRef(
+    debounce(async (val: GetSignatoryProjectsParams) => {
+      const newSearchParams = new URLSearchParams({
+        search: val.search || "",
+        page: String(val.page),
+      });
 
-//     router.replace(`?${params.toString()}`);
-//   }, [searchQuery, selectedFilters, router]);
+      Array.isArray(val.status) &&
+        val.status.forEach((s) => {
+          newSearchParams.append("status", s.toString());
+        });
 
-//   const statusOptions = Object.values(ProjectStatus).map((status) => ({
-//     value: status,
-//     label: status,
-//   })) satisfies SelectProps["options"];
+      router.replace(`?${newSearchParams.toString()}`);
+      await getSignatoryProjects.fetch(val);
 
-//   const filteredProjects = mockProjects.filter((project) => {
-//     const matchesSearch = project.title
-//       .toLowerCase()
-//       .includes(searchQuery.toLowerCase());
-//     const matchesStatus =
-//       Array.isArray(selectedFilters) &&
-//       selectedFilters.includes(project.status);
-//     return matchesSearch && matchesStatus;
-//   });
+      setDebouncedSearchQuery(val.search);
+    }, DEBOUNCE_MS),
+  ).current;
 
-//   return (
-//     <>
-//       <Space direction="vertical" size={"middle"} className="w-full">
-//       <Title level={4} className="m-0">Signature Request</Title>
-//         <Flex vertical gap={16}>
-//           <Search
-//             placeholder="Search by project title"
-//             allowClear
-//             enterButton={<SearchOutlined />}
-//             onChange={(e) => setSearchQuery(e.target.value)}
-//             className="w-full max-w-[450px]"
-//           />
-//           <Select
-//             defaultValue={selectedFilters}
-//             mode="multiple"
-//             placeholder="Filter by status"
-//             options={statusOptions}
-//             onChange={(value) => setSelectedFilters(value as string[])}
-//             allowClear
-//             suffixIcon={<FilterOutlined />}
-//             className="w-full max-w-[450px]"
-//             tagRender={SelectStatusTag}
-//           />
-//         </Flex>
+  const projects = getSignatoryProjects.data?.projects || [];
+  const totalPage = getSignatoryProjects.data?.totalPage || 0;
+  const total = getSignatoryProjects.data?.total || 0;
+  const pageSize = getSignatoryProjects.data?.pageSize || PageSize;
 
-//         {Array.isArray(filteredProjects) && filteredProjects.length === 0 ? (
-//           <Flex vertical align="center" justify="center">
-//             <Empty description="No projects found" />
-//           </Flex>
-//         ) : (
-//           <Row gutter={[16, 16]}>
-//             {filteredProjects.map((project, index) => (
-//               <Col key={index} xs={24} sm={12} md={8} lg={4}>
-//                 <ProjectCard {...project} />
-//               </Col>
-//             ))}
-//           </Row>
-//         )}
-//       </Space>
-//     </>
-//   );
-// }
+  useEffect(() => {
+    search();
+
+    return () => {
+      // Cancel the debounce on unmount
+      debounceSearch.cancel();
+    };
+  }, [searchQuery, selectedStatus, page, router, debounceSearch]);
+
+  const onSearchChange = (value: string): void => {
+    setSearchQuery(value);
+  };
+
+  const onStatusChange = (value: string[]): void => {
+    setSelectedStatus(value);
+  };
+
+  const onPageChange = (p: number, pSize: number): void => {
+    setPage(p);
+  };
+
+  const search = async (): Promise<void> => {
+    await debounceSearch({
+      page: Number(page),
+      pageSize: PageSize,
+      search: searchQuery,
+      status: selectedStatus.map((filter) => Number(filter) as ProjectStatus),
+    });
+  };
+
+  const onErrorRetry = async () => {
+    await search();
+  };
+
+  return (
+    <>
+      <Space direction="vertical" size={"middle"} className="w-full">
+        <div className="flex justify-between items-center">
+          <Title level={4} className="m-0">
+            Signature Request
+          </Title>
+        </div>
+        <Flex vertical gap={16}>
+          <Search
+            placeholder="Search by project title"
+            allowClear
+            enterButton={<SearchOutlined />}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full max-w-[450px]"
+          />
+          <Select
+            defaultValue={selectedStatus}
+            labelRender={(labelProps) => labelProps.label}
+            mode="multiple"
+            placeholder="Filter by status"
+            options={statusOptions}
+            onChange={(value) => onStatusChange(value as string[])}
+            allowClear
+            suffixIcon={<FilterOutlined />}
+            className="w-full max-w-[450px]"
+            tagRender={SelectStatusTag}
+          />
+        </Flex>
+
+        {getSignatoryProjects.loading ? (
+          <Flex vertical align="center" justify="center">
+            <FetchLoading />
+          </Flex>
+        ) : getSignatoryProjects.error ? (
+          <Flex vertical align="center" justify="center">
+            <DisplayZodErrors
+              errors={getSignatoryProjects.error}
+              onRetry={onErrorRetry}
+            />
+          </Flex>
+        ) : Array.isArray(projects) && projects.length === 0 ? (
+          <Flex vertical align="center" justify="center">
+            <Empty
+              description={
+                <p className="text-muted-foreground">
+                  {debouncedSearchQuery ? (
+                    <>
+                      No signature request found for project{" "}
+                      <strong>{debouncedSearchQuery}</strong>
+                    </>
+                  ) : (
+                    <>No signature requests</>
+                  )}
+                </p>
+              }
+            />
+          </Flex>
+        ) : (
+          <>
+            <Row gutter={[16, 16]}>
+              {projects.map((p) => (
+                <Col key={p.id} xs={24} sm={12} md={8} lg={4}>
+                  <ProjectCard
+                    project={p}
+                    projectRole={ProjectRole.Signatory}
+                  />
+                </Col>
+              ))}
+            </Row>
+          </>
+        )}
+        {!getSignatoryProjects.loading && (
+          <Pagination
+            align="end"
+            onChange={onPageChange}
+            pageSize={pageSize}
+            defaultCurrent={page}
+            total={total}
+            showQuickJumper
+            responsive
+            showTotal={(total, range): string =>
+              `Showing ${range[0]}-${range[1]} of ${total} items`
+            }
+          />
+        )}
+      </Space>
+    </>
+  );
+}

@@ -3,7 +3,11 @@ import { Flex, theme, Typography } from "antd";
 
 const { Title } = Typography;
 
-export default function Header() {
+export interface BuilderHeaderProps {
+  title: string;
+}
+
+export default function Header({title}: BuilderHeaderProps) {
     const {
       token: { colorSplit, colorBgContainer },
     } = theme.useToken();
@@ -20,7 +24,7 @@ export default function Header() {
       >
         <Flex className="w-full h-full p-2" align="center">
           <Title level={4} style={{ margin: 0 }}>
-            Certificate of Achievement
+            {title}
           </Title>
         </Flex>
       </header>
