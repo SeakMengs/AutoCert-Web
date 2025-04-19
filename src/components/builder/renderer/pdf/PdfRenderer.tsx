@@ -3,7 +3,7 @@ import { Document, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
 import { AnnotateStates } from "../../hooks/useAutoCertAnnotate";
@@ -46,8 +46,19 @@ function PdfRenderer({
 }: PdfRendererProps) {
   const [pdfPages, setPdfPages] = useState<number>(0);
 
+  // Prevent page render before loading the pdf
+  // Ref: https://github.com/wojtekmaj/react-pdf/issues/974
+  useEffect(() => {
+    if (pdfFile) {
+      setPdfPages(0);
+    }
+  }, [pdfFile]);
+
   return (
     <Document
+      // Key must change every refresh, since we use presigned url, using pdfFile is ok
+      // Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216
+      key={pdfFile}
       file={pdfFile}
       onLoadSuccess={(pdf) => {
         setPdfPages(pdf.numPages);

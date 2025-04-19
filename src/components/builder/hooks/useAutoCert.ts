@@ -133,6 +133,11 @@ export default function useAutoCert({
   const onDocumentLoadSuccess = async (
     pdf: DocumentCallback,
   ): Promise<void> => {
+    if (!pdf) {
+      logger.warn("Pdf loaded but Pdf is null");
+      return;
+    }
+
     logger.debug(`Pdf loaded, total pages: ${pdf.numPages}`);
 
     setTotalPdfPage(pdf.numPages);
