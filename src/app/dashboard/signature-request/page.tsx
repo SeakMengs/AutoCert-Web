@@ -1,14 +1,11 @@
-"use client";
 import { Space } from "antd";
 import SignatureSection from "./signature_section";
 import SignatureRequestSection from "./signature_request_section";
 
 export default function DashboardSignatureRequest() {
-  const onSignatureChange = () => {};
-
   return (
     <Space direction="vertical" size={"middle"} className="w-full p-4">
-      <SignatureSection onSignatureChange={onSignatureChange} />
+      <SignatureSection />
       <SignatureRequestSection />
     </Space>
   );

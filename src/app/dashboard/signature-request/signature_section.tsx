@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import {
   Button,
@@ -27,22 +27,25 @@ import {
 } from "@ant-design/icons";
 import { trimSvgWhitespace } from "@/utils/svg";
 import Marquee from "react-fast-marquee";
-import { UploadChangeParam, UploadFile } from "antd/es/upload";
+import { UploadChangeParam, UploadFile, UploadProps } from "antd/es/upload";
 import { AggregationColor } from "antd/es/color-picker/color";
 import { createScopedLogger } from "@/utils/logger";
+import useAsync from "@/hooks/useAsync";
+import { addSignatureAction } from "./action";
+import { ALLOWED_SIG_FILE_TYPES } from "./schema";
+import { base64ToFile } from "@/utils/file";
+import FetchLoading from "@/components/loading/FetchLoading";
+import { cn } from "@/utils";
+import FormErrorMessages from "@/components/error/FormErrorMessages";
 
 const { Title } = Typography;
 const logger = createScopedLogger(
   "app:dashboard:signature-request:signature-section",
 );
 
-interface SignatureSectionProps {
-  onSignatureChange: (base64Signature: string | null) => void;
-}
+interface SignatureSectionProps {}
 
-export default function SignatureSection({
-  onSignatureChange,
-}: SignatureSectionProps) {
+export default function SignatureSection({}: SignatureSectionProps) {
   const {
     token: { colorSplit },
   } = theme.useToken();
@@ -50,20 +53,54 @@ export default function SignatureSection({
   const [signature, setSignature] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const addSignature = useAsync(addSignatureAction);
+
   const handleSignatureChange = (base64Signature: string | null): void => {
     logger.debug("Signature change");
     setSignature(base64Signature);
-    onSignatureChange(base64Signature);
   };
 
-  const onSignatureSave = (base64Signature: string | null): void => {
-    handleSignatureChange(base64Signature);
+  useEffect(() => {
+    if (addSignature.data?.signature.url) {
+      setSignature(addSignature.data.signature.url);
+    }
+  }, [addSignature.data?.signature.url]);
+
+  const onSignatureSave = async (sig: string | File): Promise<boolean> => {
+    logger.debug("addSignatureState signature");
+
+    let file: File = sig as File;
+
+    if (typeof sig === "string") {
+      const base64Signature = sig;
+      file = base64ToFile(base64Signature, "signature.svg");
+    }
+
+    const sucess = await addSignature.fetch({
+      signatureFile: file,
+    });
+
+    if (!sucess) {
+      message.error("Failed to save signature");
+      return false;
+    }
+
+    handleSignatureChange(URL.createObjectURL(file));
     setIsModalVisible(false);
+
+    message.success("Signature saved successfully");
+    return true;
   };
 
   const removeSignature = (): void => {
     handleSignatureChange(null);
     message.success("Signature removed successfully");
+  };
+
+  const onTabChange = (activeKey: string): void => {
+    logger.debug("Tab changed", activeKey);
+
+    addSignature.reset();
   };
 
   const tabs = [
@@ -74,7 +111,12 @@ export default function SignatureSection({
           <UploadOutlined /> Upload
         </span>
       ),
-      children: <SignatureUpload onSignatureSave={onSignatureSave} />,
+      children: (
+        <SignatureUpload
+          onSignatureSave={onSignatureSave}
+          addSignatureState={addSignature}
+        />
+      ),
     },
     {
       key: "2",
@@ -83,14 +125,21 @@ export default function SignatureSection({
           <SignatureOutlined /> Draw
         </span>
       ),
-      children: <SignatureDrawer onSignatureSave={onSignatureSave} />,
+      children: (
+        <SignatureDrawer
+          onSignatureSave={onSignatureSave}
+          addSignatureState={addSignature}
+        />
+      ),
     },
   ] satisfies TabsProps["items"];
 
   return (
     <div>
       <Space direction="vertical">
-      <Title level={4} className="m-0">Your Signature</Title>
+        <Title level={4} className="m-0">
+          Your Signature
+        </Title>
         <Alert
           banner
           message={
@@ -137,56 +186,99 @@ export default function SignatureSection({
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
+        destroyOnClose
       >
-        <Tabs items={tabs} defaultActiveKey={tabs[0].key} />
+        <Tabs
+          items={tabs}
+          defaultActiveKey={tabs[0].key}
+          onChange={onTabChange}
+        />
       </Modal>
     </div>
   );
 }
 
-interface SignatureUploadProps {
-  onSignatureSave: (base64Signature: string | null) => void;
+interface SharedSignatureModalProps {
+  onSignatureSave: (base64Signature: string | File) => Promise<boolean>;
+  addSignatureState: Pick<
+    ReturnType<typeof useAsync<ReturnType<typeof addSignatureAction>>>,
+    "loading" | "error"
+  >;
 }
 
-function SignatureUpload({ onSignatureSave }: SignatureUploadProps) {
+interface SignatureUploadProps extends SharedSignatureModalProps {}
+
+function SignatureUpload({
+  onSignatureSave,
+  addSignatureState,
+}: SignatureUploadProps) {
   const { message } = App.useApp();
 
-  const handleSignatureUpload = (info: UploadChangeParam<UploadFile>): void => {
-    if (info.file.status === "done") {
-      const file = info.file.originFileObj;
-      if (!file) {
-        message.error("Failed to upload signature");
-        return;
-      }
-
-      const base64 = URL.createObjectURL(file);
-      onSignatureSave(base64);
-      message.success("Signature uploaded successfully");
+  const handleSignatureUpload = async (
+    info: UploadChangeParam<UploadFile>,
+  ): Promise<void> => {
+    switch (info.file.status) {
+      case "done":
+        // since this will never call cuz the beforeUpload is set to false
+        break;
+      case "removed":
+        message.success(`${info.file.name} file (client) removed successfully`);
+        break;
+      case "error":
+        message.error(`${info.file.name} file (client) upload failed.`);
+        break;
     }
   };
 
+  // antd will call handleBeforeFileUpload when the file is selected
+  const handleBeforeFileUpload: UploadProps["beforeUpload"] = async (file) => {
+    if (!file) {
+      message.error("Failed to upload signature");
+      return;
+    }
+
+    await onSignatureSave(file);
+
+    // if return true, antd will upload to the server which is not what we want
+    return false;
+  };
+
   return (
-    <Upload.Dragger
-      name="file"
-      accept=".png, .svg"
-      onChange={handleSignatureUpload}
-      showUploadList={false}
-    >
-      <p className="ant-upload-drag-icon">
-        <UploadOutlined />
-      </p>
-      <p className="ant-upload-text">
-        Click or drag file to this area to upload
-      </p>
-    </Upload.Dragger>
+    <Space direction="vertical" className="w-full h-full">
+      <Upload.Dragger
+        name="file"
+        accept={ALLOWED_SIG_FILE_TYPES.map(
+          (type) => `.${type.split("/")[1].replace("+xml", "")}`,
+        ).join(",")}
+        onChange={handleSignatureUpload}
+        beforeUpload={handleBeforeFileUpload}
+        showUploadList={false}
+        multiple={false}
+        maxCount={1}
+        disabled={addSignatureState.loading}
+      >
+        <FetchLoading spinning={addSignatureState.loading}>
+          <p className="ant-upload-drag-icon">
+            <UploadOutlined />
+          </p>
+          <p className="ant-upload-text">
+            Click or drag file to this area to upload
+          </p>
+        </FetchLoading>
+      </Upload.Dragger>
+      {addSignatureState.error && (
+        <FormErrorMessages errors={addSignatureState.error} />
+      )}
+    </Space>
   );
 }
 
-interface SignatureDrawerProps {
-  onSignatureSave: (base64SvgSignature: string | null) => void;
-}
+interface SignatureDrawerProps extends SharedSignatureModalProps {}
 
-function SignatureDrawer({ onSignatureSave }: SignatureDrawerProps) {
+function SignatureDrawer({
+  onSignatureSave,
+  addSignatureState,
+}: SignatureDrawerProps) {
   const defaultSignatureHex = "#000000";
   const signatureRef = useRef<SignatureCanvas | null>(null);
   const [signatureHex, setSignatureHex] = useState<string>(defaultSignatureHex);
@@ -217,8 +309,6 @@ function SignatureDrawer({ onSignatureSave }: SignatureDrawerProps) {
 
       const svg = signatureRef.current.toDataURL("image/svg+xml");
       const trimmedSvg = trimSvgWhitespace(svg);
-      clearSignature();
-      message.success("Signature saved successfully");
 
       return trimmedSvg;
     } catch (error) {
@@ -229,6 +319,19 @@ function SignatureDrawer({ onSignatureSave }: SignatureDrawerProps) {
     }
 
     return null;
+  };
+
+  const onSignatureSaveClick = async (): Promise<void> => {
+    const base64Signature = getBase64SvgSignature();
+    if (!base64Signature) {
+      message.error("Failed to get signature from canvas");
+      return;
+    }
+
+    const ok = await onSignatureSave(base64Signature);
+    if (ok) {
+      clearSignature();
+    }
   };
 
   const clearSignature = (): void => {
@@ -249,25 +352,37 @@ function SignatureDrawer({ onSignatureSave }: SignatureDrawerProps) {
           penColor={signatureHex}
           velocityFilterWeight={0.9}
           canvasProps={{
-            className: "w-full h-full signatureCanvas",
+            className: cn("w-full h-full signatureCanvas", {
+              "pointer-events-none select-none": addSignatureState.loading,
+            }),
             style: { border: "1px solid #d9d9d9", borderRadius: "2px" },
           }}
         />
       </div>
+      {addSignatureState.error && (
+        <FormErrorMessages errors={addSignatureState.error} />
+      )}
       <Flex gap={8} align="center" wrap>
         <ColorPicker
           defaultValue={signatureHex}
           showText
           onChange={onColorChange}
           presets={signatureColorPresets}
+          disabled={addSignatureState.loading}
         />
-        <Button onClick={clearSignature} icon={<ClearOutlined />}>
+        <Button
+          onClick={clearSignature}
+          icon={<ClearOutlined />}
+          disabled={addSignatureState.loading}
+        >
           Clear
         </Button>
         <Button
           type="primary"
-          onClick={() => onSignatureSave(getBase64SvgSignature())}
+          onClick={onSignatureSaveClick}
           icon={<SaveOutlined />}
+          loading={addSignatureState.loading}
+          disabled={addSignatureState.loading}
         >
           Save Signature
         </Button>

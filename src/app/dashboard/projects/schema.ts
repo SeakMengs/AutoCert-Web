@@ -29,6 +29,7 @@ export const getOwnProjectsParamsSchema = z.object({
 });
 
 const MAX_PDF_FILE_SIZE = 5 * MB;
+export const ALLOWED_TEMPLATE_FILE_TYPES = ["application/pdf"];
 export const createProjectSchema = z.object({
   title: z
     .string({ required_error: "Please enter a project title." })
@@ -42,8 +43,10 @@ export const createProjectSchema = z.object({
     .refine((file) => file && file instanceof File, {
       message: "Please upload a valid PDF file.",
     })
-    .refine((file) => file.type === "application/pdf", {
-      message: "Only PDF file is allowed. Please upload a .pdf file.",
+    .refine((file) => file.type && ALLOWED_TEMPLATE_FILE_TYPES.includes(file.type), {
+      message: `Invalid file type. Only allow ${ALLOWED_TEMPLATE_FILE_TYPES.map(
+        (type) => type.replace("application/", ""),
+      ).join(", ")} formats.`,
     })
     .refine((file) => file.size <= MAX_PDF_FILE_SIZE, {
       message: `PDF file size must be ${readableFileSize(

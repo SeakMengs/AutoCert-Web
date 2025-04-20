@@ -152,7 +152,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
 
       console.log("saveChanges to backend", changes);
       try {
-        const res = await apiWithAuth.patchForm(
+        const res = await apiWithAuth.putForm(
           `/api/v1/projects/${project.id}/builder`,
           formData,
         );

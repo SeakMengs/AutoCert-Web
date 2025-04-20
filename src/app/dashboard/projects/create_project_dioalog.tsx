@@ -18,7 +18,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { FormItem } from "react-hook-form-antd";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProjectSchema } from "./schema";
+import { ALLOWED_TEMPLATE_FILE_TYPES, createProjectSchema } from "./schema";
 import { createProjectAction } from "./action";
 import { UploadChangeParam } from "antd/es/upload";
 import useAsync from "@/hooks/useAsync";
@@ -156,7 +156,7 @@ export default function CreateProjectDialog({
         form.setValue("templateFile", null);
         break;
       case "error":
-        message.error(`${info.file.name} file upload failed.`);
+        message.error(`${info.file.name} file (client) upload failed.`);
         break;
     }
   };
@@ -196,7 +196,9 @@ export default function CreateProjectDialog({
           >
             <Upload.Dragger
               name="templateFile"
-              accept=".pdf"
+              accept={ALLOWED_TEMPLATE_FILE_TYPES.map(
+                (type) => `.${type.split("/")[1]}`,
+              ).join(",")}
               showUploadList={true}
               beforeUpload={handleBeforeFileUpload}
               multiple={false}
