@@ -27,6 +27,8 @@ import {
   EditableHeaderCellProps,
 } from "./EditableTable";
 import { parseCSVFile } from "../../utils";
+import { wait } from "@/utils";
+import { FAKE_LOADING_TIME } from "../../hooks/useAutoCertChange";
 
 const logger = createScopedLogger(
   "components:builder:panel:table:AutoCertTable",
@@ -116,15 +118,23 @@ function AutoCertTable({
         </div>
       ),
       onOk: async () => {
-        const values = await addRowForm.validateFields();
-        const newRow: AutoCertTableRow = {
-          ...values,
-          key: nanoid(),
-        };
+        try {
+          const values = await addRowForm.validateFields();
 
-        onRowAdd(newRow);
-        addRowForm.resetFields();
-        message.success("New row added.");
+          await wait(FAKE_LOADING_TIME / 2);
+
+          const newRow: AutoCertTableRow = {
+            ...values,
+            key: nanoid(),
+          };
+
+          onRowAdd(newRow);
+          addRowForm.resetFields();
+          message.success("New row added.");
+        } catch (error) {
+          logger.error("Failed to add new row", error);
+          message.error("Failed to add new row.");
+        }
       },
       maskClosable: true,
       centered: true,
@@ -148,30 +158,35 @@ function AutoCertTable({
         </Form>
       ),
       onOk: async () => {
-        const { columnTitle } = await addColumForm.validateFields();
+        try {
+          const { columnTitle } = await addColumForm.validateFields();
 
-        if (!columnTitle) {
-          message.warning("Column title is empty.");
+          if (!columnTitle) {
+            message.warning("Column title is empty.");
+            addColumForm.resetFields();
+            return;
+          }
+
+          if (columns.some((col) => col.title === columnTitle)) {
+            message.warning("Column title already exists.");
+            addColumForm.resetFields();
+            return;
+          }
+
+          const newColumn = {
+            title: columnTitle,
+            dataIndex: columnTitle,
+            editable: true,
+          } satisfies AutoCertTableColumn;
+
+          onColumnAdd(newColumn);
           addColumForm.resetFields();
-          return;
+
+          message.success("New column added.");
+        } catch (error) {
+          logger.error("Failed to add new column", error);
+          message.error("Failed to add new column.");
         }
-
-        if (columns.some((col) => col.title === columnTitle)) {
-          message.warning("Column title already exists.");
-          addColumForm.resetFields();
-          return;
-        }
-
-        const newColumn = {
-          title: columnTitle,
-          dataIndex: columnTitle,
-          editable: true,
-        } satisfies AutoCertTableColumn;
-
-        onColumnAdd(newColumn);
-        addColumForm.resetFields();
-
-        message.success("New column added.");
       },
       maskClosable: true,
       centered: true,
@@ -341,6 +356,7 @@ function AutoCertTable({
         type="file"
         id="csvInput"
         onChange={handleCSVFileUpload}
+        disabled={parsingCSV}
       />
       <Button
         type="primary"
@@ -352,6 +368,8 @@ function AutoCertTable({
         }}
         size="small"
         icon={<ImportOutlined />}
+        loading={parsingCSV}
+        disabled={parsingCSV}
       >
         Import from CSV
       </Button>

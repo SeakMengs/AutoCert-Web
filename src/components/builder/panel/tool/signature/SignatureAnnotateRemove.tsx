@@ -6,6 +6,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { SignatoryStatus } from "@/types/project";
 import { useState } from "react";
 import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
+import { wait } from "@/utils";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateRemove",
@@ -28,7 +29,7 @@ export default function SignatureAnnotateRemove({
     setDeleting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+      await wait(FAKE_LOADING_TIME);
 
       onSignatureAnnotateRemove(signatureAnnotate.id);
     } catch (error) {

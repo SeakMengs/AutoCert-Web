@@ -5,6 +5,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { boolean } from "zod";
 import { useState } from "react";
 import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
+import { wait } from "@/utils";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateInvite",
@@ -32,7 +33,7 @@ export default function SignatureAnnotateInvite({
 
     try {
       // fake loading to simulate the invite process
-      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+      await wait(FAKE_LOADING_TIME);
 
       onSignatureAnnotateInvite(signatureAnnotate.id);
     } catch (error) {

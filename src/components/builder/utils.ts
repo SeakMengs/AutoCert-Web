@@ -19,9 +19,8 @@ export function parseCSVFile(
       header: true,
       skipEmptyLines: true,
       complete: (result) => {
-        logger.debug("Parsed csv file", result);
-        const parsedData = processCSVData(result.data as any);
-        resolve(parsedData);
+        logger.debug("Parsed csv url", result);
+        resolve(processCSVData(result));
       },
       error: (error) => {
         logger.error("Failed to parse csv file", error);
@@ -40,9 +39,8 @@ export function parseCSVUrl(
       header: true,
       skipEmptyLines: true,
       complete: (result) => {
-        logger.debug("Parsed csv from URL", result);
-        const parsedData = processCSVData(result.data as any);
-        resolve(parsedData);
+        logger.debug("Parsed csv url", result);
+        resolve(processCSVData(result));
       },
       error: (error) => {
         logger.error("Failed to parse csv from URL", error);
@@ -53,42 +51,25 @@ export function parseCSVUrl(
 }
 
 // Helper function to process the parsed CSV data
-function processCSVData(data: Record<string, any>[]): {
+function processCSVData(result: Papa.ParseResult<unknown>): {
   columns: AutoCertTableColumn[];
   rows: AutoCertTableRow[];
 } {
-  const newColumns: AutoCertTableColumn[] = [];
-  const newRows: AutoCertTableRow[] = [];
+  // result.data === [] when no rows
+  // result.meta.fields === ["name"]
+  const fields = result.meta.fields ?? [];
 
-  if (data.length === 0) {
-    logger.error("No data found in csv file");
-    return { columns: [], rows: [] };
-  }
+  const columns: AutoCertTableColumn[] = fields.map((field) => ({
+    title: field,
+    dataIndex: field,
+    editable: true,
+  }));
 
-  // Get column names from the first row
-  const columnNames = Object.keys(data[0]);
+  const rows: AutoCertTableRow[] = (result.data as Record<string, any>[]).map(
+    (row, idx) => ({ key: idx, ...row }),
+  );
 
-  // Create columns
-  columnNames.forEach((colName) => {
-    newColumns.push({
-      title: colName,
-      dataIndex: colName,
-      editable: true,
-    });
-  });
-
-  // Create rows
-  data.forEach((row) => {
-    const newRow: AutoCertTableRow = {
-      key: nanoid(),
-    };
-    columnNames.forEach((colName) => {
-      newRow[colName] = row[colName];
-    });
-    newRows.push(newRow);
-  });
-
-  return { columns: newColumns, rows: newRows };
+  return { columns, rows };
 }
 
 export function pxToPercent(value: number, total: number): number {

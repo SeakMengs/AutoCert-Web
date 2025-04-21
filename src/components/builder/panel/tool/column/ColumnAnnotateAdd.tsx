@@ -21,6 +21,7 @@ import {
 import { PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
 import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
+import { wait } from "@/utils";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateAdd",
@@ -70,7 +71,7 @@ export default function ColumnAnnotateAdd({
     try {
       const values = await form.validateFields();
 
-      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+      await wait(FAKE_LOADING_TIME);
 
       onColumnAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);

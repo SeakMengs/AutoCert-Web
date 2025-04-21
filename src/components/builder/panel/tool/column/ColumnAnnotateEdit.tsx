@@ -17,6 +17,7 @@ import { useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
 import { ColumnAnnotateCardProps } from "./ColumnAnnotateCard";
 import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
+import { wait } from "@/utils";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateEdit",
@@ -66,7 +67,7 @@ export default function ColumnAnnotateEdit({
     try {
       const values = await form.validateFields();
 
-      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+      await wait(FAKE_LOADING_TIME);
 
       onColumnAnnotateUpdate(columnAnnotate.id, values);
       setEditModalOpen(false);

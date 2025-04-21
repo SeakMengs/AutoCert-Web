@@ -73,11 +73,6 @@ export default function useAutoCertTable({
     r: AutoCertTableRow[],
     c: AutoCertTableColumn[],
   ): void => {
-    if (r.length === 0) {
-      logger.warn("No rows in table skip onTableChange");
-      return;
-    }
-
     const csvContent = toCSv(r, c);
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 

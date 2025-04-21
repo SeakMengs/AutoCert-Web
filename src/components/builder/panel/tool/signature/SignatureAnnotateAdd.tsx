@@ -10,6 +10,7 @@ import {
 import { AnnotateColor } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
+import { wait } from "@/utils";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateAdd",
@@ -52,7 +53,7 @@ export default function SignatureAnnotateAdd({
     try {
       const values = await form.validateFields();
 
-      await new Promise((resolve) => setTimeout(resolve, FAKE_LOADING_TIME));
+      await wait(FAKE_LOADING_TIME);
 
       onSignatureAnnotateAdd(currentPdfPage, values);
       setModalOpen(false);
