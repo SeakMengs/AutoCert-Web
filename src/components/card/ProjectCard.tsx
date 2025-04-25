@@ -9,7 +9,7 @@ import {
   Tag,
   Tooltip,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -31,6 +31,8 @@ import {
   SignatoryStatusLabels,
 } from "@/types/project";
 import { apiWithAuth } from "@/utils/axios";
+import { useQuery } from "@tanstack/react-query";
+import { HOUR } from "@/utils/time";
 
 const logger = createScopedLogger("components:card:ProjectCard");
 
@@ -47,12 +49,34 @@ export const StatusColorMap = {
 
 const { Meta } = Card;
 
-export default function ProjectCard({
-  project,
-  projectRole,
-}: ProjectCardProps) {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string>("/placeholder.svg");
+const fetchThumbnail = async (projectId: string): Promise<string> => {
+  try {
+    const res = await apiWithAuth.get(
+      `/api/v1/projects/${projectId}/thumbnail`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    if (res.status === 200) {
+      const blob = res.data;
+      const url = URL.createObjectURL(blob);
+      return url;
+    }
+  } catch (error) {
+    logger.error("Error fetching thumbnail", error);
+  }
+
+  return "/placeholder.svg";
+};
+
+function ProjectCard({ project, projectRole }: ProjectCardProps) {
+  const { data: thumbnailUrl, isLoading: isFetchThumbnail } = useQuery({
+    queryKey: ["projectThumbnail", project.id],
+    queryFn: () => fetchThumbnail(project.id),
+    // Cache the thumbnail for 1 hour since thumbnail never changes
+    staleTime: 1 * HOUR,
+  });
 
   const getActions = (): CardProps["actions"] => {
     const actions: CardProps["actions"] = [];
@@ -90,43 +114,12 @@ export default function ProjectCard({
     return actions;
   };
 
-  const fetchThumbnail = async (): Promise<string> => {
-    try {
-      const res = await apiWithAuth.get(
-        `/api/v1/projects/${project.id}/thumbnail`,
-        {
-          responseType: "blob",
-        },
-      );
-
-      if (res.status === 200) {
-        const blob = res.data;
-        const url = URL.createObjectURL(blob);
-        return url;
-      }
-    } catch (error) {
-      logger.error("Error fetching thumbnail", error);
-    }
-
-    return "/placeholder.svg";
-  };
-
-  useEffect(() => {
-    fetchThumbnail()
-      .then((url) => {
-        setThumbnailUrl(url);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
   return (
     <Card
       // loading={loading}
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
-        loading ? (
+        isFetchThumbnail ? (
           <Skeleton.Image
             active
             className="rounded-sm object-cover w-full"
@@ -211,3 +204,5 @@ export default function ProjectCard({
     </Card>
   );
 }
+
+export default memo(ProjectCard);

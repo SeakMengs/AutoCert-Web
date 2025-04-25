@@ -17,7 +17,8 @@ export default async function DashboardLayout({
 
   if (!result.isAuthenticated) {
     logger.warn("User is not authenticated, redirecting to '/' page");
-    return redirect("/");
+    redirect("/");
+    return;
   }
 
   return (

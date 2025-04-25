@@ -122,6 +122,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     saveChanges: async (changes) => {
       const formData = new FormData();
 
+      // TODO: Optimzie this
       // Prepare an array to include in the form's "events" field.
       // Here we make a deep copy of changes, but remove the csvFile property
       // from TableUpdate events to avoid issues with JSON.stringify.

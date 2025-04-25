@@ -5,6 +5,7 @@ import "antd/dist/reset.css";
 import AntWrapper from "./ant";
 import { AuthProvider } from "./auth_provider";
 import Head from "next/head";
+import ReactQuery from "./react_query";
 
 // TODO: change font
 const geistSans = Geist({
@@ -43,9 +44,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AntWrapper>
-          <AuthProvider>{children}</AuthProvider>
-        </AntWrapper>
+        <ReactQuery>
+          <AntWrapper>
+            <AuthProvider>{children}</AuthProvider>
+          </AntWrapper>
+        </ReactQuery>
       </body>
     </html>
   );

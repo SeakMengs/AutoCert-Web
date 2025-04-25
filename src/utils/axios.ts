@@ -29,6 +29,10 @@ export const api = axios.create({
       return transformAutoCertErrorToZodFormattedError(JSON.parse(data));
     },
   ],
+  validateStatus: (status) => {
+    // Resolve only if the status code is less than 500
+    return status < 500; 
+  }
 });
 
 // Handle auto refresh token and set bearer token in the header. Does not handle auto refresh token for server side call.
@@ -46,6 +50,10 @@ export const apiWithAuth = axios.create({
       return transformAutoCertErrorToZodFormattedError(JSON.parse(data));
     },
   ],
+  validateStatus: (status) => {
+    // Resolve only if the status code is less than 500
+    return status < 500; 
+  }
 });
 
 apiWithAuth.interceptors.request.use(
