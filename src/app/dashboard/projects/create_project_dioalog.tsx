@@ -21,9 +21,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ALLOWED_TEMPLATE_FILE_TYPES, createProjectSchema } from "./schema";
 import { createProjectAction } from "./action";
 import { UploadChangeParam } from "antd/es/upload";
-import useAsync from "@/hooks/useAsync";
 import FormErrorMessages from "@/components/error/FormErrorMessages";
 import { pdfjs } from "react-pdf";
+import { useMutation } from "@tanstack/react-query";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -47,7 +47,28 @@ export default function CreateProjectDialog({
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [pdfPageCount, setPdfPageCount] = useState<number>(0);
 
-  const createProject = useAsync(createProjectAction);
+  const {
+    data,
+    mutateAsync,
+    isPending,
+    reset: resetMutation,
+  } = useMutation({
+    mutationFn: createProjectAction,
+    onSuccess: (data, variables) => {
+      if (!data.success) {
+        message.error("Failed to create project");
+        return;
+      }
+
+      message.success("Project created successfully");
+      onCreated(variables);
+      toggleModal();
+    },
+    onError: (error) => {
+      logger.error("Failed to create project", error);
+      message.error("Failed to create project.");
+    },
+  });
 
   const form = useForm({
     defaultValues: {
@@ -58,6 +79,7 @@ export default function CreateProjectDialog({
 
   const reset = (): void => {
     form.reset();
+    resetMutation();
     setPdfPageCount(0);
   };
 
@@ -93,19 +115,10 @@ export default function CreateProjectDialog({
         return;
       }
 
-      const ok = await createProject.fetch(data);
-      if (!ok) {
-        message.error("Failed to create project");
-        return;
-      }
-
-      onCreated(data);
-
-      message.success("Project created successfully");
-      toggleModal();
+      await mutateAsync(data);
     } catch (error) {
       logger.error("Failed to create project", error);
-      message.error("Failed to create project. Please try again later.");
+      message.error("Failed to create project.");
     }
   };
 
@@ -169,14 +182,17 @@ export default function CreateProjectDialog({
         open={modalOpen}
         onCancel={onModalCancel}
         onOk={form.handleSubmit(handleCreateProject)}
-        confirmLoading={form.formState.isSubmitting}
-        maskClosable={!form.formState.isSubmitting}
+        cancelButtonProps={{
+          disabled: form.formState.isSubmitting || isPending,
+        }}
+        confirmLoading={form.formState.isSubmitting || isPending}
+        maskClosable={!form.formState.isSubmitting && !isPending}
         destroyOnClose={true}
       >
         <Form
           onFinish={form.handleSubmit(handleCreateProject)}
           layout="vertical"
-          disabled={form.formState.isSubmitting}
+          disabled={form.formState.isSubmitting || isPending}
         >
           <FormItem
             control={form.control}
@@ -241,9 +257,7 @@ export default function CreateProjectDialog({
             </FormItem>
           )}
         </Form>
-        {createProject.error && (
-          <FormErrorMessages errors={createProject.error} />
-        )}
+        {data && !data.success && <FormErrorMessages errors={data.errors} />}
       </Modal>
     </>
   );

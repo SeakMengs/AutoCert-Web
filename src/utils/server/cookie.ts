@@ -1,6 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { IS_PRODUCTION } from "../env";
+import { APP_NAME } from "..";
 
 export async function getCookie(name: string): Promise<string | undefined> {
   const cookieStore = await cookies();

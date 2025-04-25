@@ -9,6 +9,7 @@ export enum JWT_COOKIE_TYPE {
 export const JWT_COOKIE_NAME = "autocert";
 
 // Convert session name to __Secure-prefix-type if in production
+// To tell browsers to only send the cookie over HTTPS
 export function getJwtCookieName(name: string, type: JWT_COOKIE_TYPE): string {
   return process.env.NODE_ENV === "production"
     ? `__Secure-${name}-${type}`
