@@ -129,7 +129,8 @@ function LeftSideBar({
   const onMenuClick = ({ key }: { key: string }) => {
     const item = menuItems.find((item) => item.key === key);
     if (item) {
-      router.push(`${item.route}?${searchParams.toString()}`);
+      // router.push(`${item.route}?${searchParams.toString()}`);
+      router.push(`${item.route}`);
     }
   };
 

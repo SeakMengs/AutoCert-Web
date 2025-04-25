@@ -14,6 +14,7 @@
     "@ant-design/nextjs-registry": "^1.0.2",
     "@hookform/resolvers": "^5.0.1",
     "@tanstack/react-query": "^5.74.4",
+    "@tanstack/react-query-devtools": "^5.74.6",
     "@testing-library/user-event": "^14.6.1",
     "@types/lodash.debounce": "^4.0.9",
     "antd": "5.23.3",

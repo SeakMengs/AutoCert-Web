@@ -1,20 +1,10 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
-import {
-  Flex,
-  Input,
-  Select,
-  SelectProps,
-  Space,
-  Typography,
-} from "antd";
+import { Flex, Input, Select, SelectProps, Space, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
-import {
-  ProjectStatus,
-  ProjectStatusLabels,
-} from "@/types/project";
+import { ProjectStatus, ProjectStatusLabels } from "@/types/project";
 import debounce from "lodash.debounce";
 import SignatoryProjectList from "./project_list";
 
@@ -25,17 +15,25 @@ const { Title } = Typography;
 const DEBOUNCE_MS = 500;
 export const QueryKey = "signatory_projects";
 
+const statusOptions = Object.values(ProjectStatus).map((status) => ({
+  value: status,
+  label: ProjectStatusLabels[status],
+})) satisfies SelectProps["options"];
+
 export default function SignatureRequestSection() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const queryPage = searchParams.get("page") || 1;
   const querySearch = searchParams.get("search") || "";
-  const queryStatus =
-    searchParams
-      .get("filters")
-      ?.split(",")
-      .filter((f) => f !== "") || Object.values(ProjectStatus);
+  let queryStatus = searchParams
+    .getAll("status")
+    .filter((f) => statusOptions.some((o) => o.value.toString() === f))
+    .map((f) => Number(f)) as ProjectStatus[];
+
+  if (queryStatus.length === 0) {
+    queryStatus = Object.values(ProjectStatus);
+  }
 
   const [searchQuery, setSearchQuery] = useState<string | undefined>(
     querySearch,
@@ -43,15 +41,9 @@ export default function SignatureRequestSection() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<
     string | undefined
   >(querySearch);
-  const [selectedStatus, setSelectedStatus] = useState<
-    string[] | ProjectStatus[]
-  >(queryStatus);
+  const [selectedStatus, setSelectedStatus] =
+    useState<ProjectStatus[]>(queryStatus);
   const [page, setPage] = useState<number>(Number(queryPage));
-
-  const statusOptions = Object.values(ProjectStatus).map((status) => ({
-    value: status,
-    label: ProjectStatusLabels[status],
-  })) satisfies SelectProps["options"];
 
   const debounceSearch = useRef(
     debounce((value: string | undefined) => {
@@ -88,7 +80,7 @@ export default function SignatureRequestSection() {
     setPage(1);
   };
 
-  const onStatusChange = (value: string[]): void => {
+  const onStatusChange = (value: ProjectStatus[]): void => {
     setSelectedStatus(value);
 
     // Reset to first page on new filter
@@ -121,7 +113,7 @@ export default function SignatureRequestSection() {
             mode="multiple"
             placeholder="Filter by status"
             options={statusOptions}
-            onChange={(value) => onStatusChange(value as string[])}
+            onChange={(value) => onStatusChange(value)}
             allowClear
             suffixIcon={<FilterOutlined />}
             className="w-full max-w-[450px]"

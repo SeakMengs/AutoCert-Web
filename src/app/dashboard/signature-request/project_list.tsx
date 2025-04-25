@@ -14,7 +14,7 @@ import { QueryKey } from "./signature_request_section";
 interface SignatoryProjectListProps {
   search: string | undefined;
   page: number;
-  status: string[] | ProjectStatus[];
+  status: ProjectStatus[];
   onPageChange: (page: number) => void;
 }
 
@@ -28,7 +28,7 @@ export default function SignatoryProjectList({
     page: Number(page),
     pageSize: PageSize,
     search: search,
-    status: status.map((s) => Number(s) as ProjectStatus),
+    status: status,
   };
 
   const { data, isLoading, error, refetch } = useQuery({
