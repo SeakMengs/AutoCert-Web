@@ -55,3 +55,9 @@ export const addSignatureSuccessResponseSchema = z.object({
     url: z.string(),
   }),
 });
+
+export const getSignatureByIdSuccessResponseSchema = z.object({
+  signature: z.object({
+    url: z.string(),
+  }),
+});

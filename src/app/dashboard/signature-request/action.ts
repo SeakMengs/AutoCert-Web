@@ -6,6 +6,7 @@ import {
   addSignatureSuccessResponseSchema,
   getSignatoryProjectsParamsSchema,
   getSignatoryProjectsSuccessResponseSchema,
+  getSignatureByIdSuccessResponseSchema,
 } from "./schema";
 import { createScopedLogger } from "@/utils/logger";
 import {
@@ -133,5 +134,77 @@ export async function addSignatureAction(
     logger.error("Failed to add signature", error);
 
     return responseSomethingWentWrong("Failed to add signature");
+  }
+}
+
+export type RemoveSignatureParams = {
+  signatureId: string;
+};
+export type RemoveSignatureSuccessResponse = {};
+
+export async function removeSignatureAction({
+  signatureId,
+}: RemoveSignatureParams): Promise<
+  ResponseJson<RemoveSignatureSuccessResponse, {} | undefined>
+> {
+  try {
+    logger.info(`remove signature action with sig id: ${signatureId}`);
+
+    const res = await apiWithAuth.delete<
+      ResponseJson<RemoveSignatureSuccessResponse, {} | undefined>
+    >(`/api/v1/signatures/${signatureId}`);
+
+    if (!res.data.success) {
+      return res.data;
+    }
+
+    return res.data;
+  } catch (error) {
+    logger.error("Failed to remove signature", error);
+
+    return responseSomethingWentWrong("Failed to remove signature");
+  }
+}
+
+export type GetSignatureByIdParams = {
+  signatureId: string;
+};
+export type GetSignatureSuccessReByIdsponse = z.infer<
+  typeof getSignatureByIdSuccessResponseSchema
+>;
+
+export async function getSignatureByIdAction({
+  signatureId,
+}: GetSignatureByIdParams): Promise<
+  ResponseJson<GetSignatureSuccessReByIdsponse, {} | undefined>
+> {
+  try {
+    logger.info(`get signature action with sig id: ${signatureId}`);
+
+    const res = await apiWithAuth.get<
+      ResponseJson<GetSignatureSuccessReByIdsponse, {} | undefined>
+    >(`/api/v1/signatures/${signatureId}`);
+
+    if (!res.data.success) {
+      return res.data;
+    }
+
+    const parseData = getSignatureByIdSuccessResponseSchema.safeParse(
+      res.data.data,
+    );
+    if (!parseData.success) {
+      return responseFailed(
+        "Parse and get invalid expect response data",
+        formatZodError(parseData.error),
+      );
+    }
+    return {
+      ...res.data,
+      data: parseData.data,
+    };
+  } catch (error) {
+    logger.error("Failed to get signature by id", error);
+
+    return responseSomethingWentWrong("Failed to get signature by id");
   }
 }

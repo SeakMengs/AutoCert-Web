@@ -5,8 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "@/components/card/ProjectCard";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import FetchLoading from "@/components/loading/FetchLoading";
-import { Flex, Empty, Row, Col, Pagination } from "antd";
+import { Flex, Empty, Row, Col, Pagination, Space } from "antd";
 import { QueryKey } from "./certificate_project_section";
+import { useMemo } from "react";
 
 interface CertificateProjectListProps {
   search: string | undefined;
@@ -21,12 +22,15 @@ export default function CertificateProjectList({
   status,
   onPageChange,
 }: CertificateProjectListProps) {
-  const queryParams: GetOwnProjectsParams = {
-    page: Number(page),
-    pageSize: PageSize,
-    search: search,
-    status: status,
-  };
+  const queryParams = useMemo<GetOwnProjectsParams>(
+    () => ({
+      page: Number(page),
+      pageSize: PageSize,
+      search: search,
+      status: status,
+    }),
+    [page, search, status],
+  );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, queryParams],
@@ -50,7 +54,7 @@ export default function CertificateProjectList({
   const pageSize = data?.data?.pageSize || PageSize;
 
   return (
-    <>
+    <Space direction="vertical" className="w-full">
       {isLoading ? (
         <Flex vertical align="center" justify="center">
           <FetchLoading />
@@ -90,7 +94,7 @@ export default function CertificateProjectList({
           </Row>
         </>
       )}
-      {!isLoading && (
+      {!isLoading && total > 0 && (
         <Pagination
           align="end"
           onChange={onPageChange}
@@ -104,6 +108,6 @@ export default function CertificateProjectList({
           }
         />
       )}
-    </>
+    </Space>
   );
 }

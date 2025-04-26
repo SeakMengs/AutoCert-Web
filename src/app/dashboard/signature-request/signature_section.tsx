@@ -12,27 +12,36 @@ import {
   theme,
   TabsProps,
   Alert,
+  Skeleton,
 } from "antd";
 import {
   UploadOutlined,
   EditOutlined,
   SignatureOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import Marquee from "react-fast-marquee";
 import { createScopedLogger } from "@/utils/logger";
-import { addSignatureAction } from "./action";
+import {
+  addSignatureAction,
+  getSignatureByIdAction,
+  removeSignatureAction,
+} from "./action";
 import { base64ToFile } from "@/utils/file";
 import { SIGNATURE_COOKIE_NAME } from "@/utils";
-import { useMutation } from "@tanstack/react-query";
-import { setCookie } from "@/utils/server/cookie";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCookie, setCookie } from "@/utils/server/cookie";
 import moment from "moment";
 import SignatureUpload from "./signature_upload";
 import SignatureDrawer from "./signature_drawer";
+import { responseFailed } from "@/utils/response";
 
 const { Title } = Typography;
 const logger = createScopedLogger(
   "app:dashboard:signature-request:signature_section",
 );
+
+const QueryKey = "signature_by_id";
 
 export interface SharedSignatureModalProps {
   onSignatureSave: (base64Signature: string | File) => Promise<boolean>;
@@ -49,15 +58,29 @@ export default function SignatureSection({}: SignatureSectionProps) {
     token: { colorSplit },
   } = theme.useToken();
   const { message } = App.useApp();
-  const [signature, setSignature] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const queryClient = useQueryClient();
 
-  const {
-    data,
-    mutateAsync,
-    isPending,
-    reset: resetMutation,
-  } = useMutation({
+  const signature = useQuery({
+    queryKey: [QueryKey],
+    queryFn: async () => {
+      const signatureId = await getCookie(SIGNATURE_COOKIE_NAME);
+
+      if (!signatureId) {
+        logger.error("Get signature by id but id not found in cookie");
+        return responseFailed(
+          "Get signature by id but id not found in cookie",
+          {},
+        );
+      }
+
+      return await getSignatureByIdAction({
+        signatureId: signatureId,
+      });
+    },
+  });
+
+  const addSignature = useMutation({
     mutationFn: addSignatureAction,
     onSuccess: async (data, variables) => {
       if (!data.success) {
@@ -65,7 +88,8 @@ export default function SignatureSection({}: SignatureSectionProps) {
         return;
       }
 
-      handleSignatureChange(data.data.signature.url);
+      await onRemoveSignature(true);
+
       onModalClose();
       message.success("Signature saved successfully");
 
@@ -74,7 +98,9 @@ export default function SignatureSection({}: SignatureSectionProps) {
         data.data.signature.id,
         moment().add(5, "year").toDate(),
       );
-      // TODO: invalidate cache query
+
+      // Invalidate the query to refresh the signature
+      queryClient.invalidateQueries({ queryKey: [QueryKey] });
     },
     onError: (error) => {
       logger.error("Failed to save signature", error);
@@ -82,10 +108,26 @@ export default function SignatureSection({}: SignatureSectionProps) {
     },
   });
 
-  const handleSignatureChange = (base64Signature: string | null): void => {
-    logger.debug("Signature change");
-    setSignature(base64Signature);
-  };
+  const removeSignature = useMutation({
+    mutationFn: async (data: { signatureId: string; silent: boolean }) => {
+      return await removeSignatureAction({
+        signatureId: data.signatureId,
+      });
+    },
+    onSuccess: async (data, varaible) => {
+      await setCookie(SIGNATURE_COOKIE_NAME, "", moment().toDate());
+
+      if (!varaible.silent) {
+        message.success("Signature removed successfully");
+      }
+
+      queryClient.invalidateQueries({ queryKey: [QueryKey] });
+    },
+    onError: (error) => {
+      logger.error("Failed to remove signature", error);
+      message.error("Failed to remove signature.");
+    },
+  });
 
   const onSignatureSave = async (sig: string | File): Promise<boolean> => {
     logger.debug("addSignatureState signature");
@@ -97,16 +139,30 @@ export default function SignatureSection({}: SignatureSectionProps) {
       file = base64ToFile(base64Signature, "signature.svg");
     }
 
-    await mutateAsync({
+    await addSignature.mutateAsync({
       signatureFile: file,
     });
 
     return true;
   };
 
-  const removeSignature = (): void => {
-    handleSignatureChange(null);
-    message.success("Signature removed successfully");
+  // If silent, don't show error, success message, use for changing signature which we delete the old signature file
+  const onRemoveSignature = async (silent: boolean = false): Promise<void> => {
+    const signatureId = await getCookie(SIGNATURE_COOKIE_NAME);
+
+    if (!signatureId) {
+      logger.error("Signature not found");
+
+      if (!silent) {
+        message.error("Signature not found");
+      }
+      return;
+    }
+
+    await removeSignature.mutateAsync({
+      signatureId,
+      silent,
+    });
   };
 
   const onModalClose = (): void => {
@@ -115,18 +171,21 @@ export default function SignatureSection({}: SignatureSectionProps) {
   };
 
   const reset = (): void => {
-    resetMutation();
+    addSignature.reset();
   };
 
   const onTabChange = (activeKey: string): void => {
     logger.debug("Tab changed", activeKey);
 
-    resetMutation();
+    addSignature.reset();
   };
 
   const addSignatureState = {
-    loading: isPending,
-    error: data && !data.success ? data.errors : null,
+    loading: addSignature.isPending,
+    error:
+      addSignature.data && !addSignature.data.success
+        ? addSignature.data.errors
+        : null,
   };
 
   const tabs = [
@@ -160,9 +219,11 @@ export default function SignatureSection({}: SignatureSectionProps) {
     },
   ] satisfies TabsProps["items"];
 
+  const sig = signature.data;
+
   return (
     <div>
-      <Space direction="vertical">
+      <Space direction="vertical" className="w-full">
         <Title level={4} className="m-0">
           Your Signature
         </Title>
@@ -176,14 +237,23 @@ export default function SignatureSection({}: SignatureSectionProps) {
             </Marquee>
           }
         />
-        {signature ? (
+        {signature.isLoading ? (
+          <Space direction="vertical" className="w-full">
+            <Skeleton.Image active className="w-64 h-64" />
+            <Space className="w-full" wrap>
+              {/* Use input because it's longer which is what our button look like */}
+              <Skeleton.Input active />
+              <Skeleton.Input active />
+            </Space>
+          </Space>
+        ) : sig && sig.success ? (
           <Space direction="vertical">
             <img
-              src={signature}
+              src={sig.data.signature.url}
               alt="Your signature"
               className="max-w-80"
               style={{
-                border: `1px solid ${colorSplit}`,
+                border: `1px solid #f0f0f0`,
               }}
             />
             <Space wrap>
@@ -193,7 +263,13 @@ export default function SignatureSection({}: SignatureSectionProps) {
               >
                 Change Signature
               </Button>
-              <Button danger onClick={removeSignature}>
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={async () => await onRemoveSignature()}
+                disabled={removeSignature.isPending}
+                loading={removeSignature.isPending}
+              >
                 Remove Signature
               </Button>
             </Space>

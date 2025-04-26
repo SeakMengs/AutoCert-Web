@@ -4,12 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "@/components/card/ProjectCard";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import FetchLoading from "@/components/loading/FetchLoading";
-import { Flex, Empty, Row, Col, Pagination } from "antd";
+import { Flex, Empty, Row, Col, Pagination, Space } from "antd";
 import {
   getSignatoryProjectsAction,
   GetSignatoryProjectsParams,
 } from "./action";
 import { QueryKey } from "./signature_request_section";
+import { useMemo } from "react";
 
 interface SignatoryProjectListProps {
   search: string | undefined;
@@ -24,12 +25,15 @@ export default function SignatoryProjectList({
   status,
   onPageChange,
 }: SignatoryProjectListProps) {
-  const queryParams: GetSignatoryProjectsParams = {
-    page: Number(page),
-    pageSize: PageSize,
-    search: search,
-    status: status,
-  };
+  const queryParams = useMemo(
+    (): GetSignatoryProjectsParams => ({
+      page: Number(page),
+      pageSize: PageSize,
+      search: search,
+      status: status,
+    }),
+    [page, search, status],
+  );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, queryParams],
@@ -53,7 +57,7 @@ export default function SignatoryProjectList({
   const pageSize = data?.data?.pageSize || PageSize;
 
   return (
-    <>
+    <Space direction="vertical" className="w-full">
       {isLoading ? (
         <Flex vertical align="center" justify="center">
           <FetchLoading />
@@ -95,7 +99,7 @@ export default function SignatoryProjectList({
           </Row>
         </>
       )}
-      {!isLoading && (
+      {!isLoading && total > 0 && (
         <Pagination
           align="end"
           onChange={onPageChange}
@@ -109,6 +113,6 @@ export default function SignatoryProjectList({
           }
         />
       )}
-    </>
+    </Space>
   );
 }
