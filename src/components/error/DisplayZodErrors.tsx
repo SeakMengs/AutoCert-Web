@@ -2,7 +2,10 @@
 import { IS_PRODUCTION } from "@/utils/env";
 import { T_ZodErrorFormatted } from "@/utils/error";
 import React, { useState } from "react";
-import { CloseCircleOutlined } from "@ant-design/icons";
+import {
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import { Button, Result, Tooltip, Typography } from "antd";
 
 const { Paragraph, Text } = Typography;
@@ -51,7 +54,7 @@ export default function DisplayZodErrors<T>({
                 cursor: "help", // Indicates it's hoverable
               }}
             >
-              <CloseCircleOutlined
+              <ExclamationCircleOutlined
                 style={{
                   color: "#ff4d4f",
                   marginRight: 8,

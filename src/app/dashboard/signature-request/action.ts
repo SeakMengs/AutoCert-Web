@@ -31,7 +31,7 @@ export type GetSignatoryProjectsSuccessResponse = z.infer<
 
 export async function getSignatoryProjectsAction(
   data: GetSignatoryProjectsParams,
-): Promise<ResponseJson<GetSignatoryProjectsSuccessResponse, {} | undefined>> {
+): Promise<ResponseJson<GetSignatoryProjectsSuccessResponse, {}>> {
   try {
     logger.info("get signatory project action", data);
 
@@ -55,7 +55,7 @@ export async function getSignatoryProjectsAction(
 
     const res =
       await apiWithAuth.get<
-        ResponseJson<GetSignatoryProjectsSuccessResponse, {} | undefined>
+        ResponseJson<GetSignatoryProjectsSuccessResponse, {}>
       >(url);
 
     if (!res.data.success) {
@@ -90,7 +90,7 @@ export type AddSignatureSuccessResponse = z.infer<
 
 export async function addSignatureAction(
   data: AddSignatureParams,
-): Promise<ResponseJson<AddSignatureSuccessResponse, {} | undefined>> {
+): Promise<ResponseJson<AddSignatureSuccessResponse, {}>> {
   try {
     logger.info("add signature action", data);
 
@@ -104,7 +104,7 @@ export async function addSignatureAction(
     formData.append("signatureFile", params.data.signatureFile as File);
 
     const res = await apiWithAuth.postForm<
-      ResponseJson<AddSignatureSuccessResponse, {} | undefined>
+      ResponseJson<AddSignatureSuccessResponse, {}>
     >("/api/v1/signatures", formData);
 
     if (!res.data.success) {
@@ -145,13 +145,13 @@ export type RemoveSignatureSuccessResponse = {};
 export async function removeSignatureAction({
   signatureId,
 }: RemoveSignatureParams): Promise<
-  ResponseJson<RemoveSignatureSuccessResponse, {} | undefined>
+  ResponseJson<RemoveSignatureSuccessResponse, {}>
 > {
   try {
     logger.info(`remove signature action with sig id: ${signatureId}`);
 
     const res = await apiWithAuth.delete<
-      ResponseJson<RemoveSignatureSuccessResponse, {} | undefined>
+      ResponseJson<RemoveSignatureSuccessResponse, {}>
     >(`/api/v1/signatures/${signatureId}`);
 
     if (!res.data.success) {
@@ -176,13 +176,13 @@ export type GetSignatureSuccessReByIdsponse = z.infer<
 export async function getSignatureByIdAction({
   signatureId,
 }: GetSignatureByIdParams): Promise<
-  ResponseJson<GetSignatureSuccessReByIdsponse, {} | undefined>
+  ResponseJson<GetSignatureSuccessReByIdsponse, {}>
 > {
   try {
     logger.info(`get signature action with sig id: ${signatureId}`);
 
     const res = await apiWithAuth.get<
-      ResponseJson<GetSignatureSuccessReByIdsponse, {} | undefined>
+      ResponseJson<GetSignatureSuccessReByIdsponse, {}>
     >(`/api/v1/signatures/${signatureId}`);
 
     if (!res.data.success) {

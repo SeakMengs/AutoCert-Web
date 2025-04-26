@@ -42,7 +42,7 @@ export type ProjectCardProps = {
 };
 
 export const StatusColorMap = {
-  [ProjectStatus.Preparing]: "default",
+  [ProjectStatus.Draft]: "default",
   [ProjectStatus.Processing]: "warning",
   [ProjectStatus.Completed]: "success",
 };
@@ -70,10 +70,12 @@ const fetchThumbnail = async (projectId: string): Promise<string> => {
   return "/placeholder.svg";
 };
 
+const QueryKey = "project_thumbnail";
+
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
   const { data: thumbnailUrl, isLoading: isFetchThumbnail } = useQuery({
-    queryKey: ["projectThumbnail", project.id],
-    queryFn: () => fetchThumbnail(project.id),
+    queryKey: [QueryKey, project.id],
+    queryFn: async () => await fetchThumbnail(project.id),
     // Cache the thumbnail for 1 hour since thumbnail never changes
     staleTime: 1 * HOUR,
   });

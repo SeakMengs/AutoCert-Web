@@ -1,7 +1,7 @@
 // All type here is based on the autocert api.
 
 export const ProjectStatus = {
-  Preparing: 0,
+  Draft: 0,
   Processing: 1,
   Completed: 2,
 } as const;
@@ -9,7 +9,7 @@ export const ProjectStatus = {
 export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus];
 
 export const ProjectStatusLabels: Record<ProjectStatus, string> = {
-  [ProjectStatus.Preparing]: "Preparing",
+  [ProjectStatus.Draft]: "Draft",
   [ProjectStatus.Processing]: "Processing",
   [ProjectStatus.Completed]: "Completed",
 };

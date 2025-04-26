@@ -1,28 +1,13 @@
-import { notFound } from "next/navigation";
-import { getProjectByIdAction } from "./action";
-import Builder from "./builder";
+import ProjectBuilderById from "./query";
 
-interface ProjectBuilderByIDProps {
+interface ProjectBuilderByIdPageProps {
   params: Promise<{ projectId: string }>;
 }
 
-export default async function ProjectBuilderByID({
+export default async function ProjectBuilderByIdPage({
   params,
-}: ProjectBuilderByIDProps) {
+}: ProjectBuilderByIdPageProps) {
   const { projectId } = await params;
 
-  const res = await getProjectByIdAction({
-    projectId,
-  });
-
-  if (!res.success) {
-    return notFound();
-  }
-
-  return (
-    <Builder
-      project={res.data.project}
-      roles={res.data.roles}
-    />
-  );
+  return <ProjectBuilderById projectId={projectId} />;
 }

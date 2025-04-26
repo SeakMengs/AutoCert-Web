@@ -40,7 +40,7 @@ export default function SignatoryProjectList({
     queryFn: () => getSignatoryProjectsAction(queryParams),
   });
 
-  const onErrorRetry = async () => {
+  const onErrorRetry = async (): Promise<void> => {
     refetch();
   };
 

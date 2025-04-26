@@ -13,6 +13,6 @@ export const ProjectSchema = z.object({
   templateUrl: z.string(),
   isPublic: z.boolean(),
   signatories: z.array(ProjectSignatorySchema).default([]),
-  status: z.nativeEnum(ProjectStatus).catch(ProjectStatus.Preparing),
+  status: z.nativeEnum(ProjectStatus).catch(ProjectStatus.Draft),
   createdAt: z.string().nullable(),
 });

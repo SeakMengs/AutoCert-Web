@@ -37,7 +37,7 @@ export default function CertificateProjectList({
     queryFn: () => getOwnProjectsAction(queryParams),
   });
 
-  const onErrorRetry = async () => {
+  const onErrorRetry = async (): Promise<void> => {
     refetch();
   };
 

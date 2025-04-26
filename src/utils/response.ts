@@ -12,7 +12,7 @@ export type ErrorResponse<T> = {
   success: false;
 };
 
-export type ResponseJson<T = any, E = unknown> =
+export type ResponseJson<T = any, E = {}> =
   | SuccessResponse<T>
   | ErrorResponse<E>;
 

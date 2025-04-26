@@ -21,18 +21,24 @@ export type GetProjectByIdSuccessResponse = z.infer<
   typeof getProjectByIdSuccessResponseSchema
 >;
 
-export async function getProjectByIdAction(
-  data: GetProjectByIdParams,
-): Promise<ResponseJson<GetProjectByIdSuccessResponse, {} | undefined>> {
+export async function getProjectByIdAction(data: GetProjectByIdParams): Promise<
+  ResponseJson<
+    GetProjectByIdSuccessResponse,
+    {
+      forbidden: string;
+      notFound: string;
+    }
+  >
+> {
   try {
     logger.info("get project by id action", data);
 
     const url = `/api/v1/projects/${data.projectId}`;
 
     const res =
-      await apiWithAuth.get<
-        ResponseJson<GetProjectByIdSuccessResponse, {} | undefined>
-      >(url);
+      await apiWithAuth.get<ResponseJson<GetProjectByIdSuccessResponse, {}>>(
+        url,
+      );
 
     if (!res.data.success) {
       return res.data;

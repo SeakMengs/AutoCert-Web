@@ -21,7 +21,7 @@ interface ProjectBuilderProps
   extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
 
 export default function Builder({ project, roles }: ProjectBuilderProps) {
-  const { sigAnnot, colAnnot, annot } = useMemo(() => {
+  const { annot } = useMemo(() => {
     const sigAnnot: SignatureAnnotateStates = {};
     const colAnnot: ColumnAnnotateStates = {};
     const annot: AnnotateStates = {};
@@ -157,14 +157,19 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
           `/api/v1/projects/${project.id}/builder`,
           formData,
         );
+
         console.log("saveChanges res", res.data);
+
+        if (!res.data.success) {
+          return false;
+        }
+
+        return true;
       } catch (error: any) {
         console.error("Error saving changes:", error.response.data);
         // Handle error (e.g., show a notification)
         return false;
       }
-
-      return true;
     },
   });
 

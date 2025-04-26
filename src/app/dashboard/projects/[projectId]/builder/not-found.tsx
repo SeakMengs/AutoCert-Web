@@ -5,12 +5,12 @@ import {
   LockOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
-import { notFound } from "next/navigation";
+import { HttpStatusCode } from "@/types/http";
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
 
-type ErrorType = "not-found" | "unauthorized";
+type ErrorType = "not-found" | "forbidden";
 
 interface NotFoundProps {
   errorType?: ErrorType;
@@ -27,12 +27,13 @@ export default function ProjectNotFound({
 
   const getErrorConfig = () => {
     switch (errorType) {
-      case "unauthorized":
+      case "forbidden":
         return {
-          status: "403",
+          status: HttpStatusCode.FORBIDDEN_403,
           icon: <LockOutlined style={{ color: token.colorError }} />,
           title: title || "Access Denied",
           titleColor: token.colorError,
+          buttonColor: token.colorPrimary,
           subTitle:
             subTitle ||
             "Sorry, you don't have permission to access this project.",
@@ -41,10 +42,11 @@ export default function ProjectNotFound({
       case "not-found":
       default:
         return {
-          status: "404",
+          status: HttpStatusCode.NOT_FOUND_404,
           icon: <FrownOutlined style={{ color: token.colorPrimary }} />,
           title: title || "Project Not Found",
           titleColor: token.colorPrimary,
+          buttonColor: token.colorPrimary,
           subTitle:
             subTitle ||
             "Sorry, the project you're looking for doesn't exist or has been removed.",
@@ -93,8 +95,8 @@ export default function ProjectNotFound({
                 typeof window !== "undefined" && window.history.back()
               }
               style={{
-                background: errorConfig.titleColor,
-                borderColor: errorConfig.titleColor,
+                background: errorConfig.buttonColor,
+                borderColor: errorConfig.buttonColor,
               }}
             >
               Go Back

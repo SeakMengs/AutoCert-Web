@@ -25,7 +25,7 @@ export type GetOwnProjectsSuccessResponse = z.infer<
 
 export async function getOwnProjectsAction(
   data: GetOwnProjectsParams,
-): Promise<ResponseJson<GetOwnProjectsSuccessResponse, {} | undefined>> {
+): Promise<ResponseJson<GetOwnProjectsSuccessResponse, {}>> {
   try {
     logger.info("get own project action", data);
 
@@ -48,9 +48,9 @@ export async function getOwnProjectsAction(
     const url = `/api/v1/me/projects/?${searchParams.toString()}`;
 
     const res =
-      await apiWithAuth.get<
-        ResponseJson<GetOwnProjectsSuccessResponse, {} | undefined>
-      >(url);
+      await apiWithAuth.get<ResponseJson<GetOwnProjectsSuccessResponse, {}>>(
+        url,
+      );
 
     if (!res.data.success) {
       return res.data;
@@ -82,7 +82,7 @@ export type CreateProjectSuccessResponse = {};
 
 export async function createProjectAction(
   data: CreateProjectParams,
-): Promise<ResponseJson<CreateProjectSuccessResponse, {} | undefined>> {
+): Promise<ResponseJson<CreateProjectSuccessResponse, {}>> {
   try {
     logger.info("create project action", data);
 
@@ -95,7 +95,7 @@ export async function createProjectAction(
 
     const url = `/api/v1/projects/`;
     const res = await apiWithAuth.postForm<
-      ResponseJson<CreateProjectSuccessResponse, {} | undefined>
+      ResponseJson<CreateProjectSuccessResponse, {}>
     >(url, form);
 
     if (!res.data.success) {
