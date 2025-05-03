@@ -4,7 +4,6 @@ import {
   AutoCertTableRow,
 } from "./panel/table/AutoCertTable";
 import Papa from "papaparse";
-import { nanoid } from "nanoid";
 
 const logger = createScopedLogger("components:builder:utils");
 

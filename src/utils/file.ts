@@ -54,7 +54,8 @@ export function base64ToFile(base64: string, filename: string): File {
         break;
     }
 
-    return new File([bytes], `${filename}.${ext}`, { type: mime });
+    const finalFilename = filename.endsWith(`.${ext}`) ? filename : `${filename}.${ext}`;
+    return new File([bytes], finalFilename, { type: mime });
   } catch (e) {
     console.error("Error converting base64 to file:", e);
     throw e;

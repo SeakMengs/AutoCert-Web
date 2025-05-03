@@ -3,7 +3,6 @@ import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { nanoid } from "nanoid";
 import { useEffect, useState } from "react";
-import { tempSignData } from "./temp";
 import { BaseColumnAnnotate } from "../annotate/ColumnAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";

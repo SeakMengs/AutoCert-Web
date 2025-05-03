@@ -48,6 +48,7 @@ const RefreshTokenType = {
 const ExcludeRefreshPath = ["/authenticating"];
 const ForbiddenRoutes = ["/dashboard"];
 
+// TODO: rewrite this and test for bugs
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { message } = App.useApp();
   const [authState, setAuthState] = useState<AuthState>(initialAuthState);

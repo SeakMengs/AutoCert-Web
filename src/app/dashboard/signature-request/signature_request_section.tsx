@@ -123,9 +123,11 @@ export default function SignatureRequestSection() {
 
         <SignatoryProjectList
           onPageChange={onPageChange}
-          page={page}
-          search={debouncedSearchQuery}
-          status={selectedStatus}
+          queryParams={{
+            page,
+            search: debouncedSearchQuery,
+            status: selectedStatus,
+          }}
         />
       </Space>
     </>

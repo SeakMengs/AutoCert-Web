@@ -13,27 +13,15 @@ import { QueryKey } from "./signature_request_section";
 import { useMemo } from "react";
 
 interface SignatoryProjectListProps {
-  search: string | undefined;
-  page: number;
-  status: ProjectStatus[];
+  queryParams: GetSignatoryProjectsParams;
   onPageChange: (page: number) => void;
 }
 
 export default function SignatoryProjectList({
-  page,
-  search,
-  status,
+  queryParams,
   onPageChange,
 }: SignatoryProjectListProps) {
-  const queryParams = useMemo(
-    (): GetSignatoryProjectsParams => ({
-      page: Number(page),
-      pageSize: PageSize,
-      search: search,
-      status: status,
-    }),
-    [page, search, status],
-  );
+  const { page, search } = queryParams;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, queryParams],

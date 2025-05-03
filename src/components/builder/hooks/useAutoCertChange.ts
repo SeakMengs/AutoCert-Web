@@ -164,8 +164,6 @@ export default function useAutoCertChange({
     try {
       const success = await saveChanges(batchedChanges);
 
-      console.log("saveChanges res", success);
-
       if (!success) {
         throw new Error("Failed to save changes");
       }
