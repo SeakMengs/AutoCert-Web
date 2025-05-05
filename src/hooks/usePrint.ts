@@ -8,7 +8,7 @@ const logger = createScopedLogger("app:hooks:usePrint");
 
 export const usePrint = () => {
   const { message } = App.useApp();
-  const [printLoading, setPrintLoading] = useState(false);
+  const [printLoading, setPrintLoading] = useState<boolean>(false);
 
   // Usage:
   //   onPrint({
@@ -49,6 +49,8 @@ export const usePrint = () => {
     } catch (error) {
       message.error("Error printing certificates");
       logger.error("Error printing certificates", error);
+      setPrintLoading(false);
+    } finally {
       setPrintLoading(false);
     }
   };

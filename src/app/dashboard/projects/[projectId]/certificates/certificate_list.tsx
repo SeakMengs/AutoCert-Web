@@ -19,20 +19,21 @@ import {
   EyeOutlined,
   LinkOutlined,
   CalendarOutlined,
-  UserOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
 import { CertificateViewer } from "./certificate_viewer";
-import {
-  Certificate,
-  downloadCertificate,
-  generateShareableLink,
-} from "./temp";
+import { downloadCertificate, generateShareableLink } from "./temp";
 import usePrint from "@/hooks/usePrint";
+import { z } from "zod";
+import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 
 const { Title, Text } = Typography;
 
-interface CertificateListProps {
+export type Certificate = z.infer<
+  typeof getCertificatesByProjectIdSuccessResponseSchema
+>["project"]["certificates"][number];
+
+export interface CertificateListProps {
   certificates: Certificate[];
 }
 
@@ -80,7 +81,7 @@ export default function CertificateList({
             borderRadius: 8,
           }}
         >
-          <Text type="secondary">No certificates found</Text>
+          <Text type="secondary">No certificate</Text>
         </div>
       ) : (
         GridViews
@@ -89,7 +90,7 @@ export default function CertificateList({
       {selectedCertificate && (
         <>
           <Modal
-            title={selectedCertificate.name}
+            title={selectedCertificate.number}
             open={isViewerOpen}
             onCancel={() => setIsViewerOpen(false)}
             footer={null}
@@ -120,7 +121,7 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
   };
 
   const onPrintPdf = async (pdfUrl: string) => {
-    onPrint({
+    await onPrint({
       printable: pdfUrl,
       type: "pdf",
       onLoadingEnd() {
@@ -135,10 +136,11 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
         className="border rounded-sm hover:shadow-sm relative group w-full"
         hoverable
         cover={
+          // TODO: add fetch thumbnail and loading
           <Image
             className="rounded-sm object-cover w-full h-auto"
-            alt={certificate.name}
-            src={certificate.thumbnailUrl || "/placeholder.svg"}
+            alt={`Certificate No. ${certificate.number}`}
+            src={"/placeholder.svg"}
             width={256}
             height={144}
             unoptimized
@@ -150,7 +152,7 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
             strong
             className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
           >
-            {certificate.name}
+            Certificate No. {certificate.number}
           </Text>
           {/* {getStatusBadge(certificate.status)} */}
         </Flex>
@@ -162,11 +164,7 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
         >
           <Flex align="center" gap={8}>
             <CalendarOutlined />
-            <Text type="secondary">{certificate.issueDate}</Text>
-          </Flex>
-          <Flex align="center" gap={8}>
-            <UserOutlined />
-            <Text type="secondary">{certificate.recipient}</Text>
+            <Text type="secondary">{certificate.createdAt}</Text>
           </Flex>
         </Space>
 

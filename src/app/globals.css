@@ -6,12 +6,6 @@
   'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
   'Noto Color Emoji';
 
-/* load fonts code pro */
-@font-face {
-  font-family: "Code Pro";
-  src: url("/fonts/code-pro-free/Code Pro.otf") format("opentype");
-}
-
 @layer base {
   .scrollbar-hide {
     overflow: -moz-scrollbars-none;

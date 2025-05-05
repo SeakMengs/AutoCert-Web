@@ -1,34 +1,28 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import Builder from "./builder";
-import { getProjectByIdAction } from "./action";
-import { notFound } from "next/navigation";
-import FullScreenSpin from "@/components/loading/FullScreenSpin";
-import { Flex } from "antd";
+import CertificateList from "./certificate_list";
+import Header from "./header";
+import { Flex, Space } from "antd";
+import { getCertificatesByProjectIdAction } from "./action";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
-import ProjectNotFound from "./not-found";
+import FullScreenSpin from "@/components/loading/FullScreenSpin";
+import { notFound } from "next/navigation";
+import ProjectNotFound from "@/components/not_found/ProjectNotFound";
 
-interface ProjectBuilderByIdProps {
+interface ProjectCertificatesByIdProps {
   projectId: string;
 }
 
-const QueryKey = "project_builder_by_id";
+export const QueryKey = "project_certificates_by_id";
 
-export default function ProjectBuilderById({
+export default function ProjectCertificatesById({
   projectId,
-}: ProjectBuilderByIdProps) {
+}: ProjectCertificatesByIdProps) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, projectId],
     queryFn: async () => {
-      return await getProjectByIdAction({ projectId });
+      return await getCertificatesByProjectIdAction({ projectId });
     },
-
-    // Refetch even when user navigate from other page to ensure data is up to date after they make changes (to avoid re-render pdf. only for this page)
-    refetchOnWindowFocus: false,
-    refetchOnMount: "always",
-    refetchOnReconnect: true,
-    staleTime: 0,
-    gcTime: 0,
   });
 
   const onErrorRetry = async (): Promise<void> => {
@@ -44,7 +38,7 @@ export default function ProjectBuilderById({
       <Flex vertical align="center" justify="center">
         <DisplayZodErrors
           errors={{
-            app: "An error occurred while getting project data",
+            app: "An error occurred while getting certificates data",
           }}
           onRetry={onErrorRetry}
         />
@@ -75,5 +69,18 @@ export default function ProjectBuilderById({
     return <FullScreenSpin />;
   }
 
-  return <Builder project={project} roles={roles} />;
+  return (
+    <>
+      <Header
+        id={project.id}
+        isPublic={project.isPublic}
+        logs={project.logs}
+        signatories={project.signatories}
+        title={project.title}
+      />
+      <Space direction="vertical" size={"middle"} className="w-full p-4">
+        <CertificateList certificates={project.certificates} />
+      </Space>
+    </>
+  );
 }

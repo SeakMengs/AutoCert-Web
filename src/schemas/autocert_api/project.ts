@@ -16,3 +16,12 @@ export const ProjectSchema = z.object({
   status: z.nativeEnum(ProjectStatus).catch(ProjectStatus.Draft),
   createdAt: z.string().nullable(),
 });
+
+// TODO: change role type if use enum in go api
+export const ProjectLogSchema = z.object({
+  id: z.string(),
+  role: z.string(),
+  action: z.string(),
+  description: z.string(),
+  timestamp: z.string(),
+});

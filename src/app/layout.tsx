@@ -8,6 +8,7 @@ import Head from "next/head";
 import ReactQuery from "./react_query";
 
 // TODO: change font
+// Note: if change font variable, change it in tailwind.config.ts too
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,13 +38,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
       <Head>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body>
         <ReactQuery>
           <AntWrapper>
             <AuthProvider>{children}</AuthProvider>

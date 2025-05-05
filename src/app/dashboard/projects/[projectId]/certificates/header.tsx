@@ -26,24 +26,39 @@ import { SignatoryList } from "./signatory_list";
 import { ActivityLogDialog } from "./activity_log_dialog";
 import { createScopedLogger } from "@/utils/logger";
 import usePrint from "@/hooks/usePrint";
+import { z } from "zod";
+import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 
 const logger = createScopedLogger(
-  "app:dashboard:project:[id]:certificates:header",
+  "src:app:dashboard:projects:[projectId]:certificates:header.ts",
 );
+
 const { Title, Text } = Typography;
-export default function Header() {
+
+interface HeaderProps
+  extends Pick<
+    z.infer<typeof getCertificatesByProjectIdSuccessResponseSchema>["project"],
+    "isPublic" | "id" | "title" | "signatories" | "logs"
+  > {}
+
+export default function Header({
+  id,
+  isPublic,
+  title,
+  logs,
+  signatories,
+}: HeaderProps) {
   const {
     token: { colorSplit, colorBgContainer },
   } = theme.useToken();
 
-  const [isPublic, setIsPublic] = useState<boolean>(true);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState<boolean>(false);
   const [isSignatoryOpen, setIsSignatoryOpen] = useState<boolean>(false);
+  
   const { onPrint, printLoading } = usePrint();
   const { message } = App.useApp();
 
   const handleVisibilityToggle = async (checked: boolean) => {
-    setIsPublic(checked);
     await toggleProjectVisibility(checked);
   };
 
@@ -76,7 +91,7 @@ export default function Header() {
           level={4}
           className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
         >
-          Certificate of Achievement
+          {title}
         </Title>
         <Flex wrap={"nowrap"} align="center" gap={8}>
           <Space wrap={false} align="center">

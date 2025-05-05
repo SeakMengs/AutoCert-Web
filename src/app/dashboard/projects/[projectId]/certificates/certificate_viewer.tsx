@@ -9,7 +9,8 @@ import {
   ZoomInOutlined,
   ZoomOutOutlined,
 } from "@ant-design/icons";
-import { Certificate, downloadCertificate } from "./temp";
+import {  downloadCertificate } from "./temp";
+import { Certificate } from "./certificate_list";
 
 const { Text } = Typography;
 
@@ -17,6 +18,7 @@ interface CertificateViewerProps {
   certificate: Certificate;
 }
 
+// TODO: Implement the actual PDF viewer logic
 export function CertificateViewer({ certificate }: CertificateViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
