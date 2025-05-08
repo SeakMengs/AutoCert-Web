@@ -1,0 +1,22 @@
+import { SignatoryStatus, SignatoryStatusLabels } from "@/types/project";
+import { Tag } from "antd";
+import { JSX } from "react";
+
+const StatusColors: Record<SignatoryStatus, string | undefined> = {
+  [SignatoryStatus.NotInvited]: undefined,
+  [SignatoryStatus.Invited]: "blue",
+  [SignatoryStatus.Signed]: "green",
+};
+
+const getSignatoryStatusTag = (status: SignatoryStatus): JSX.Element | null => {
+  const statusColor = StatusColors[status];
+  return <Tag color={statusColor}>{SignatoryStatusLabels[status]}</Tag>;
+};
+
+export default function SignatoryStatusTag({
+  status,
+}: {
+  status: SignatoryStatus;
+}) {
+  return <>{getSignatoryStatusTag(status)}</>;
+}

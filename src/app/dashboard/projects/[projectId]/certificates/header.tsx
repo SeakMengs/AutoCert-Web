@@ -142,7 +142,7 @@ export default function Header({
         onCancel={() => setIsSignatoryOpen(false)}
         footer={null}
       >
-        <SignatoryList />
+        <SignatoryList signatories={signatories}/>
       </Modal>
     </header>
   );

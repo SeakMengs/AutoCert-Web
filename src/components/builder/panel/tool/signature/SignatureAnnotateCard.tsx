@@ -5,6 +5,7 @@ import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
 import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
 import { SignatoryStatus, SignatoryStatusLabels } from "@/types/project";
+import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
 
 export interface SignatureAnnotateCardProps
   extends Pick<
@@ -20,12 +21,6 @@ export interface SignatureAnnotateCardProps
 
 const { Text } = Typography;
 
-const statusColors: Record<SignatoryStatus, string | undefined> = {
-  [SignatoryStatus.NotInvited]: undefined,
-  [SignatoryStatus.Invited]: "blue",
-  [SignatoryStatus.Signed]: "green",
-};
-
 export default function SignatureAnnotateCard({
   pageNumber,
   signatureAnnotate,
@@ -38,16 +33,6 @@ export default function SignatureAnnotateCard({
   const {
     token: { colorPrimary },
   } = theme.useToken();
-
-  const getStatusTag = (): JSX.Element | null => {
-
-    const statusColor = statusColors[signatureAnnotate.status];
-    return (
-      <Tag color={statusColor}>
-        {SignatoryStatusLabels[signatureAnnotate.status]}
-      </Tag>
-    );
-  };
 
   const getInitialEmail = (email: string): string => {
     return email.split("@")[0].slice(0, 2).toUpperCase();
@@ -96,7 +81,7 @@ export default function SignatureAnnotateCard({
               flex: 0,
             }}
           >
-            {getStatusTag()}
+            <SignatoryStatusTag status={signatureAnnotate.status} />
             <Text type="secondary" className="text-xs">
               Page: {pageNumber}
             </Text>

@@ -71,10 +71,10 @@ function PageRenderer({
     >
       <Page
         _className="w-full h-auto object-cover"
+        className="pointer-events-none select-none"
         onRenderSuccess={onPageRenderSuccess}
         scale={2}
         pageNumber={pageNumber}
-        className="pointer-events-none select-none"
         canvasRef={(ref) => {
           if (ref) {
             // ref.style.border = selected ? `1px solid ${colorPrimary}` : "";

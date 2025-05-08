@@ -22,10 +22,17 @@ import {
   PrinterOutlined,
 } from "@ant-design/icons";
 import { CertificateViewer } from "./certificate_viewer";
-import { downloadCertificate, generateShareableLink } from "./temp";
+import { generateShareableLink } from "./temp";
 import usePrint from "@/hooks/usePrint";
 import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
+import moment from "moment";
+import { createScopedLogger } from "@/utils/logger";
+import { downloadCertificate, toCertificateTitle } from "./utils";
+
+const logger = createScopedLogger(
+  "src:app:dashboard:projects:[projectId]:certificates:certificate_list",
+);
 
 const { Title, Text } = Typography;
 
@@ -88,18 +95,16 @@ export default function CertificateList({
       )}
 
       {selectedCertificate && (
-        <>
-          <Modal
-            title={selectedCertificate.number}
-            open={isViewerOpen}
-            onCancel={() => setIsViewerOpen(false)}
-            footer={null}
-            width={1000}
-            style={{ top: 20 }}
-          >
-            <CertificateViewer certificate={selectedCertificate} />
-          </Modal>
-        </>
+        <Modal
+          title={toCertificateTitle(selectedCertificate)}
+          open={isViewerOpen}
+          onCancel={() => setIsViewerOpen(false)}
+          footer={null}
+          width={1000}
+          style={{ top: 20 }}
+        >
+          <CertificateViewer certificate={selectedCertificate} />
+        </Modal>
       )}
     </div>
   );
@@ -114,13 +119,18 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
   const { message } = App.useApp();
   const { onPrint, printLoading } = usePrint();
 
+  // TODO: add actual link
   const onGetShareableLink = async (id: string) => {
+    logger.info("Generating shareable link for certificate", id);
+
     const link = await generateShareableLink(id);
     navigator.clipboard.writeText(link);
     message.success("Link copied to clipboard");
   };
 
   const onPrintPdf = async (pdfUrl: string) => {
+    logger.info("Printing certificate", pdfUrl);
+
     await onPrint({
       printable: pdfUrl,
       type: "pdf",
@@ -139,7 +149,7 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
           // TODO: add fetch thumbnail and loading
           <Image
             className="rounded-sm object-cover w-full h-auto"
-            alt={`Certificate No. ${certificate.number}`}
+            alt={toCertificateTitle(certificate)}
             src={"/placeholder.svg"}
             width={256}
             height={144}
@@ -154,7 +164,6 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
           >
             Certificate No. {certificate.number}
           </Text>
-          {/* {getStatusBadge(certificate.status)} */}
         </Flex>
 
         <Space
@@ -164,7 +173,9 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
         >
           <Flex align="center" gap={8}>
             <CalendarOutlined />
-            <Text type="secondary">{certificate.createdAt}</Text>
+            <Text type="secondary">
+              {moment(certificate.createdAt).fromNow()}
+            </Text>
           </Flex>
         </Space>
 
@@ -189,14 +200,16 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
             <Tooltip title="Download Certificate">
               <Button
                 icon={<DownloadOutlined />}
-                onClick={() => downloadCertificate(certificate.id)}
+                onClick={async () => {
+                  await downloadCertificate(certificate, message);
+                }}
               />
             </Tooltip>
             <Tooltip title="Print Certificate">
               <Button
                 icon={<PrinterOutlined />}
                 onClick={async () =>
-                  await onPrintPdf("/certificate_merged.pdf")
+                  await onPrintPdf(certificate.certificateUrl)
                 }
                 loading={printLoading}
               />

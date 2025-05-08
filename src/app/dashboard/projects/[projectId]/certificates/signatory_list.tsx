@@ -2,39 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { List, Avatar, Typography, Spin, Empty, Flex } from "antd";
-import { getSignatories, Signatory } from "./temp";
+import { z } from "zod";
+import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
+import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
 
 const { Text } = Typography;
 
-interface SignatoryListProps {}
+export type Signatory = z.infer<
+  typeof getCertificatesByProjectIdSuccessResponseSchema
+>["project"]["signatories"][number];
 
-export function SignatoryList({}: SignatoryListProps) {
-  const [signatories, setSignatories] = useState<Signatory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface SignatoryListProps {
+  signatories: Signatory[];
+}
 
-  useEffect(() => {
-    const loadSignatories = async () => {
-      try {
-        const data = await getSignatories();
-        setSignatories(data);
-      } catch (error) {
-        console.error("Failed to load signatories:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSignatories();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <Flex className="w-full h-full" justify="center" align="center">
-        <Spin />
-      </Flex>
-    );
-  }
-
+export function SignatoryList({ signatories }: SignatoryListProps) {
   if (signatories.length === 0) {
     return (
       <Flex className="w-full h-full" justify="center" align="center">
@@ -52,25 +34,22 @@ export function SignatoryList({}: SignatoryListProps) {
           <List.Item.Meta
             avatar={
               <Avatar
-                src={signatory.avatarUrl}
+                src={signatory.profileUrl}
                 style={{
-                  backgroundColor: !signatory.avatarUrl ? "#1677ff" : undefined,
+                  backgroundColor: !signatory.profileUrl
+                    ? "#1677ff"
+                    : undefined,
                 }}
               >
-                {!signatory.avatarUrl
-                  ? signatory.name.substring(0, 2).toUpperCase()
+                {!signatory.profileUrl
+                  ? signatory.email.substring(0, 2).toUpperCase()
                   : null}
               </Avatar>
             }
-            title={signatory.name}
+            title={signatory.email}
             description={
               <div>
-                <Text type="secondary">{signatory.email}</Text>
-                {signatory.position && (
-                  <div>
-                    <Text type="secondary">{signatory.position}</Text>
-                  </div>
-                )}
+                <SignatoryStatusTag status={signatory.status} />
               </div>
             }
           />

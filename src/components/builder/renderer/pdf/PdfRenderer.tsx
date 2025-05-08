@@ -7,6 +7,7 @@ import { memo, useEffect, useState } from "react";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
 import { AnnotateStates } from "../../hooks/useAutoCertAnnotate";
+import PdfDocumentError from "@/components/error/PdfDocumentError";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -66,7 +67,7 @@ function PdfRenderer({
         onDocumentLoadSuccess(pdf);
       }}
       loading={<DocumentLoading />}
-      error={<DocumentError />}
+      error={<PdfDocumentError />}
     >
       {pdfPages > 0 && (
         <Space direction="vertical">
@@ -95,16 +96,6 @@ function PdfRenderer({
 
 function DocumentLoading() {
   return <Skeleton.Image active className="w-96 h-96" />;
-}
-
-function DocumentError() {
-  return (
-    <Result
-      status="error"
-      title="Failed to load PDF"
-      subTitle="If you have download manager extension, please disable it and try again."
-    />
-  );
 }
 
 export default memo(PdfRenderer);
