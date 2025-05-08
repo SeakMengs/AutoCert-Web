@@ -148,6 +148,8 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
     } catch (error) {
       message.error("Error printing certificate");
       logger.error("Error printing certificate", error);
+    } finally {
+      setPrintLoading(false);
     }
   };
 

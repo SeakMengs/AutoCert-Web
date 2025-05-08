@@ -15,25 +15,25 @@ export async function fetchGoogleOAuthCallBack(
   searchParams: string,
 ): Promise<GoogleOAuthCallBackData> {
   try {
-    const response = await api.get<ResponseJson<GoogleOAuthCallBackData>>(
+    const res = await api.get<ResponseJson<GoogleOAuthCallBackData>>(
       `/api/v1/oauth/google/callback?${searchParams}`,
     );
 
-    if (!response.data.success) {
-      logger.error("Error fetching OAuth callback data:", response.data);
+    if (!res.data.success) {
+      logger.error("Error fetching OAuth callback data:", res.data);
       return null;
     }
 
-    if (!response.data || !response.data.data) {
+    if (!res.data || !res.data.data) {
       return null;
     }
 
     return {
-      accessToken: response.data.data.accessToken,
-      refreshToken: response.data.data.refreshToken,
+      accessToken: res.data.data.accessToken,
+      refreshToken: res.data.data.refreshToken,
     };
   } catch (error: any) {
-    logger.error("Error fetching OAuth callback data:", error.response.data);
+    logger.error("Error fetching OAuth callback data:", error.res.data);
     return null;
   }
 }

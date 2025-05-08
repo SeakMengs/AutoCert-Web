@@ -89,6 +89,8 @@ export default function Header({
     } catch (error) {
       message.error("Error printing certificates");
       logger.error("Error printing certificates", error);
+    } finally {
+      setPrintLoading(false);
     }
   };
 

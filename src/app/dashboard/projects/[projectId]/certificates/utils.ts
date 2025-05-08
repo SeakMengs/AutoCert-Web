@@ -12,17 +12,17 @@ export const getMergedCertificateObjectUrl = async (
 ): Promise<string> => {
   logger.info(`Merging certificates for project id: ${projectId}`);
   try {
-    const response = await apiWithAuth.get(
+    const res = await apiWithAuth.get(
       `api/v1/projects/${projectId}/certificates/merge`,
       {
         responseType: "blob",
       },
     );
-    if (response.status !== 200) {
-      throw new Error("Failed to merge certificates");
+    if (res.status !== 200) {
+      throw new Error("Get merged certificates however response is not 200");
     }
 
-    const blob = new Blob([response.data]);
+    const blob = res.data;
     const url = window.URL.createObjectURL(blob);
     return url;
   } catch (error) {
@@ -40,13 +40,13 @@ export const downloadCertificate = async (
   );
 
   try {
-    const response = await api.get(certificate.certificateUrl, {
+    const res = await api.get(certificate.certificateUrl, {
       responseType: "blob",
     });
-    if (response.status !== 200) {
-      throw new Error("Failed to download certificate");
+    if (res.status !== 200) {
+      throw new Error("Get certificate however response is not 200");
     }
-    const blob = new Blob([response.data]);
+    const blob = new Blob([res.data]);
     const filename = `certificate-${certificate.number}.pdf`;
     download(blob, filename);
   } catch (error) {
@@ -63,18 +63,18 @@ export const downloadAllCertificates = async (
 ): Promise<void> => {
   logger.info(`Downloading all certificates for project id: ${projectId}`);
   try {
-    const response = await apiWithAuth.get(
+    const res = await apiWithAuth.get(
       `api/v1/projects/${projectId}/certificates/download`,
       {
         responseType: "blob",
       },
     );
 
-    if (response.status !== 200) {
-      throw new Error("Failed to download certificates");
+    if (res.status !== 200) {
+      throw new Error("Get certificates zip however response is not 200");
     }
 
-    const blob = new Blob([response.data]);
+    const blob = new Blob([res.data]);
     const filename = `certificates.zip`;
     download(blob, filename);
   } catch (error) {
