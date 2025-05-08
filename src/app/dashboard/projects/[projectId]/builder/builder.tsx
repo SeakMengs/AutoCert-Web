@@ -2,7 +2,6 @@
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
 import { useAutoCert } from "@/hooks/useAutoCert";
 import { useMemo } from "react";
-import PdfUploader from "./pdf_uploader";
 import { Flex, Splitter, theme } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
@@ -232,6 +231,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
         collapsible
       >
         <AutoCertPanel
+          projectId={project.id}
           signatureAnnotates={signatureAnnotates}
           columns={columns}
           rows={rows}

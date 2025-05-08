@@ -21,6 +21,7 @@ import {
 import { ProjectRole } from "@/types/project";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
 import { App } from "antd";
+import { generateCertificatesByIdAction } from "../panel/action";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -151,8 +152,12 @@ export default function useAutoCert({
     }
   };
 
-  const onGenerateCertificates = (): void => {
-    console.log(annotates);
+  const onGenerateCertificates = async () => {
+    logger.info("Generate certificates");
+
+    return await generateCertificatesByIdAction({
+      projectId,
+    });
   };
 
   const onQrCodeEnabledChange: SettingsToolProps["onQrCodeEnabledChange"] = (

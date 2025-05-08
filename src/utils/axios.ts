@@ -31,7 +31,8 @@ export const api = axios.create({
   ],
   validateStatus: (status) => {
     // Resolve only if the status code is less than 500
-    return status < 500; 
+    // return status < 500; 
+    return true; // Always resolve the response
   }
 });
 
@@ -52,7 +53,8 @@ export const apiWithAuth = axios.create({
   ],
   validateStatus: (status) => {
     // Resolve only if the status code is less than 500
-    return status < 500; 
+    // return status < 500; 
+    return true; // Always resolve the response
   }
 });
 

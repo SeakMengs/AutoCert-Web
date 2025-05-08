@@ -9,7 +9,6 @@ import { z } from "zod";
 export const projectByIdSchema = ProjectSchema.pick({
   id: true,
   title: true,
-  createdAt: true,
   isPublic: true,
   signatories: true,
   status: true,

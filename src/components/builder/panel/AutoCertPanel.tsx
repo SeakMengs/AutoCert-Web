@@ -1,4 +1,5 @@
 import {
+  App,
   Button,
   Collapse,
   CollapseProps,
@@ -23,25 +24,37 @@ import {
 import { BarSize } from "@/app/dashboard/layout_client";
 import { memo, PropsWithChildren } from "react";
 import SettingsTool, { SettingsToolProps } from "./tool/settings/settings";
+import { useMutation } from "@tanstack/react-query";
+import useAutoCert from "../hooks/useAutoCert";
+import { createScopedLogger } from "@/utils/logger";
+import { useRouter } from "next/navigation";
+
+const logger = createScopedLogger(
+  "src:app:components:builder:panel:AutoCertPanel.ts",
+);
 
 export interface AutoCertPanelProps
   extends ColumnToolProps,
     SignatureToolProps,
     AutoCertTableProps,
     SettingsToolProps {
-  onGenerateCertificates: () => void;
+  onGenerateCertificates: ReturnType<
+    typeof useAutoCert
+  >["onGenerateCertificates"];
+  projectId: string;
 }
 
-const {Text} = Typography
+const { Text } = Typography;
 
 function AutoCertPanel({
+  projectId,
   // Annotate
   selectedAnnotateId,
   currentPdfPage,
   columnAnnotates,
   signatureAnnotates,
   qrCodeEnabled,
-  
+
   onQrCodeEnabledChange,
   onAnnotateSelect,
   onColumnAnnotateAdd,
@@ -124,7 +137,10 @@ function AutoCertPanel({
         </Text>
       ),
       children: (
-        <Layout onGenerateCertificates={onGenerateCertificates}>
+        <Layout
+          onGenerateCertificates={onGenerateCertificates}
+          projectId={projectId}
+        >
           <Collapse
             defaultActiveKey={["1", "2", "3"]}
             items={collapseItems}
@@ -142,7 +158,10 @@ function AutoCertPanel({
         </Text>
       ),
       children: (
-        <Layout onGenerateCertificates={onGenerateCertificates}>
+        <Layout
+          onGenerateCertificates={onGenerateCertificates}
+          projectId={projectId}
+        >
           <AutoCertTable columns={columns} {...autoCertTableProps} />
         </Layout>
       ),
@@ -185,16 +204,70 @@ function AutoCertPanel({
 export default memo(AutoCertPanel);
 
 interface LayoutProps
-  extends Pick<AutoCertPanelProps, "onGenerateCertificates"> {}
+  extends Pick<AutoCertPanelProps, "onGenerateCertificates" | "projectId"> {}
 
 const Layout = memo(
-  ({ onGenerateCertificates, children }: PropsWithChildren<LayoutProps>) => {
+  ({
+    onGenerateCertificates,
+    projectId,
+    children,
+  }: PropsWithChildren<LayoutProps>) => {
+    const router = useRouter();
+    const { message, modal } = App.useApp();
     const {
       token: { colorSplit },
     } = theme.useToken();
 
-    const handleGenerateCertificates = () => {
-      onGenerateCertificates();
+    const {
+      data,
+      mutateAsync: onGenerateCertificatesMutation,
+      isPending,
+    } = useMutation({
+      mutationFn: onGenerateCertificates,
+      onSuccess: (data, variables) => {
+        if (!data.success) {
+          const { errors } = data;
+          // TODO: add more specific error handling
+          if (Object.hasOwn(errors, "status")) {
+            message.error(
+              "Certificates cannot be generated as the project is not in draft status!",
+            );
+            return;
+          }
+
+          message.error("Failed to generate certificates");
+          return;
+        }
+
+        modal.success({
+          title: "Certificates generated successfully",
+          content: (
+            <div className="motion-preset-confetti">
+              <p>Certificates have been generated successfully.</p>
+              <p>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    router.push(
+                      `/dashboard/projects/${projectId}/certificates`,
+                    );
+                  }}
+                >
+                  Go to Generated Certificates Page
+                </Button>
+              </p>
+            </div>
+          ),
+        });
+      },
+      onError: (error) => {
+        logger.error("Failed to generate certificates", error);
+        message.error("Failed to generate certificates");
+      },
+    });
+
+    const handleGenerateCertificates = async () => {
+      await onGenerateCertificatesMutation();
     };
 
     return (
@@ -210,7 +283,12 @@ const Layout = memo(
         </div>
         <div style={{ borderTop: `1px solid ${colorSplit}` }}>
           <Flex className="m-2" justify="center">
-            <Button type="primary" onClick={handleGenerateCertificates}>
+            <Button
+              type="primary"
+              onClick={handleGenerateCertificates}
+              loading={isPending}
+              disabled={isPending}
+            >
               Generate certificates
             </Button>
           </Flex>

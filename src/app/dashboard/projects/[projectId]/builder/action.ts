@@ -47,6 +47,7 @@ export async function getProjectByIdAction(data: GetProjectByIdParams): Promise<
     const parseData = getProjectByIdSuccessResponseSchema.safeParse(
       res.data.data,
     );
+
     if (!parseData.success) {
       return responseFailed(
         "Parse and get invalid expect response data",
@@ -61,6 +62,6 @@ export async function getProjectByIdAction(data: GetProjectByIdParams): Promise<
   } catch (error) {
     logger.error("Failed to get project by id", error);
 
-    return responseSomethingWentWrong("Failed to get own projects");
+    return responseSomethingWentWrong("Failed to get project by id");
   }
 }
