@@ -29,6 +29,7 @@ import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 import moment from "moment";
 import { createScopedLogger } from "@/utils/logger";
 import { downloadCertificate, toCertificateTitle } from "./utils";
+import { useMutation } from "@tanstack/react-query";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:certificate_list",
@@ -117,7 +118,7 @@ interface GridViewProps {
 
 function GridView({ certificate, onCertificateView }: GridViewProps) {
   const { message } = App.useApp();
-  const { onPrint, printLoading } = usePrint();
+  const { onPrint, printLoading, setPrintLoading } = usePrint();
 
   // TODO: add actual link
   const onGetShareableLink = async (id: string) => {
@@ -129,16 +130,39 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
   };
 
   const onPrintPdf = async (pdfUrl: string) => {
-    logger.info("Printing certificate", pdfUrl);
+    try {
+      setPrintLoading(true);
+      logger.info("Printing certificate", pdfUrl);
 
-    await onPrint({
-      printable: pdfUrl,
-      type: "pdf",
-      onLoadingEnd() {
-        message.success("Certificate is ready to print");
-      },
-    });
+      await onPrint({
+        printable: pdfUrl,
+        type: "pdf",
+        onLoadingEnd() {
+          message.success("Certificate is ready to print");
+        },
+        onError(err) {
+          message.error("Error printing certificate");
+          logger.error("Error printing certificate", err);
+        },
+      });
+    } catch (error) {
+      message.error("Error printing certificate");
+      logger.error("Error printing certificate", error);
+    }
   };
+
+  const {
+    mutateAsync: onDownloadCertificateMutation,
+    isPending: isDownloading,
+  } = useMutation({
+    mutationFn: async () => await downloadCertificate(certificate, message),
+    onError: (error) => {
+      logger.error("Failed to download certificate", error);
+      message.error(
+        `Failed to download certificate number ${certificate.number}`,
+      );
+    },
+  });
 
   return (
     <Col key={certificate.id} xs={24} sm={12} md={8} lg={4}>
@@ -200,9 +224,9 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
             <Tooltip title="Download Certificate">
               <Button
                 icon={<DownloadOutlined />}
-                onClick={async () => {
-                  await downloadCertificate(certificate, message);
-                }}
+                onClick={async () => onDownloadCertificateMutation()}
+                loading={isDownloading}
+                disabled={isDownloading}
               />
             </Tooltip>
             <Tooltip title="Print Certificate">

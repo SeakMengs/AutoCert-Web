@@ -20,31 +20,33 @@ export const usePrint = () => {
     try {
       const printJS = (await import("print-js-updated")).default;
 
-      printJS({
-        ...configuration,
-        onLoadingStart() {
-          setPrintLoading(true);
+      await new Promise<void>((resolve, reject) => {
+        printJS({
+          ...configuration,
+          onLoadingStart() {
+            setPrintLoading(true);
 
-          if (configuration.onLoadingStart) {
-            configuration.onLoadingStart();
-          }
-        },
-        onLoadingEnd() {
-          setPrintLoading(false);
+            if (configuration.onLoadingStart) {
+              configuration.onLoadingStart();
+            }
+          },
+          onLoadingEnd() {
+            setPrintLoading(false);
 
-          if (configuration.onLoadingEnd) {
-            configuration.onLoadingEnd();
-          }
-        },
-        onError(err) {
-          setPrintLoading(false);
-          message.error("Error printing certificates");
-          logger.error("Error printing certificates", err);
+            if (configuration.onLoadingEnd) {
+              configuration.onLoadingEnd();
+            }
+            resolve();
+          },
+          onError(err) {
+            setPrintLoading(false);
 
-          if (configuration.onError) {
-            configuration.onError(err);
-          }
-        },
+            if (configuration.onError) {
+              configuration.onError(err);
+            }
+            reject(err);
+          },
+        });
       });
     } catch (error) {
       message.error("Error printing certificates");
@@ -55,7 +57,7 @@ export const usePrint = () => {
     }
   };
 
-  return { printLoading, onPrint };
+  return { printLoading, onPrint, setPrintLoading };
 };
 
 export default usePrint;

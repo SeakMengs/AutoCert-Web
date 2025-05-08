@@ -79,3 +79,31 @@ export const autocertToFormattedZodError = (
     return generateAndFormatZodError("unknown", "Something went wrong");
   }
 };
+
+/**
+ * Example usage:
+ * validationErrors = {
+ *  email: "Invalid email",
+ *  unknown: "Invalid password",
+ * }
+ *
+ * translationMap = {
+ *  email: "The email you provided is invalid",
+ * }
+ *
+ * If the translationMap key is met, it will return the value of the translationMap key
+ */
+export const getTranslatedErrorMessage = <T>(
+  validationErrors: T_ZodErrorFormatted<T>,
+  translationMap: Partial<Record<keyof T, string>>,
+): string | undefined => {
+  const errorEntries = Object.entries(validationErrors);
+
+  for (const [field, errorMessage] of errorEntries) {
+    if (translationMap[field as keyof T]) {
+      return translationMap[field as keyof T];
+    }
+  }
+
+  return undefined;
+};

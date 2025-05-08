@@ -1,10 +1,35 @@
 import { createScopedLogger } from "@/utils/logger";
 import { Certificate } from "./certificate_list";
 import { MessageInstance } from "antd/es/message/interface";
+import { api, apiWithAuth } from "@/utils/axios";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:utils",
 );
+
+export const getMergedCertificateObjectUrl = async (
+  projectId: string,
+): Promise<string> => {
+  logger.info(`Merging certificates for project id: ${projectId}`);
+  try {
+    const response = await apiWithAuth.get(
+      `api/v1/projects/${projectId}/certificates/merge`,
+      {
+        responseType: "blob",
+      },
+    );
+    if (response.status !== 200) {
+      throw new Error("Failed to merge certificates");
+    }
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    return url;
+  } catch (error) {
+    logger.error("Failed to merge certificates", error);
+    throw new Error("Failed to merge certificates");
+  }
+};
 
 export const downloadCertificate = async (
   certificate: Certificate,
@@ -15,25 +40,58 @@ export const downloadCertificate = async (
   );
 
   try {
-    const response = await fetch(certificate.certificateUrl);
-    if (!response.ok) {
-      throw new Error("Failed to fetch the certificate");
+    const response = await api.get(certificate.certificateUrl, {
+      responseType: "blob",
+    });
+    if (response.status !== 200) {
+      throw new Error("Failed to download certificate");
     }
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `certificate_${certificate.number}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+    const blob = new Blob([response.data]);
+    const filename = `certificate-${certificate.number}.pdf`;
+    download(blob, filename);
   } catch (error) {
     logger.error("Failed to download certificate", error);
     message.error(
       `Failed to download certificate number ${certificate.number}`,
     );
   }
+};
+
+export const downloadAllCertificates = async (
+  projectId: string,
+  message: MessageInstance,
+): Promise<void> => {
+  logger.info(`Downloading all certificates for project id: ${projectId}`);
+  try {
+    const response = await apiWithAuth.get(
+      `api/v1/projects/${projectId}/certificates/download`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    if (response.status !== 200) {
+      throw new Error("Failed to download certificates");
+    }
+
+    const blob = new Blob([response.data]);
+    const filename = `certificates.zip`;
+    download(blob, filename);
+  } catch (error) {
+    logger.error("Failed to download all certificates", error);
+    message.error("Failed to download all certificates");
+  }
+};
+
+const download = (blob: Blob, filename: string): void => {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 };
 
 export const toCertificateTitle = (certificate: Certificate): string => {

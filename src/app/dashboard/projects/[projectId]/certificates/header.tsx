@@ -13,7 +13,7 @@ import {
   Typography,
 } from "antd";
 import { useState } from "react";
-import { downloadAllCertificates, toggleProjectVisibility } from "./temp";
+import { toggleProjectVisibility } from "./temp";
 import {
   EyeInvisibleOutlined,
   EyeOutlined,
@@ -28,6 +28,11 @@ import { createScopedLogger } from "@/utils/logger";
 import usePrint from "@/hooks/usePrint";
 import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
+import {
+  downloadAllCertificates,
+  getMergedCertificateObjectUrl,
+} from "./utils";
+import { useMutation } from "@tanstack/react-query";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:header.ts",
@@ -54,23 +59,50 @@ export default function Header({
 
   const [isActivityLogOpen, setIsActivityLogOpen] = useState<boolean>(false);
   const [isSignatoryOpen, setIsSignatoryOpen] = useState<boolean>(false);
-  
-  const { onPrint, printLoading } = usePrint();
+
+  const { onPrint, printLoading, setPrintLoading } = usePrint();
   const { message } = App.useApp();
 
   const handleVisibilityToggle = async (checked: boolean) => {
     await toggleProjectVisibility(checked);
   };
 
-  const onPrintAllPdf = async (pdfUrl: string) => {
-    await onPrint({
-      printable: pdfUrl,
-      type: "pdf",
-      onLoadingEnd() {
-        message.success("Certificates are ready to print");
-      },
-    });
+  const onPrintAllPdf = async () => {
+    try {
+      setPrintLoading(true);
+      const url = await getMergedCertificateObjectUrl(id);
+      logger.info("Printing certificates", url);
+
+      await onPrint({
+        printable: url,
+        type: "pdf",
+        onLoadingEnd() {
+          message.success("Certificates are ready to print");
+        },
+        onError(err) {
+          message.error("Error printing certificates");
+          logger.error("Error printing certificates", err);
+        },
+      });
+
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      message.error("Error printing certificates");
+      logger.error("Error printing certificates", error);
+    }
   };
+
+  const {
+    mutateAsync: onDownloadAllCertificatesMutation,
+    isPending: isDownloading,
+  } = useMutation({
+    mutationFn: async (projectId: string) =>
+      await downloadAllCertificates(projectId, message),
+    onError: (error) => {
+      logger.error("Failed to download all certificates", error);
+      message.error("Failed to download all certificates");
+    },
+  });
 
   return (
     <header
@@ -118,15 +150,17 @@ export default function Header({
           <Tooltip title="Download All Certificates">
             <Button
               icon={<DownloadOutlined />}
-              onClick={() => downloadAllCertificates()}
+              onClick={async () => {
+                await onDownloadAllCertificatesMutation(id);
+              }}
+              loading={isDownloading}
+              disabled={isDownloading}
             />
           </Tooltip>
           <Tooltip title="Print All Certificates">
             <Button
               icon={<PrinterOutlined />}
-              onClick={async () => {
-                await onPrintAllPdf("/certificate_merged.pdf");
-              }}
+              onClick={onPrintAllPdf}
               loading={printLoading}
             />
           </Tooltip>
@@ -142,7 +176,7 @@ export default function Header({
         onCancel={() => setIsSignatoryOpen(false)}
         footer={null}
       >
-        <SignatoryList signatories={signatories}/>
+        <SignatoryList signatories={signatories} />
       </Modal>
     </header>
   );

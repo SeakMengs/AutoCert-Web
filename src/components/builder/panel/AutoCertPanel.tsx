@@ -28,6 +28,7 @@ import { useMutation } from "@tanstack/react-query";
 import useAutoCert from "../hooks/useAutoCert";
 import { createScopedLogger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
+import { getTranslatedErrorMessage } from "@/utils/error";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -219,7 +220,6 @@ const Layout = memo(
     } = theme.useToken();
 
     const {
-      data,
       mutateAsync: onGenerateCertificatesMutation,
       isPending,
     } = useMutation({
@@ -227,11 +227,14 @@ const Layout = memo(
       onSuccess: (data, variables) => {
         if (!data.success) {
           const { errors } = data;
+
           // TODO: add more specific error handling
-          if (Object.hasOwn(errors, "status")) {
-            message.error(
+          const specificError = getTranslatedErrorMessage(errors, {
+            status:
               "Certificates cannot be generated as the project is not in draft status!",
-            );
+          });
+          if (specificError) {
+            message.error(specificError);
             return;
           }
 
