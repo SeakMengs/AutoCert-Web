@@ -13,6 +13,7 @@ import {
   Space,
   Flex,
   App,
+  Skeleton,
 } from "antd";
 import {
   DownloadOutlined,
@@ -29,7 +30,9 @@ import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 import moment from "moment";
 import { createScopedLogger } from "@/utils/logger";
 import { downloadCertificate, toCertificateTitle } from "./utils";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiWithAuth } from "@/utils/axios";
+import { HOUR } from "@/utils/time";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:certificate_list",
@@ -43,9 +46,11 @@ export type Certificate = z.infer<
 
 export interface CertificateListProps {
   certificates: Certificate[];
+  projectId: string;
 }
 
 export default function CertificateList({
+  projectId,
   certificates,
 }: CertificateListProps) {
   const [selectedCertificate, setSelectedCertificate] =
@@ -62,6 +67,7 @@ export default function CertificateList({
       {certificates.map((certificate) => (
         <GridView
           key={certificate.id}
+          projectId={projectId}
           certificate={certificate}
           onCertificateView={onCertificateView}
         />
@@ -113,12 +119,50 @@ export default function CertificateList({
 
 interface GridViewProps {
   certificate: Certificate;
+  projectId: string;
   onCertificateView: (certificate: Certificate) => void;
 }
 
-function GridView({ certificate, onCertificateView }: GridViewProps) {
+const fetchThumbnail = async (
+  projectId: string,
+  certNumber: number,
+): Promise<string> => {
+  try {
+    const res = await apiWithAuth.get(
+      `/api/v1/projects/${projectId}/certificates/${certNumber}/thumbnail`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    if (res.status === 200) {
+      const blob = res.data;
+      const url = URL.createObjectURL(blob);
+      return url;
+    }
+  } catch (error) {
+    logger.error("Error fetching certificate thumbnail", error);
+  }
+
+  return "/placeholder.svg";
+};
+
+const QueryKey = "project_cert_thumbnail";
+
+function GridView({
+  projectId,
+  certificate,
+  onCertificateView,
+}: GridViewProps) {
   const { message } = App.useApp();
   const { onPrint, printLoading, setPrintLoading } = usePrint();
+
+  const { data: thumbnailUrl, isLoading: isFetchThumbnail } = useQuery({
+    queryKey: [QueryKey, certificate.number, projectId],
+    queryFn: async () => await fetchThumbnail(projectId, certificate.number),
+    // Cache the thumbnail for 1 hour since thumbnail never changes
+    staleTime: 1 * HOUR,
+  });
 
   // TODO: add actual link
   const onGetShareableLink = async (id: string) => {
@@ -172,15 +216,25 @@ function GridView({ certificate, onCertificateView }: GridViewProps) {
         className="border rounded-sm hover:shadow-sm relative group w-full"
         hoverable
         cover={
-          // TODO: add fetch thumbnail and loading
-          <Image
-            className="rounded-sm object-cover w-full h-auto"
-            alt={toCertificateTitle(certificate)}
-            src={"/placeholder.svg"}
-            width={256}
-            height={144}
-            unoptimized
-          />
+          isFetchThumbnail ? (
+            <Skeleton.Image
+              active
+              className="rounded-sm object-cover w-full"
+              style={{
+                width: 256,
+                height: 168,
+              }}
+            />
+          ) : (
+            <Image
+              className="rounded-sm object-cover w-full h-auto"
+              alt={toCertificateTitle(certificate)}
+              src={`${thumbnailUrl}`}
+              width={256}
+              height={168}
+              unoptimized
+            />
+          )
         }
       >
         <Flex justify="space-between" align="start" style={{ marginBottom: 8 }}>

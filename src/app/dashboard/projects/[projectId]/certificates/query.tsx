@@ -79,7 +79,7 @@ export default function ProjectCertificatesById({
         title={project.title}
       />
       <Space direction="vertical" size={"middle"} className="w-full p-4">
-        <CertificateList certificates={project.certificates} />
+        <CertificateList certificates={project.certificates} projectId={projectId}/>
       </Space>
     </>
   );
