@@ -32,7 +32,7 @@ export default function CertificateProjectSection() {
   let queryStatus = searchParams
     .getAll("status")
     .filter((f) => statusOptions.some((o) => o.value.toString() === f))
-    .map((f) => Number(f)) as ProjectStatus[]
+    .map((f) => Number(f)) as ProjectStatus[];
 
   if (queryStatus.length === 0) {
     queryStatus = Object.values(ProjectStatus);
@@ -135,9 +135,11 @@ export default function CertificateProjectSection() {
 
         <CertificateProjectList
           onPageChange={onPageChange}
-          page={page}
-          search={debouncedSearchQuery}
-          status={selectedStatus}
+          queryParams={{
+            page,
+            search: debouncedSearchQuery,
+            status: selectedStatus,
+          }}
         />
       </Space>
     </>

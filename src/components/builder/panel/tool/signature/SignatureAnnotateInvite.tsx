@@ -21,7 +21,7 @@ export default function SignatureAnnotateInvite({
   signatureAnnotate,
   onSignatureAnnotateInvite,
 }: SignatureAnnotateInviteProps) {
-  const [iniviting, setInviting] = useState<boolean>(false);
+  const [inviting, setInviting] = useState<boolean>(false);
 
   const handleInviteSignatory = async (): Promise<void> => {
     logger.debug(
@@ -49,8 +49,8 @@ export default function SignatureAnnotateInvite({
         type="primary"
         size="small"
         onClick={handleInviteSignatory}
-        loading={iniviting}
-        disabled={iniviting}
+        loading={inviting}
+        disabled={inviting}
       >
         Invite
       </Button>

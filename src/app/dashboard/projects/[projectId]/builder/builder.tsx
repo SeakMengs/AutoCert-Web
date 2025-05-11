@@ -90,6 +90,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
+    onSignatureAnnotateSign,
     onAnnotateDragStop,
     onAnnotateResizeStop,
     onAnnotateSelect,
@@ -257,6 +258,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
           onSignatureAnnotateAdd={onSignatureAnnotateAdd}
           onSignatureAnnotateRemove={onSignatureAnnotateRemove}
           onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+          onSignatureAnnotateSign={onSignatureAnnotateSign}
           onAnnotateSelect={onAnnotateSelect}
         />
       </Splitter.Panel>

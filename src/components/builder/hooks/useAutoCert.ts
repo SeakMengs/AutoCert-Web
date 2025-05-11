@@ -21,7 +21,7 @@ import {
 import { ProjectRole } from "@/types/project";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
 import { App } from "antd";
-import { generateCertificatesByIdAction } from "../panel/action";
+import { generateCertificatesByIdAction } from "../action";
 
 const logger = createScopedLogger("components:builder:hook:useAutoCert");
 
@@ -77,12 +77,14 @@ export default function useAutoCert({
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
+    onSignatureAnnotateSign,
     onAnnotateResizeStop,
     onAnnotateDragStop,
     onAnnotateSelect,
     replaceAnnotatesColumnValue,
     removeUnnecessaryAnnotates,
   } = useAutoCertAnnotate({
+    projectId,
     initialAnnotates,
     roles,
     enqueueChange,
@@ -220,6 +222,7 @@ export default function useAutoCert({
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
+    onSignatureAnnotateSign,
     onAnnotateResizeStop,
     onAnnotateDragStop,
     onAnnotateSelect,

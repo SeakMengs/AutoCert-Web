@@ -4,6 +4,7 @@ import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import SignatureAnnotateAdd from "./SignatureAnnotateAdd";
 import SignatureAnnotateCard from "./SignatureAnnotateCard";
+import { useAutoCert } from "@/hooks/useAutoCert";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({
@@ -32,6 +33,9 @@ export interface SignatureToolProps {
   ) => void;
   onSignatureAnnotateRemove: (id: string) => void;
   onSignatureAnnotateInvite: (id: string) => void;
+  onSignatureAnnotateSign: ReturnType<
+    typeof useAutoCert
+  >["onSignatureAnnotateSign"];
   onAnnotateSelect: (id: string) => void;
 }
 
@@ -43,6 +47,7 @@ export default function SignatureTool({
   onSignatureAnnotateAdd,
   onSignatureAnnotateInvite,
   onSignatureAnnotateRemove,
+  onSignatureAnnotateSign,
 }: SignatureToolProps) {
   return (
     <Space direction="vertical" className="w-full">
@@ -61,6 +66,7 @@ export default function SignatureTool({
               onAnnotateSelect={onAnnotateSelect}
               onSignatureAnnotateInvite={onSignatureAnnotateInvite}
               onSignatureAnnotateRemove={onSignatureAnnotateRemove}
+              onSignatureAnnotateSign={onSignatureAnnotateSign}
             />
           )),
         )}

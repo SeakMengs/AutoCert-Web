@@ -6,6 +6,7 @@ import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
 import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
 import { SignatoryStatus, SignatoryStatusLabels } from "@/types/project";
 import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
+import SignatureAnnotateSign from "./SignatureAnnotateSign";
 
 export interface SignatureAnnotateCardProps
   extends Pick<
@@ -14,6 +15,7 @@ export interface SignatureAnnotateCardProps
     | "onAnnotateSelect"
     | "onSignatureAnnotateRemove"
     | "onSignatureAnnotateInvite"
+    | "onSignatureAnnotateSign"
   > {
   signatureAnnotate: SignatureAnnotateState;
   pageNumber: number;
@@ -26,8 +28,8 @@ export default function SignatureAnnotateCard({
   signatureAnnotate,
   selectedAnnotateId,
   onAnnotateSelect,
-  // Invite signatory to sign
   onSignatureAnnotateInvite,
+  onSignatureAnnotateSign,
   onSignatureAnnotateRemove,
 }: SignatureAnnotateCardProps) {
   const {
@@ -48,7 +50,12 @@ export default function SignatureAnnotateCard({
           />
         );
       case SignatoryStatus.Invited:
-        return null;
+        return (
+          <SignatureAnnotateSign
+            signatureAnnotate={signatureAnnotate}
+            onSignatureAnnotateSign={onSignatureAnnotateSign}
+          />
+        );
       case SignatoryStatus.Signed:
         return null;
       default:

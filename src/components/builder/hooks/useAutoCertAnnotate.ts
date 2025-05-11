@@ -14,6 +14,9 @@ import { SignatoryStatus } from "@/types/project";
 import { UseAutoCertProps } from "./useAutoCert";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
 import { App } from "antd";
+import { approveSignatureAction } from "../action";
+import { responseFailed, responseSomethingWentWrong } from "@/utils/response";
+import { generateAndFormatZodError } from "@/utils/error";
 
 const logger = createScopedLogger(
   "components:builder:hook:useAutoCertAnnotate",
@@ -96,11 +99,12 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
 };
 
 export interface UseAutoCertAnnotateProps
-  extends Pick<UseAutoCertProps, "roles" | "initialAnnotates"> {
+  extends Pick<UseAutoCertProps, "roles" | "initialAnnotates" | "projectId"> {
   enqueueChange: ReturnType<typeof useAutoCertChange>["enqueueChange"];
 }
 
 export default function useAutoCertAnnotate({
+  projectId,
   initialAnnotates,
   enqueueChange,
   roles,
@@ -400,6 +404,69 @@ export default function useAutoCertAnnotate({
     });
   };
 
+  // This one don't enqueue since we need to fetch the signature from server
+  const onSignatureAnnotateSign = async (id: string) => {
+    logger.debug(`Sign signature annotate with id ${id}`);
+    // Don't check permission, let the server handle it
+    // if (!hasPermission(roles, [ProjectPermission.AnnotateSignatureApprove])) {
+    //   logger.warn("Permission denied to sign signature annotate");
+    //   return responseFailed(
+    //     "Permission denied to sign signature annotate",
+    //     generateAndFormatZodError(
+    //       "forbidden",
+    //       "Permission denied to approve signature",
+    //     ),
+    //   );
+    // }
+
+    const existingAnnotate = findAnnotateById(id);
+    if (!existingAnnotate) {
+      logger.warn(`Signature annotate with id ${id} not found`);
+      return responseFailed(
+        "Signature annotate not found",
+        generateAndFormatZodError("notFound", "Signature annotate not found"),
+      );
+    }
+
+    const { annotate, page } = existingAnnotate;
+    if (annotate.type !== AnnotateType.Signature) {
+      logger.warn(
+        `Signature annotate with id ${id} found, but not a signature`,
+      );
+      return responseFailed(
+        "Signature annotate not found",
+        generateAndFormatZodError("type", "Signature annotate not found"),
+      );
+    }
+
+    if (annotate.status !== SignatoryStatus.Invited) {
+      logger.warn(`Signature annotate with id ${id} found, but not invited`);
+      return responseFailed(
+        "Signature annotate not invited",
+        generateAndFormatZodError("status", "Signature annotate not invited"),
+      );
+    }
+
+    const res = await approveSignatureAction({
+      projectId: projectId,
+      signatureAnnotateId: id,
+    });
+
+    if (res.success) {
+      setAnnotates((prev) => ({
+        ...prev,
+        [page]: prev[page].map((annotation) =>
+          annotation.id === id
+            ? { ...annotation, status: SignatoryStatus.Signed }
+            : annotation,
+        ),
+      }));
+      setSelectedAnnotateId(id);
+    }
+
+    return res;
+  };
+
   const onAnnotateResizeStop: BaseAnnotateProps["onResizeStop"] = (
     id,
     e,
@@ -624,6 +691,7 @@ export default function useAutoCertAnnotate({
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
+    onSignatureAnnotateSign,
     onAnnotateResizeStop,
     onAnnotateDragStop,
     onAnnotateSelect,

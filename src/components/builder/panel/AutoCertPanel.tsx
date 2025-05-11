@@ -64,6 +64,7 @@ function AutoCertPanel({
   onSignatureAnnotateAdd,
   onSignatureAnnotateRemove,
   onSignatureAnnotateInvite,
+  onSignatureAnnotateSign,
   onGenerateCertificates,
   // Table,
   columns,
@@ -109,6 +110,7 @@ function AutoCertPanel({
           onSignatureAnnotateAdd={onSignatureAnnotateAdd}
           onSignatureAnnotateRemove={onSignatureAnnotateRemove}
           onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+          onSignatureAnnotateSign={onSignatureAnnotateSign}
           selectedAnnotateId={selectedAnnotateId}
         />
       ),
@@ -219,55 +221,55 @@ const Layout = memo(
       token: { colorSplit },
     } = theme.useToken();
 
-    const {
-      mutateAsync: onGenerateCertificatesMutation,
-      isPending,
-    } = useMutation({
-      mutationFn: onGenerateCertificates,
-      onSuccess: (data, variables) => {
-        if (!data.success) {
-          const { errors } = data;
+    const { mutateAsync: onGenerateCertificatesMutation, isPending } =
+      useMutation({
+        mutationFn: onGenerateCertificates,
+        onSuccess: (data, variables) => {
+          if (!data.success) {
+            const { errors } = data;
 
-          // TODO: add more specific error handling
-          const specificError = getTranslatedErrorMessage(errors, {
-            status:
-              "Certificates cannot be generated as the project is not in draft status!",
-          });
-          if (specificError) {
-            message.error(specificError);
+            // TODO: add more specific error handling
+            const specificError = getTranslatedErrorMessage(errors, {
+              status:
+                "Certificates cannot be generated as the project is not in draft status!",
+              noAnnotate:
+                "Certificates cannot be generated as because there are no annotations!",
+            });
+            if (specificError) {
+              message.error(specificError);
+              return;
+            }
+
+            message.error("Failed to generate certificates");
             return;
           }
 
+          modal.success({
+            title: "Certificates generated successfully",
+            content: (
+              <div className="motion-preset-confetti">
+                <p>Certificates have been generated successfully.</p>
+                <p>
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      router.push(
+                        `/dashboard/projects/${projectId}/certificates`,
+                      );
+                    }}
+                  >
+                    Go to Generated Certificates Page
+                  </Button>
+                </p>
+              </div>
+            ),
+          });
+        },
+        onError: (error) => {
+          logger.error("Failed to generate certificates", error);
           message.error("Failed to generate certificates");
-          return;
-        }
-
-        modal.success({
-          title: "Certificates generated successfully",
-          content: (
-            <div className="motion-preset-confetti">
-              <p>Certificates have been generated successfully.</p>
-              <p>
-                <Button
-                  type="link"
-                  onClick={() => {
-                    router.push(
-                      `/dashboard/projects/${projectId}/certificates`,
-                    );
-                  }}
-                >
-                  Go to Generated Certificates Page
-                </Button>
-              </p>
-            </div>
-          ),
-        });
-      },
-      onError: (error) => {
-        logger.error("Failed to generate certificates", error);
-        message.error("Failed to generate certificates");
-      },
-    });
+        },
+      });
 
     const handleGenerateCertificates = async () => {
       await onGenerateCertificatesMutation();

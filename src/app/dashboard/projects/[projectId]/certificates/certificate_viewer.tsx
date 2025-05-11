@@ -91,7 +91,7 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
       <Flex
         align="center"
         justify="center"
-        className="relative bg-gray-100 overflow-auto h-full w-full"
+        className="relative overflow-auto h-full w-full"
       >
         <Zoom
           transformWrapperRef={transformWrapperRef}

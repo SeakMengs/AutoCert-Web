@@ -10,28 +10,15 @@ import { QueryKey } from "./certificate_project_section";
 import { useMemo } from "react";
 
 interface CertificateProjectListProps {
-  search: string | undefined;
-  page: number;
-  status: ProjectStatus[];
+  queryParams: GetOwnProjectsParams;
   onPageChange: (page: number) => void;
 }
 
 export default function CertificateProjectList({
-  page,
-  search,
-  status,
+  queryParams,
   onPageChange,
 }: CertificateProjectListProps) {
-  const queryParams = useMemo<GetOwnProjectsParams>(
-    () => ({
-      page: Number(page),
-      pageSize: PageSize,
-      search: search,
-      status: status,
-    }),
-    [page, search, status],
-  );
-
+  const { page, search } = queryParams;
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, queryParams],
     queryFn: () => getOwnProjectsAction(queryParams),

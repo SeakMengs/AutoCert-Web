@@ -12,8 +12,8 @@ interface ProjectBuilderByIdProps {
   projectId: string;
 }
 
-const QueryKey = "project_builder_by_id";
-
+export const QueryKey = "project_builder_by_id";
+// TODO: convert to context for easy state access
 export default function ProjectBuilderById({
   projectId,
 }: ProjectBuilderByIdProps) {
