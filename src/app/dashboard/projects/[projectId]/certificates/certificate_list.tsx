@@ -103,6 +103,7 @@ export default function CertificateList({
 
       {selectedCertificate && (
         <Modal
+          key={selectedCertificate.id}
           title={toCertificateTitle(selectedCertificate)}
           open={isViewerOpen}
           onCancel={() => setIsViewerOpen(false)}

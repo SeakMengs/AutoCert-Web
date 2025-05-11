@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button, Space, Flex, Typography, Spin, App, Skeleton } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Certificate } from "./certificate_list";
@@ -8,6 +8,9 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import PdfDocumentError from "@/components/error/PdfDocumentError";
+import Zoom from "@/components/builder/zoom/Zoom";
+import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
+import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -23,8 +26,18 @@ interface CertificateViewerProps {
 // TODO: Implement the actual PDF viewer logic
 export function CertificateViewer({ certificate }: CertificateViewerProps) {
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [zoomScale, setZoomScale] = useState<number>(1);
+  const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
   const [pdfPages, setPdfPages] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const onZoomScaleChange = (newZoomScale: number): void => {
+    if (zoomScale === newZoomScale) {
+      return;
+    }
+
+    setZoomScale(newZoomScale);
+  };
 
   const handlePrevPage = () => {
     if (pageNumber > 1) {
@@ -48,9 +61,9 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
   }, [certificate.certificateUrl]);
 
   return (
-    <Flex vertical gap={2}>
+    <Space direction="vertical" className="h-auto w-full">
       <Flex justify="space-between" align="center">
-        <Flex align="center" gap={2}>
+        <Space align="center">
           <Button
             icon={<LeftOutlined />}
             onClick={handlePrevPage}
@@ -68,30 +81,21 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
             onClick={handleNextPage}
             disabled={pageNumber === pdfPages || isLoading}
           />
-        </Flex>
-
-        {/* <div className="flex items-center gap-2">
-          <Button
-            icon={<DownloadOutlined />}
-            onClick={async () => {
-              await downloadCertificate(certificate, message);
-            }}
-            disabled={isLoading}
-          >
-            Download
-          </Button>
-        </div> */}
+        </Space>
+        <ZoomPanel
+          transformWrapperRef={transformWrapperRef}
+          zoomScale={zoomScale}
+        />
       </Flex>
 
       <Flex
         align="center"
         justify="center"
-        className="relative bg-gray-100 rounded-lg overflow-hidden h-[70vh] w-full"
+        className="relative bg-gray-100 overflow-auto h-full w-full"
       >
-        <Flex
-          align="center"
-          justify="center"
-          className="overflow-auto h-full w-full"
+        <Zoom
+          transformWrapperRef={transformWrapperRef}
+          onZoomScaleChange={onZoomScaleChange}
         >
           {/* Key must change every refresh, since we use presigned url, using certificateUrl is ok
             Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216 */}
@@ -106,9 +110,11 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
             error={<PdfDocumentError />}
           >
             <Page
-              _className="w-full h-auto object-cover"
+              key={`page_${pageNumber}`}
+              _className="max-h-full w-full h-auto object-cover"
               className="pointer-events-none select-none"
               scale={2}
+              loading={<DocumentLoading />}
               pageNumber={pageNumber}
               canvasRef={(ref) => {
                 if (ref) {
@@ -122,12 +128,12 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
               renderTextLayer={false}
             />
           </Document>
-        </Flex>
+        </Zoom>
       </Flex>
-    </Flex>
+    </Space>
   );
 }
 
 function DocumentLoading() {
-  return <Skeleton.Image active className="w-full h-full" />;
+  return <Skeleton.Image active className="w-full h-full min-w-40 min-h-40" />;
 }
