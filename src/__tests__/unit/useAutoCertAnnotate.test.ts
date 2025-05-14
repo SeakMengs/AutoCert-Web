@@ -13,28 +13,19 @@ import {
 } from "@/components/builder/rnd/Rnd";
 import { ProjectRole, SignatoryStatus } from "@/types/project";
 
-const getUseAutoCertAnnotateParams = (annot: AnnotateStates) => {
-  return {
-    enqueueChange: vi.fn(),
-    initialAnnotates: annot,
-    roles: [ProjectRole.Requestor],
-  };
+const UseAutoCertAnnotateParams = {
+  projectId: "test-project-id",
+  enqueueChange: vi.fn(),
+  initialAnnotates: {},
+  roles: [ProjectRole.Requestor],
 };
 
 describe("useAutoCertAnnotate", () => {
   const initialPdfPage = 1;
 
-  // Mock necessary objects for PDF.js
-  const mockDocument = {
-    numPages: 3,
-    getPage: vi.fn().mockImplementation(() => ({
-      view: [0, 0, 595, 842], // A4 size in points
-    })),
-  };
-
   it("should initialize with default values", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
 
     expect(result.current.annotates).toEqual({});
@@ -45,7 +36,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should add a column annotate", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "Test Column",
@@ -78,7 +69,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should add a signature annotate", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
 
     const data = {
@@ -105,7 +96,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("Should add a signature annotate and invite", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
 
     const data = {
@@ -136,7 +127,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should remove a signature annotate", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const data = {
       email: "test@autocert.com",
@@ -158,7 +149,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should update a column annotate", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "Original Column",
@@ -205,7 +196,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should delete a column annotate", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "To Be Deleted",
@@ -230,7 +221,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should handle annotation selection", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "Select Me",
@@ -260,7 +251,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should handle annotation drag", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "Drag Me",
@@ -298,7 +289,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should handle annotation resize", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "Resize Me",
@@ -342,7 +333,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should update column titles in annotations", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
     const columnAnnotateData = {
       value: "OldTitle",
@@ -370,7 +361,7 @@ describe("useAutoCertAnnotate", () => {
 
   it("should remove unnecessary annotations", () => {
     const { result } = renderHook(() =>
-      useAutoCertAnnotate(getUseAutoCertAnnotateParams({})),
+      useAutoCertAnnotate(UseAutoCertAnnotateParams),
     );
 
     // Add a column annotate that will be kept

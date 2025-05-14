@@ -99,15 +99,16 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
 };
 
 export interface UseAutoCertAnnotateProps
-  extends Pick<UseAutoCertProps, "roles" | "initialAnnotates" | "projectId"> {
+  extends Pick<UseAutoCertProps, "initialAnnotates" | "projectId"> {
   enqueueChange: ReturnType<typeof useAutoCertChange>["enqueueChange"];
+  roles: UseAutoCertProps["initialRoles"];
 }
 
 export default function useAutoCertAnnotate({
   projectId,
   initialAnnotates,
-  enqueueChange,
   roles,
+  enqueueChange,
 }: UseAutoCertAnnotateProps) {
   const [annotates, setAnnotates] = useState<AnnotateStates>(initialAnnotates);
   const [columnAnnotates, setColumnAnnotates] = useState<ColumnAnnotateStates>(
@@ -117,6 +118,10 @@ export default function useAutoCertAnnotate({
     useState<SignatureAnnotateStates>({});
   const [selectedAnnotateId, setSelectedAnnotateId] = useState<string>();
   const { message } = App.useApp();
+
+  useEffect(() => {
+    setAnnotates(initialAnnotates);
+  }, [initialAnnotates]);
 
   /**
    * Update column and signature annotates when annotates change

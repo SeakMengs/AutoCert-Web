@@ -4,22 +4,20 @@ import useAutoCert, {
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { ProjectRole } from "@/types/project";
-import { AnnotateStates } from "@/components/builder/hooks/useAutoCertAnnotate";
-import { table } from "console";
 
-const getUseAutoCertParams = () => {
-  return {
-    projectId: "test-project-id",
-    initialPdfPage: 1,
-    csvFileUrl: "",
-    initialSettings: {
-      qrCodeEnabled: false,
-    } satisfies AutoCertSettings,
-    enqueueChange: vi.fn(),
-    initialAnnotates: {},
-    roles: [ProjectRole.Requestor],
-    saveChanges: vi.fn(),
-  };
+const testSettings = {
+  qrCodeEnabled: false,
+} satisfies AutoCertSettings;
+
+const UseAutoCertParams = {
+  projectId: "test-project-id",
+  initialPdfPage: 1,
+  csvFileUrl: "",
+  initialSettings: testSettings,
+  enqueueChange: vi.fn(),
+  initialAnnotates: {},
+  initialRoles: [ProjectRole.Requestor],
+  saveChanges: vi.fn(),
 };
 
 describe("useAutoCert", () => {
@@ -34,7 +32,7 @@ describe("useAutoCert", () => {
   };
 
   it("should initialize with default values", () => {
-    const { result } = renderHook(() => useAutoCert(getUseAutoCertParams()));
+    const { result } = renderHook(() => useAutoCert(UseAutoCertParams));
 
     expect(result.current.currentPdfPage).toBe(initialPdfPage);
     expect(result.current.totalPdfPage).toBe(0);
@@ -42,7 +40,7 @@ describe("useAutoCert", () => {
   });
 
   it("should handle document load success", async () => {
-    const { result } = renderHook(() => useAutoCert(getUseAutoCertParams()));
+    const { result } = renderHook(() => useAutoCert(UseAutoCertParams));
 
     await act(async () => {
       await result.current.onDocumentLoadSuccess(mockDocument as any);
@@ -53,7 +51,7 @@ describe("useAutoCert", () => {
   });
 
   it("should handle page click", () => {
-    const { result } = renderHook(() => useAutoCert(getUseAutoCertParams()));
+    const { result } = renderHook(() => useAutoCert(UseAutoCertParams));
 
     act(() => {
       result.current.onPageClick(2);
@@ -63,7 +61,7 @@ describe("useAutoCert", () => {
   });
 
   it("should update zoom scale", () => {
-    const { result } = renderHook(() => useAutoCert(getUseAutoCertParams()));
+    const { result } = renderHook(() => useAutoCert(UseAutoCertParams));
 
     act(() => {
       result.current.onZoomScaleChange(1.5);

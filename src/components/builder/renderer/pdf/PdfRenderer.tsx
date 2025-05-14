@@ -45,22 +45,29 @@ function PdfRenderer({
   onResizeStop,
   previewMode,
 }: PdfRendererProps) {
+  const [pdfUrl, setPdfUrl] = useState<string>();
   const [pdfPages, setPdfPages] = useState<number>(0);
+
+  useEffect(() => {
+    if (!pdfUrl) {
+      setPdfUrl(pdfFile);
+    }
+  }, []);
 
   // Prevent page render before loading the pdf
   // Ref: https://github.com/wojtekmaj/react-pdf/issues/974
   useEffect(() => {
-    if (pdfFile) {
+    if (pdfUrl) {
       setPdfPages(0);
     }
-  }, [pdfFile]);
+  }, [pdfUrl]);
 
   return (
     <Document
       // Key must change every refresh, since we use presigned url, using pdfFile is ok
       // Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216
-      key={pdfFile}
-      file={pdfFile}
+      key={pdfUrl}
+      file={pdfUrl}
       onLoadSuccess={(pdf) => {
         setPdfPages(pdf.numPages);
 

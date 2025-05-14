@@ -1,15 +1,6 @@
 "use client";
-import {
-  Avatar,
-  Badge,
-  Card,
-  CardProps,
-  Flex,
-  Skeleton,
-  Tag,
-  Tooltip,
-} from "antd";
-import React, { memo, useEffect, useState } from "react";
+import { Avatar, Badge, Card, CardProps, Flex, Tag, Tooltip } from "antd";
+import React, { memo } from "react";
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -19,7 +10,6 @@ import {
 } from "@ant-design/icons";
 import Image from "next/image";
 import moment from "moment";
-import { createScopedLogger } from "@/utils/logger";
 import Link from "next/link";
 import { z } from "zod";
 import { ProjectSchema } from "@/schemas/autocert_api/project";
@@ -30,11 +20,7 @@ import {
   SignatoryStatus,
   SignatoryStatusLabels,
 } from "@/types/project";
-import { apiWithAuth } from "@/utils/axios";
-import { useQuery } from "@tanstack/react-query";
-import { HOUR } from "@/utils/time";
-
-const logger = createScopedLogger("components:card:ProjectCard");
+import { useImageSrc } from "@/hooks/useImageSrc";
 
 export type ProjectCardProps = {
   project: z.infer<typeof ProjectSchema>;
@@ -49,36 +35,10 @@ export const StatusColorMap = {
 
 const { Meta } = Card;
 
-const fetchThumbnail = async (projectId: string): Promise<string> => {
-  try {
-    const res = await apiWithAuth.get(
-      `/api/v1/projects/${projectId}/thumbnail`,
-      {
-        responseType: "blob",
-      },
-    );
-
-    if (res.status === 200) {
-      const blob = res.data;
-      const url = URL.createObjectURL(blob);
-      return url;
-    }
-  } catch (error) {
-    logger.error("Error fetching thumbnail", error);
-  }
-
-  return "/placeholder.svg";
-};
-
-const QueryKey = "project_thumbnail";
-
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
-  const { data: thumbnailUrl, isLoading: isFetchThumbnail } = useQuery({
-    queryKey: [QueryKey, project.id],
-    queryFn: async () => await fetchThumbnail(project.id),
-    // Cache the thumbnail for 1 hour since thumbnail never changes
-    staleTime: 1 * HOUR,
-  });
+  const { src, onError } = useImageSrc(
+    `/api/proxy/projects/${project.id}/thumbnail`,
+  );
 
   const getActions = (): CardProps["actions"] => {
     const actions: CardProps["actions"] = [];
@@ -121,25 +81,15 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
       // loading={loading}
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
-        isFetchThumbnail ? (
-          <Skeleton.Image
-            active
-            className="rounded-sm object-cover w-full"
-            style={{
-              width: 256,
-              height: 168,
-            }}
-          />
-        ) : (
-          <Image
-            className="rounded-sm object-cover w-full"
-            alt="Certificate Template"
-            src={`${thumbnailUrl}`}
-            width={256}
-            height={168}
-            unoptimized
-          />
-        )
+        <Image
+          className="rounded-sm object-cover w-full"
+          alt="Certificate Template"
+          src={src}
+          onError={onError}
+          width={256}
+          height={256}
+          quality={100}
+        />
       }
       actions={getActions()}
     >

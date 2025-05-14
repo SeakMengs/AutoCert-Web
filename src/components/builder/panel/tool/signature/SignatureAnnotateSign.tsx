@@ -62,21 +62,31 @@ export default function SignatureAnnotateSign({
   });
 
   return (
-    <Popconfirm
-      title="Are you sure you want to approve signature to this project?"
-      onConfirm={async () => mutateAsync()}
-    >
-      <Tooltip title="Approve signature">
-        <Button
-          type="primary"
-          size="small"
-          color="green"
-          loading={isPending}
-          disabled={isPending}
-        >
-          Approve
-        </Button>
-      </Tooltip>
-    </Popconfirm>
+    <>
+      <Popconfirm
+        title="Are you sure you want to approve signature to this project?"
+        onConfirm={async () => mutateAsync()}
+      >
+        <Tooltip title="Approve signature">
+          <Button
+            type="primary"
+            size="small"
+            color="green"
+            loading={isPending}
+            disabled={isPending}
+          >
+            Approve
+          </Button>
+        </Tooltip>
+      </Popconfirm>
+      {/* TODO: remove this */}
+    </>
   );
 }
+// <Button
+//   onClick={() => {
+//     queryClient.invalidateQueries({ queryKey: [QueryKey] });
+//   }}
+// >
+//   Temp refresh
+// </Button>

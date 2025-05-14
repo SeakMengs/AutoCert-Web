@@ -1,5 +1,5 @@
 import { createScopedLogger } from "@/utils/logger";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { IS_PRODUCTION } from "@/utils/env";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
@@ -28,7 +28,7 @@ const logger = createScopedLogger("components:builder:hook:useAutoCert");
 export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
 
 export interface UseAutoCertProps extends UseAutoCertChangeProps {
-  roles: ProjectRole[];
+  initialRoles: ProjectRole[];
   initialPdfPage: number;
   initialAnnotates: AnnotateStates;
   initialSettings?: AutoCertSettings;
@@ -43,28 +43,42 @@ export interface UseAutoCertProps extends UseAutoCertChangeProps {
 
 export default function useAutoCert({
   projectId,
-  initialPdfPage = 1,
+  initialPdfPage = 0,
   initialAnnotates = [],
   initialSettings = {
     qrCodeEnabled: false,
   } satisfies AutoCertSettings,
   csvFileUrl,
   tableTestConfig,
-  roles,
+  initialRoles,
   saveChanges,
 }: UseAutoCertProps) {
+  const memoInitialRoles = useMemo(() => {
+    return initialRoles;
+  }, [initialRoles]);
+
+  const memoizedInitialSettings = useMemo(() => {
+    return { ...initialSettings };
+  }, [initialSettings.qrCodeEnabled]);
+
   const [totalPdfPage, setTotalPdfPage] = useState<number>(0);
   const [currentPdfPage, setCurrentPdfPage] = useState<number>(initialPdfPage);
   const { message } = App.useApp();
   // For zoom pan and pinch
   const [zoomScale, setZoomScale] = useState<number>(1);
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
-  const [settings, setSettings] = useState<AutoCertSettings>({
-    ...initialSettings,
-  });
+  const [settings, setSettings] = useState<AutoCertSettings>(
+    memoizedInitialSettings,
+  );
   const { changes, enqueueChange, isPushingChanges } = useAutoCertChange({
     saveChanges,
   });
+  // TODO: test if roles are updated
+  const roles = memoInitialRoles;
+
+  useEffect(() => {
+    setSettings(memoizedInitialSettings);
+  }, [memoizedInitialSettings]);
 
   const {
     annotates,
@@ -85,7 +99,7 @@ export default function useAutoCert({
     removeUnnecessaryAnnotates,
   } = useAutoCertAnnotate({
     projectId,
-    initialAnnotates,
+    initialAnnotates: initialAnnotates,
     roles,
     enqueueChange,
   });
@@ -106,8 +120,8 @@ export default function useAutoCert({
   } = useAutoCertTable({
     roles,
     projectId,
-    csvFileUrl,
-    tableTestConfig,
+    csvFileUrl: csvFileUrl,
+    tableTestConfig: tableTestConfig,
     enqueueChange,
   });
 

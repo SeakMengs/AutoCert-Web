@@ -17,6 +17,7 @@ describe("Rnd Component", () => {
     showResizeHandle: true,
     enableDragging: true,
     enableResizing: true,
+    scale: 1,
   } satisfies RndProps;
 
   beforeEach(() => {

@@ -15,9 +15,10 @@ const logger = createScopedLogger("components:builder:hook:useAutoCertTable");
 export interface UseAutoCertTableProps
   extends Pick<
     UseAutoCertProps,
-    "projectId" | "roles" | "csvFileUrl" | "tableTestConfig"
+    "projectId" | "csvFileUrl" | "tableTestConfig"
   > {
   enqueueChange: ReturnType<typeof useAutoCertChange>["enqueueChange"];
+  roles: UseAutoCertProps["initialRoles"];
 }
 
 const denyMsg = "You do not have permission to update table";

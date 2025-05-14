@@ -1,4 +1,4 @@
-import { Divider, Flex, Space, Switch, Tooltip, Typography } from "antd";
+import { Flex, Space, Switch, Tooltip, Typography } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 
 export interface SettingsToolProps {
@@ -23,16 +23,6 @@ export default function SettingsTool({
         </Text>
         <Switch checked={qrCodeEnabled} onChange={onQrCodeEnabledChange} />
       </Flex>
-      {/* <Divider className="p-0 m-0" /> */}
-     {/* <Flex justify="space-between" align="center">
-        <Text>
-          Text fit rectangle box
-          <Tooltip title="Automatically adjusts font size to fit text within the rectangle box.">
-            <QuestionCircleOutlined className="ml-1" />
-          </Tooltip>
-        </Text>
-        <Switch checked={textFitRectBox} onChange={onTextFitRectBoxChange} />
-      </Flex>  */}
     </Space>
   );
 }

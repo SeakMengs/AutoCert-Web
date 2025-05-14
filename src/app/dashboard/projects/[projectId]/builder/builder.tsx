@@ -15,6 +15,7 @@ import {
   ColumnAnnotateStates,
   SignatureAnnotateStates,
 } from "@/components/builder/hooks/useAutoCertAnnotate";
+import { AutoCertSettings } from "@/components/builder/hooks/useAutoCert";
 
 interface ProjectBuilderProps
   extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
@@ -70,6 +71,14 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     return { sigAnnot, colAnnot, annot };
   }, [project.signatureAnnotates, project.columnAnnotates]);
 
+  // memoize the initial settings to avoid passing a new object reference
+  // on every render
+  const initialSettings = useMemo(() => {
+    return {
+      qrCodeEnabled: project.embedQr,
+    } satisfies AutoCertSettings;
+  }, [project.embedQr]);
+
   const {
     token: { colorSplit },
   } = theme.useToken();
@@ -110,13 +119,11 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     onImportFromCSV,
     onExportToCSV,
   } = useAutoCert({
-    roles,
+    initialRoles: roles,
     projectId: project.id,
-    initialPdfPage: 1,
+    initialPdfPage: 0,
     initialAnnotates: annot,
-    initialSettings: {
-      qrCodeEnabled: project.embedQr,
-    },
+    initialSettings: initialSettings,
     csvFileUrl: project.csvFileUrl,
     // TOOD: update change
     saveChanges: async (changes) => {
