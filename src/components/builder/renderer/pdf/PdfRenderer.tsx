@@ -8,6 +8,7 @@ import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
 import { AnnotateStates } from "../../hooks/useAutoCertAnnotate";
 import PdfDocumentError from "@/components/error/PdfDocumentError";
+import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -19,32 +20,17 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 // );
 
 export interface PdfRendererProps
-  extends Omit<PageRendererProps, "scale" | "pageNumber" | "annotatesByPage"> {
-  annotates: AnnotateStates;
-  pdfFile: string;
-  currentPdfPage: number;
-  zoomScale: number;
-  onDocumentLoadSuccess: (pdf: DocumentCallback) => void;
-}
+  extends Omit<PageRendererProps, "pageNumber" | "annotatesByPage"> {}
 
-function PdfRenderer({
-  // share
-  currentPdfPage,
-  zoomScale,
-  // pdf
-  pdfFile,
-  onDocumentLoadSuccess,
-  onPageClick,
-  roles,
+function PdfRenderer({ previewMode }: PdfRendererProps) {
+  const { annotates, pdfFile, onDocumentLoadSuccess } = useAutoCertStore(
+    (state) => ({
+      annotates: state.annotates,
+      pdfFile: state.pdfFileUrl,
+      onDocumentLoadSuccess: state.onDocumentLoadSuccess,
+    }),
+  );
 
-  // Annotate
-  annotates,
-  selectedAnnotateId,
-  onAnnotateSelect,
-  onDragStop,
-  onResizeStop,
-  previewMode,
-}: PdfRendererProps) {
   const [pdfUrl, setPdfUrl] = useState<string>();
   const [pdfPages, setPdfPages] = useState<number>(0);
 
@@ -81,18 +67,10 @@ function PdfRenderer({
           {Array.from({ length: pdfPages }, (_, index) => (
             <PageRenderer
               key={`page_${index + 1}`}
-              roles={roles}
-              onPageClick={onPageClick}
               pageNumber={index + 1}
               // Annotate
               annotatesByPage={annotates[index + 1] ?? []}
-              selectedAnnotateId={selectedAnnotateId}
-              onAnnotateSelect={onAnnotateSelect}
-              onDragStop={onDragStop}
-              onResizeStop={onResizeStop}
               previewMode={previewMode}
-              currentPdfPage={currentPdfPage}
-              zoomScale={zoomScale}
             />
           ))}
         </Space>

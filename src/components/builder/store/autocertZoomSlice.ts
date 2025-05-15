@@ -3,12 +3,13 @@ import { immer } from "zustand/middleware/immer";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
+import { createRef, RefObject } from "react";
 
 const logger = createScopedLogger("components:builder:store:autocertZoomSlice");
 
 type AutocertZoomSliceState = {
   zoom: number;
-  transformWrapperRef: ReactZoomPanPinchContentRef | null;
+  transformWrapperRef: RefObject<ReactZoomPanPinchContentRef | null>;
 };
 
 interface AutocertZoomSliceActions {
@@ -27,7 +28,7 @@ export const createAutocertZoomSlice: StateCreator<
 > = (set, get) => {
   return {
     zoom: 1,
-    transformWrapperRef: null,
+    transformWrapperRef: createRef<ReactZoomPanPinchContentRef>(),
 
     setZoom: (scale) =>
       set((state) => {
@@ -35,9 +36,9 @@ export const createAutocertZoomSlice: StateCreator<
       }),
 
     onZoomChange: (newZoom) => {
-      logger.debug(`Zoom changed to ${newZoom}`);
+      // logger.debug(`Zoom changed to ${newZoom}`);
       if (get().zoom === newZoom) {
-        // logger.debug(`Zoom scale not changed: ${zoomScale} skip state update`);
+        logger.debug(`Zoom scale not changed: ${newZoom} skip state update`);
         return;
       }
 

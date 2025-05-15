@@ -107,15 +107,18 @@ type AutoCertChangeState = {
   changeMap: Map<string, AutoCertChangeEvent>;
 };
 
+export type SaveChangesCallback = (
+  changes: AutoCertChangeEvent[],
+) => Promise<boolean>;
+
 interface AutoCertChangeActions {
+  initChange: (fn: SaveChangesCallback) => void;
   enqueueChange: (change: AutoCertChangeEvent) => void;
   clearChanges: () => void;
   pushChanges: () => Promise<void>;
   setIsPushingChanges: (isPushing: boolean) => void;
-  saveChanges: (changes: AutoCertChangeEvent[]) => Promise<boolean>;
-  setSaveChanges: (
-    saveChanges: (changes: AutoCertChangeEvent[]) => Promise<boolean>,
-  ) => void;
+  saveChanges?: SaveChangesCallback;
+  setSaveChanges: (fn: SaveChangesCallback) => void;
 }
 
 export type AutoCertChangeSlice = AutoCertChangeState & AutoCertChangeActions;
@@ -160,18 +163,29 @@ export const createAutoCertChangeSlice: StateCreator<
     changes: [],
     isPushingChanges: false,
     changeMap: new Map<string, AutoCertChangeEvent>(),
-    saveChanges: async () => false,
 
-    setSaveChanges: (saveChanges) => {
+    initChange: (fn) => {
+      get().setSaveChanges(fn);
       set((state) => {
-        state.saveChanges = saveChanges;
+        state.changes = [];
+        state.changeMap = new Map<string, AutoCertChangeEvent>();
+        state.isPushingChanges = false;
+      });
+    },
+
+    setSaveChanges: (fn) => {
+      set((state) => {
+        state.saveChanges = fn;
       });
     },
 
     enqueueChange: (change) => {
       const key = getChangeKey(change);
-      get().changeMap.set(key, change);
+      // cuz immer freezes the state, we need to create a new Map
+      const newMap = new Map(get().changeMap);
+      newMap.set(key, change);
       set((state) => {
+        state.changeMap = newMap;
         state.changes = Array.from(get().changeMap.values());
       });
 
@@ -179,7 +193,12 @@ export const createAutoCertChangeSlice: StateCreator<
     },
 
     clearChanges: () => {
-      get().changeMap.clear();
+      // since immer freezes the state, we need to create a new Map
+      const newMap = new Map();
+      set((state) => {
+        state.changeMap = newMap;
+      });
+      // get().changeMap.clear();
       set((state) => {
         state.changes = [];
       });
@@ -199,7 +218,11 @@ export const createAutoCertChangeSlice: StateCreator<
       logger.debug("Pushing changes:", batchedChanges);
 
       try {
-        const success = await get().saveChanges(batchedChanges);
+        if (typeof get().saveChanges !== "function" || !get().saveChanges) {
+          throw new Error("saveChanges function is not set");
+        }
+
+        const success = await get().saveChanges?.(batchedChanges) ?? false;
 
         if (!success) {
           throw new Error("Failed to save changes");

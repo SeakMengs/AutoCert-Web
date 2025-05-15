@@ -7,35 +7,24 @@ import PdfRenderer, { PdfRendererProps } from "./renderer/pdf/PdfRenderer";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { createScopedLogger } from "@/utils/logger";
 import { ProjectRole } from "@/types/project";
-import { useAutoCert } from "@/hooks/useAutoCert";
+import { useAutoCertStore } from "./providers/AutoCertStoreProvider";
 
 const logger = createScopedLogger("components:builder/AutoCert");
 
-export interface AutoCertProps extends PdfRendererProps {
-  roles: ProjectRole[];
-}
+export interface AutoCertProps extends PdfRendererProps {}
 
 export { AutoCertTable, AutoCertPanel, Zoom };
 
 export default function AutoCert({ previewMode }: AutoCertProps) {
-  const {
-    pdfFileUrl,
-    roles,
-    annotates,
-    currentPdfPage,
-    selectedAnnotateId,
-    zoomScale,
-    transformWrapperRef,
-    onZoomScaleChange,
-    onAnnotateSelect,
-    onDocumentLoadSuccess,
-    onPageClick,
-    onAnnotateDragStop,
-    onAnnotateResizeStop,
-  } = useAutoCert();
+  const { transformWrapperRef, onZoomChange, onDocumentLoadSuccess } =
+    useAutoCertStore((state) => ({
+      transformWrapperRef: state.transformWrapperRef,
+      onZoomChange: state.onZoomChange,
+      onDocumentLoadSuccess: state.onDocumentLoadSuccess,
+    }));
 
   const onDocumentLoadSuccessResetTransform = (pdf: DocumentCallback) => {
-    if (!transformWrapperRef.current) {
+    if (!transformWrapperRef || !transformWrapperRef.current) {
       logger.error("TransformWrapper ref is null");
       return;
     }
@@ -46,26 +35,13 @@ export default function AutoCert({ previewMode }: AutoCertProps) {
   return (
     <Zoom
       transformWrapperRef={transformWrapperRef}
-      onZoomScaleChange={onZoomScaleChange}
+      onZoomScaleChange={onZoomChange}
     >
       <div className="flex">
         <div className="my-8 relative w-full h-full">
           <PdfRenderer
-            roles={roles}
-            // share
-            zoomScale={zoomScale}
-            currentPdfPage={currentPdfPage}
-            // For pdf
-            pdfFile={pdfFileUrl}
-            onDocumentLoadSuccess={onDocumentLoadSuccessResetTransform}
             // For annotates
             previewMode={previewMode}
-            annotates={annotates}
-            selectedAnnotateId={selectedAnnotateId}
-            onDragStop={onAnnotateDragStop}
-            onResizeStop={onAnnotateResizeStop}
-            onAnnotateSelect={onAnnotateSelect}
-            onPageClick={onPageClick}
           />
         </div>
       </div>

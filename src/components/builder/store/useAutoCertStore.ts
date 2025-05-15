@@ -31,14 +31,15 @@ export type AutoCertStore = AutocertSlice &
   AutocertZoomSlice &
   AutocertAnnotateSlice;
 
-export const useAutoCertStore = create<AutoCertStore>()(
-  immer((...a) => ({
-    ...createAutocertSlice(...a),
-    ...createAutoCertChangeSlice(...a),
-    ...createAutoCertTableSlice(...a),
-    ...createAutocertSettingSlice(...a),
-    ...createAutocertPdfSlice(...a),
-    ...createAutocertZoomSlice(...a),
-    ...createAutocertAnnotateSlice(...a),
-  })),
-);
+export const createAutoCertStore = () =>
+  create<AutoCertStore>()(
+    immer((...a) => ({
+      ...createAutocertSlice(...a),
+      ...createAutoCertChangeSlice(...a),
+      ...createAutoCertTableSlice(...a),
+      ...createAutocertSettingSlice(...a),
+      ...createAutocertPdfSlice(...a),
+      ...createAutocertZoomSlice(...a),
+      ...createAutocertAnnotateSlice(...a),
+    })),
+  );

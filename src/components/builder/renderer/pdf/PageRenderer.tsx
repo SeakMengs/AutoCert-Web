@@ -8,34 +8,32 @@ import AnnotateRenderer, {
 import { theme } from "antd";
 import { PageCallback } from "react-pdf/src/shared/types.js";
 import { WHSize } from "../../rnd/Rnd";
+import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 
 const logger = createScopedLogger("components:builder:renderer:pdf:Page");
 
 export interface PageRendererProps
   extends Omit<AnnotateRendererProps, "pageOriginalSize" | "containerRef"> {
   pageNumber: number;
-  onPageClick: (page: number) => void;
 }
 
 function PageRenderer({
   // pdf page
   pageNumber,
-  onPageClick,
-  roles,
 
   // annotate
   annotatesByPage,
-  selectedAnnotateId,
-  onAnnotateSelect,
-  onDragStop,
-  onResizeStop,
   previewMode,
-  currentPdfPage,
-  zoomScale,
 }: PageRendererProps) {
   const {
     token: { colorPrimary },
   } = theme.useToken();
+
+  const { currentPdfPage, onPageClick } = useAutoCertStore((state) => ({
+    currentPdfPage: state.currentPdfPage,
+    onPageClick: state.onPageClick,
+  }));
+
   const selected = currentPdfPage === pageNumber;
   const [pdfViewPort, setPdfViewPort] = useState<WHSize>({
     width: 0,
@@ -92,18 +90,11 @@ function PageRenderer({
       {pdfViewPort.height > 0 && pdfViewPort.width && (
         <>
           <AnnotateRenderer
-            roles={roles}
             containerRef={containerRef}
             pageNumber={pageNumber}
-            zoomScale={zoomScale}
             pageOriginalSize={pdfViewPort}
             previewMode={previewMode}
             annotatesByPage={annotatesByPage}
-            selectedAnnotateId={selectedAnnotateId}
-            currentPdfPage={currentPdfPage}
-            onDragStop={onDragStop}
-            onResizeStop={onResizeStop}
-            onAnnotateSelect={onAnnotateSelect}
           />
 
           {/* {!IS_PRODUCTION && (

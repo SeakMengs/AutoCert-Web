@@ -48,6 +48,7 @@ export default function SignatureDrawer({
       }
 
       const svg = signatureRef.current.toDataURL("image/svg+xml");
+      return svg;
       const trimmedSvg = trimSvgWhitespace(svg);
 
       return trimmedSvg;

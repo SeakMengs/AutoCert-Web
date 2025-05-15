@@ -188,30 +188,26 @@ export const createAutocertAnnotateSlice: StateCreator<
     },
 
     _updateDerivedAnnotates: () => {
-      set((state) => {
-        const newColumnAnnotates: ColumnAnnotateStates = {};
-        const newSignatureAnnotates: SignatureAnnotateStates = {};
-        const pages = Object.keys(state.annotates);
+      const columns: ColumnAnnotateStates = {};
+      const signatures: SignatureAnnotateStates = {};
+      const pages = Object.keys(get().annotates);
 
-        pages.forEach((p) => {
-          const pageNum = Number(p);
-          if (!newColumnAnnotates[pageNum]) {
-            newColumnAnnotates[pageNum] = [];
+      pages.forEach((p) => {
+        get().annotates[Number(p)].forEach((a) => {
+          switch (a.type) {
+            case AnnotateType.Column:
+              columns[Number(p)] = [...(columns[Number(p)] || []), a];
+              break;
+            case AnnotateType.Signature:
+              signatures[Number(p)] = [...(signatures[Number(p)] || []), a];
+              break;
           }
-          if (!newSignatureAnnotates[pageNum]) {
-            newSignatureAnnotates[pageNum] = [];
-          }
-
-          state.annotates[pageNum].forEach((a) => {
-            if (a.type === AnnotateType.Column) {
-              newColumnAnnotates[pageNum].push(a as ColumnAnnotateState);
-            } else if (a.type === AnnotateType.Signature) {
-              newSignatureAnnotates[pageNum].push(a as SignatureAnnotateState);
-            }
-          });
         });
-        state.columnAnnotates = newColumnAnnotates;
-        state.signatureAnnotates = newSignatureAnnotates;
+      });
+
+      set((state) => {
+        state.columnAnnotates = columns;
+        state.signatureAnnotates = signatures;
       });
     },
 
@@ -244,12 +240,10 @@ export const createAutocertAnnotateSlice: StateCreator<
         textFitRectBox: data.textFitRectBox,
       } satisfies ColumnAnnotateState;
 
-      const updatedAnnotates = { ...get().annotates };
-      if (!updatedAnnotates[page]) {
-        updatedAnnotates[page] = [];
-      }
-      updatedAnnotates[page].push(newCA);
-      get().setAnnotates(updatedAnnotates);
+      get().setAnnotates({
+        ...get().annotates,
+        [page]: [...(get().annotates[page] || []), newCA],
+      });
 
       get().setSelectedAnnotateId(newCA.id);
 
@@ -372,12 +366,10 @@ export const createAutocertAnnotateSlice: StateCreator<
         status: SignatoryStatus.NotInvited,
       } satisfies SignatureAnnotateState;
 
-      const updatedAnnotates = { ...get().annotates };
-      if (!updatedAnnotates[page]) {
-        updatedAnnotates[page] = [];
-      }
-      updatedAnnotates[page].push(newSA);
-      get().setAnnotates(updatedAnnotates);
+      get().setAnnotates({
+        ...get().annotates,
+        [page]: [...(get().annotates[page] || []), newSA],
+      });
 
       get().setSelectedAnnotateId(newSA.id);
 

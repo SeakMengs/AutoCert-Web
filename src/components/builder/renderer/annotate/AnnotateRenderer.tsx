@@ -6,23 +6,14 @@ import {
   AnnotateType,
 } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { JSX, MouseEvent, memo } from "react";
+import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 
 export interface AnnotateRendererProps
   extends Pick<
     BaseAnnotateProps,
-    | "onDragStop"
-    | "onResizeStop"
-    | "previewMode"
-    | "onAnnotateSelect"
-    | "zoomScale"
-    | "pageNumber"
-    | "pageOriginalSize"
-    | "containerRef"
-    | "roles"
+    "previewMode" | "pageNumber" | "pageOriginalSize" | "containerRef"
   > {
-  selectedAnnotateId: string | undefined;
   annotatesByPage: AnnotateState[];
-  currentPdfPage: number;
 }
 
 // const COLUMN_RESIZABLE = {
@@ -38,16 +29,30 @@ export interface AnnotateRendererProps
 
 function AnnotateRenderer({
   annotatesByPage,
-  currentPdfPage,
-  selectedAnnotateId,
   ...restProps
 }: AnnotateRendererProps) {
+  const {
+    selectedAnnotateId,
+    zoom,
+    onAnnotateSelect,
+    onDragStop,
+    onResizeStop,
+    roles,
+  } = useAutoCertStore((state) => ({
+    selectedAnnotateId: state.selectedAnnotateId,
+    onAnnotateSelect: state.setSelectedAnnotateId,
+    zoom: state.zoom,
+    onDragStop: state.onAnnotateDragStop,
+    onResizeStop: state.onAnnotateResizeStop,
+    roles: state.roles,
+  }));
+
   const onAnnotationSelect = (id: string | undefined): void => {
     if (restProps.previewMode) {
       return;
     }
 
-    restProps.onAnnotateSelect(id);
+    onAnnotateSelect(id);
   };
 
   const Annotates = (): (JSX.Element | null)[] | null => {
@@ -66,6 +71,10 @@ function AnnotateRenderer({
               key={annotate.id}
               selected={selected}
               onAnnotateSelect={onAnnotationSelect}
+              zoomScale={zoom}
+              onDragStop={onDragStop}
+              onResizeStop={onResizeStop}
+              roles={roles}
             />
           );
         case AnnotateType.Signature:
@@ -76,6 +85,10 @@ function AnnotateRenderer({
               key={annotate.id}
               selected={selected}
               onAnnotateSelect={onAnnotationSelect}
+              zoomScale={zoom}
+              onDragStop={onDragStop}
+              onResizeStop={onResizeStop}
+              roles={roles}
             />
           );
         default:

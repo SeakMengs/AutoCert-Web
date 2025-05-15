@@ -1,12 +1,12 @@
 "use client";
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
-import { useAutoCert } from "@/hooks/useAutoCert";
 import { Flex, Splitter, theme } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
 import { z } from "zod";
 import { getProjectByIdSuccessResponseSchema } from "./schema";
+import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
 export interface ProjectBuilderProps
   extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
 
@@ -15,29 +15,23 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     token: { colorSplit },
   } = theme.useToken();
   const {
-    annotates,
     columnAnnotates,
     signatureAnnotates,
     currentPdfPage,
     selectedAnnotateId,
-    zoomScale,
+    zoom,
     transformWrapperRef,
     settings,
     onQrCodeEnabledChange,
-    onZoomScaleChange,
-    onColumnAnnotateAdd,
-    onColumnAnnotateUpdate,
-    onColumnAnnotateRemove,
-    onSignatureAnnotateAdd,
-    onSignatureAnnotateRemove,
-    onSignatureAnnotateInvite,
-    onSignatureAnnotateSign,
-    onAnnotateDragStop,
-    onAnnotateResizeStop,
-    onAnnotateSelect,
-    onDocumentLoadSuccess,
+    addColumnAnnotate,
+    updateColumnAnnotate,
+    removeColumnAnnotate,
+    addSignatureAnnotate,
+    removeSignatureAnnotate,
+    inviteSignatureAnnotate,
+    signSignatureAnnotate,
+    setSelectedAnnotateId,
     onGenerateCertificates,
-    onPageClick,
 
     rows,
     columns,
@@ -47,10 +41,10 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     onRowsDelete,
     onColumnAdd,
     onColumnDelete,
-    onAutoCertTableColumnTitleUpdate,
+    // onAutoCertTableColumnTitleUpdate,
     onImportFromCSV,
-    onExportToCSV,  
-  } = useAutoCert();
+    onExportToCSV,
+  } = useAutoCertStore((state) => state);
 
   return (
     <Splitter
@@ -73,26 +67,11 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
             height: `calc(100vh - ${BarSize}px)`,
           }}
         >
-          <AutoCert
-            // roles={roles}
-            // transformWrapperRef={transformWrapperRef}
-            // zoomScale={zoomScale}
-            // onZoomScaleChange={onZoomScaleChange}
-            // onPageClick={onPageClick}
-            previewMode={false}
-            // annotates={annotates}
-            // currentPdfPage={currentPdfPage}
-            // selectedAnnotateId={selectedAnnotateId}
-            // onDocumentLoadSuccess={onDocumentLoadSuccess}
-            // onDragStop={onAnnotateDragStop}
-            // onResizeStop={onAnnotateResizeStop}
-            // onAnnotateSelect={onAnnotateSelect}
-            // pdfFile={project.templateUrl}
-          />
+          <AutoCert previewMode={false} />
           <div className="absolute bottom-4 right-4">
             <ZoomPanel
               transformWrapperRef={transformWrapperRef}
-              zoomScale={zoomScale}
+              zoomScale={zoom}
             />
           </div>
         </Flex>
@@ -114,7 +93,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
           tableLoading={tableLoading}
           qrCodeEnabled={settings.qrCodeEnabled}
           onQrCodeEnabledChange={onQrCodeEnabledChange}
-          onColumnUpdate={onAutoCertTableColumnTitleUpdate}
+          onColumnUpdate={() => {}}
           onRowAdd={onRowAdd}
           onRowUpdate={onRowUpdate}
           onRowsDelete={onRowsDelete}
@@ -127,14 +106,14 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
           selectedAnnotateId={selectedAnnotateId}
           onGenerateCertificates={onGenerateCertificates}
           columnAnnotates={columnAnnotates}
-          onColumnAnnotateAdd={onColumnAnnotateAdd}
-          onColumnAnnotateUpdate={onColumnAnnotateUpdate}
-          onColumnAnnotateRemove={onColumnAnnotateRemove}
-          onSignatureAnnotateAdd={onSignatureAnnotateAdd}
-          onSignatureAnnotateRemove={onSignatureAnnotateRemove}
-          onSignatureAnnotateInvite={onSignatureAnnotateInvite}
-          onSignatureAnnotateSign={onSignatureAnnotateSign}
-          onAnnotateSelect={onAnnotateSelect}
+          onColumnAnnotateAdd={addColumnAnnotate}
+          onColumnAnnotateUpdate={updateColumnAnnotate}
+          onColumnAnnotateRemove={removeColumnAnnotate}
+          onSignatureAnnotateAdd={addSignatureAnnotate}
+          onSignatureAnnotateRemove={removeSignatureAnnotate}
+          onSignatureAnnotateInvite={inviteSignatureAnnotate}
+          onSignatureAnnotateSign={signSignatureAnnotate}
+          onAnnotateSelect={setSelectedAnnotateId}
         />
       </Splitter.Panel>
     </Splitter>

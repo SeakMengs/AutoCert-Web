@@ -7,6 +7,7 @@ import { generateCertificatesByIdAction } from "../action";
 import { ProjectRole } from "@/types/project";
 import { AnnotateStates } from "./autocertAnnotate";
 import { AutoCertSettings } from "./autocertSettingSlice";
+import { SaveChangesCallback } from "./autocertChangeSlice";
 
 const logger = createScopedLogger("components:builder:store:autocertSlice");
 
@@ -16,13 +17,15 @@ type AutocertState = {
 };
 
 interface AutocertActions {
-  init: (
-    projectId: string,
-    roles: ProjectRole[],
-    annotates: AnnotateStates,
-    settings: AutoCertSettings,
-    csvUrl: string,
-  ) => Promise<void>;
+  init: (params: {
+    projectId: string;
+    roles: ProjectRole[];
+    annotates: AnnotateStates;
+    settings: AutoCertSettings;
+    csvUrl: string;
+    pdfUrl: string;
+    saveChanges: SaveChangesCallback;
+  }) => Promise<void>;
   setRoles: (roles: ProjectRole[]) => void;
   onGenerateCertificates: () => ReturnType<
     typeof generateCertificatesByIdAction
@@ -43,14 +46,31 @@ export const createAutocertSlice: StateCreator<
     projectId: "",
     roles: [],
 
-    init: async (projectId, roles, annots, settings, csvUrl) => {
-      logger.debug("Initializing AutoCert with projectId", projectId);
+    init: async ({
+      projectId,
+      roles,
+      annotates,
+      settings,
+      csvUrl,
+      pdfUrl,
+      saveChanges,
+    }) => {
+      logger.info("Initializing AutoCert store", {
+        projectId,
+        roles,
+        annotates,
+        settings,
+        csvUrl,
+        pdfUrl,
+      });
       set((state) => {
         state.projectId = projectId;
         state.roles = roles;
       });
-      get().initAnnotates(annots);
+      get().initAnnotates(annotates);
       get().initSettings(settings);
+      get().initPdf(pdfUrl);
+      get().initChange(saveChanges);
       await get().initTable(csvUrl);
     },
 

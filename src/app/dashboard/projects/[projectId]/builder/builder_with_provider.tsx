@@ -1,7 +1,7 @@
 import {
-  AutoCertProvider,
-  AutoCertProviderProps,
-} from "@/components/builder/context/AutoCertProvider";
+  AutoCertStoreProvider,
+  AutoCertStoreProviderProps,
+} from "@/components/builder/providers/AutoCertStoreProvider";
 import { AutoCertSettings } from "@/components/builder/hooks/useAutoCert";
 import {
   SignatureAnnotateStates,
@@ -77,14 +77,15 @@ export default function ProjectBuilderWithProvider({
 
   const contextValue = {
     projectId: project.id,
-    pdfFileUrl: project.templateUrl,
-    csvFileUrl: project.csvFileUrl,
-    initialRoles: roles,
-    initialPdfPage: 0,
-    initialAnnotates: annot,
-    initialSettings: initialSettings,
+    annotates: annot,
+    csvUrl: project.csvFileUrl,
+    pdfUrl: project.templateUrl,
+    roles: roles,
+    settings: initialSettings,
     // TOOD: update change
     saveChanges: async (changes) => {
+      console.log("saveChanges called with changes:", changes);
+      
       const formData = new FormData();
 
       // TODO: Optimzie this
@@ -136,11 +137,11 @@ export default function ProjectBuilderWithProvider({
         return false;
       }
     },
-  } satisfies AutoCertProviderProps["value"];
+  } satisfies AutoCertStoreProviderProps["value"];
 
   return (
-    <AutoCertProvider value={contextValue}>
+    <AutoCertStoreProvider value={contextValue}>
       <Builder project={project} roles={roles} />
-    </AutoCertProvider>
+    </AutoCertStoreProvider>
   );
 }
