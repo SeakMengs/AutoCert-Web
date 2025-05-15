@@ -11,7 +11,7 @@ import {
   Typography,
 } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
-import { ColumnAnnotateFormSchema, fontOptions } from "./ColumnTool";
+import { ColumnAnnotateFormSchema, FontOptions } from "./ColumnTool";
 import { EditOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { createScopedLogger } from "@/utils/logger";
@@ -123,7 +123,7 @@ export default function ColumnAnnotateEdit({
             initialValue={columnAnnotate.fontName}
           >
             <Select>
-              {fontOptions.map((font) => (
+              {FontOptions.map((font) => (
                 <Option key={font.value} value={font.value}>
                   {font.label}
                 </Option>

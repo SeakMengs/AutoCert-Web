@@ -20,7 +20,7 @@ export type BaseColumnAnnotate = ColumnAnnotateFont & {
 };
 
 export interface ColumnAnnotateProps
-  extends Omit<BaseAnnotateProps, "children">,
+  extends BaseAnnotateProps,
     BaseColumnAnnotate {}
 
 function ColumnAnnotate({

@@ -147,7 +147,9 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
                 }
                 offset={[-5, 5]}
               >
-                <Avatar src={s.profileUrl} alt={s.email}></Avatar>
+                <Avatar src={s.profileUrl} alt={s.email}>
+                  {s.email.substring(0, 2).toUpperCase()}
+                </Avatar>
               </Badge>
             </Tooltip>
           ))}

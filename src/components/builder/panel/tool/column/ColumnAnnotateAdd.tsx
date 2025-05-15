@@ -14,7 +14,7 @@ import {
 import { AggregationColor } from "antd/es/color-picker/color";
 import { useState } from "react";
 import {
-  fontOptions,
+  FontOptions,
   ColumnAnnotateFormSchema,
   ColumnToolProps,
 } from "./ColumnTool";
@@ -48,7 +48,7 @@ export default function ColumnAnnotateAdd({
   const resetForm = (): void => {
     form.setFieldsValue({
       value: columns[0]?.title,
-      fontName: fontOptions[0].value,
+      fontName: FontOptions[0].value,
       color: AnnotateColor,
       textFitRectBox: true,
     });
@@ -135,7 +135,7 @@ export default function ColumnAnnotateAdd({
             initialValue="Arial"
           >
             <Select>
-              {fontOptions.map((font) => (
+              {FontOptions.map((font) => (
                 <Option key={font.value} value={font.value}>
                   {font.label}
                 </Option>

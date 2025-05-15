@@ -20,7 +20,7 @@ export type BaseSignatureAnnotate = {
 };
 
 export interface SignatureAnnotateProps
-  extends Omit<BaseAnnotateProps, "children">,
+  extends BaseAnnotateProps,
     BaseSignatureAnnotate {}
 
 function SignatureAnnotate({

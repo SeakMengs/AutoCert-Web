@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { List, Avatar, Typography, Spin, Empty, Flex } from "antd";
+import { List, Avatar, Typography, Spin, Empty, Flex, Space } from "antd";
 import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
@@ -26,35 +26,28 @@ export function SignatoryList({ signatories }: SignatoryListProps) {
   }
 
   return (
-    <List
-      itemLayout="horizontal"
-      dataSource={signatories}
-      renderItem={(signatory) => (
-        <List.Item>
-          <List.Item.Meta
-            avatar={
-              <Avatar
-                src={signatory.profileUrl}
-                style={{
-                  backgroundColor: !signatory.profileUrl
-                    ? "#1677ff"
-                    : undefined,
-                }}
-              >
-                {!signatory.profileUrl
-                  ? signatory.email.substring(0, 2).toUpperCase()
-                  : null}
-              </Avatar>
-            }
-            title={signatory.email}
-            description={
-              <div>
-                <SignatoryStatusTag status={signatory.status} />
-              </div>
-            }
-          />
-        </List.Item>
-      )}
-    />
+    <Space direction="vertical" className="w-full h-full">
+      {signatories.map((signatory, index) => (
+        <Space
+          key={`${index}-${signatory.email}`}
+          className="w-full h-full"
+          align="center"
+        >
+          <Avatar
+            size={"large"}
+            src={signatory.profileUrl}
+            style={{
+              backgroundColor: !signatory.profileUrl ? "#1677ff" : undefined,
+            }}
+          >
+            {signatory.email.substring(0, 2).toUpperCase()}
+          </Avatar>
+          <Space direction="vertical" size={2}>
+            <Text>{signatory.email}</Text>
+            <SignatoryStatusTag status={signatory.status} />
+          </Space>
+        </Space>
+      ))}
+    </Space>
   );
 }

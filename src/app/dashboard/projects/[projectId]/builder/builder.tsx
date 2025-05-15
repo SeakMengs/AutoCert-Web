@@ -1,84 +1,16 @@
 "use client";
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
 import { useAutoCert } from "@/hooks/useAutoCert";
-import { useMemo } from "react";
 import { Flex, Splitter, theme } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
 import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
-import { apiWithAuth } from "@/utils/axios";
-import { AutoCertChangeType } from "@/components/builder/hooks/useAutoCertChange";
 import { z } from "zod";
 import { getProjectByIdSuccessResponseSchema } from "./schema";
-import {
-  AnnotateStates,
-  ColumnAnnotateStates,
-  SignatureAnnotateStates,
-} from "@/components/builder/hooks/useAutoCertAnnotate";
-import { AutoCertSettings } from "@/components/builder/hooks/useAutoCert";
-
-interface ProjectBuilderProps
+export interface ProjectBuilderProps
   extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
 
 export default function Builder({ project, roles }: ProjectBuilderProps) {
-  const { annot } = useMemo(() => {
-    const sigAnnot: SignatureAnnotateStates = {};
-    const colAnnot: ColumnAnnotateStates = {};
-    const annot: AnnotateStates = {};
-
-    if (project.signatureAnnotates) {
-      for (const sig of project.signatureAnnotates) {
-        sigAnnot[sig.page] = [
-          ...(sigAnnot[sig.page] || []),
-          {
-            ...sig,
-            type: "signature",
-            signatureData: "",
-            status: sig.status,
-          },
-        ];
-        annot[sig.page] = [
-          ...(annot[sig.page] || []),
-          {
-            ...sig,
-            type: "signature",
-            signatureData: "",
-            status: sig.status,
-          },
-        ];
-      }
-    }
-
-    if (project.columnAnnotates) {
-      for (const col of project.columnAnnotates) {
-        colAnnot[col.page] = [
-          ...(colAnnot[col.page] || []),
-          {
-            ...col,
-            type: "column",
-          },
-        ];
-        annot[col.page] = [
-          ...(annot[col.page] || []),
-          {
-            ...col,
-            type: "column",
-          },
-        ];
-      }
-    }
-
-    return { sigAnnot, colAnnot, annot };
-  }, [project.signatureAnnotates, project.columnAnnotates]);
-
-  // memoize the initial settings to avoid passing a new object reference
-  // on every render
-  const initialSettings = useMemo(() => {
-    return {
-      qrCodeEnabled: project.embedQr,
-    } satisfies AutoCertSettings;
-  }, [project.embedQr]);
-
   const {
     token: { colorSplit },
   } = theme.useToken();
@@ -117,72 +49,8 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     onColumnDelete,
     onAutoCertTableColumnTitleUpdate,
     onImportFromCSV,
-    onExportToCSV,
-  } = useAutoCert({
-    initialRoles: roles,
-    projectId: project.id,
-    initialPdfPage: 0,
-    initialAnnotates: annot,
-    initialSettings: initialSettings,
-    csvFileUrl: project.csvFileUrl,
-    // TOOD: update change
-    saveChanges: async (changes) => {
-      const formData = new FormData();
-
-      // TODO: Optimzie this
-      // Prepare an array to include in the form's "events" field.
-      // Here we make a deep copy of changes, but remove the csvFile property
-      // from TableUpdate events to avoid issues with JSON.stringify.
-      const changesWithoutFiles = changes.map((change) => {
-        if (change.type === AutoCertChangeType.TableUpdate) {
-          return {
-            ...change,
-            data: {
-              ...change.data,
-              csvFile: undefined,
-            },
-          };
-        }
-        return change;
-      });
-
-      // Append the events field as JSON string.
-      formData.append("events", JSON.stringify(changesWithoutFiles));
-
-      changes.forEach((change, index) => {
-        if (
-          change.type === AutoCertChangeType.TableUpdate &&
-          change.data.csvFile
-        ) {
-          formData.append("csvFile", change.data.csvFile);
-        }
-      });
-
-      console.log("saveChanges to backend", changes);
-      try {
-        const res = await apiWithAuth.putForm(
-          `/api/v1/projects/${project.id}/builder`,
-          formData,
-        );
-
-        console.log("saveChanges res", res.data);
-
-        if (!res.data.success) {
-          return false;
-        }
-
-        return true;
-      } catch (error: any) {
-        console.error("Error saving changes:", error.response.data);
-        // Handle error (e.g., show a notification)
-        return false;
-      }
-    },
-  });
-
-  // if (!pdfFile) {
-  //   return <PdfUploader setPdfFile={setPdfFile} />;
-  // }
+    onExportToCSV,  
+  } = useAutoCert();
 
   return (
     <Splitter

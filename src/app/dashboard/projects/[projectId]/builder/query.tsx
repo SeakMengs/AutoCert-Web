@@ -7,16 +7,15 @@ import FullScreenSpin from "@/components/loading/FullScreenSpin";
 import { Flex } from "antd";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import ProjectNotFound from "./not-found";
+import ProjectBuilderWithProvider from "./builder_with_provider";
 
-interface ProjectBuilderByIdProps {
+interface ProjectBuilderProps {
   projectId: string;
 }
 
 export const QueryKey = "project_builder_by_id";
-// TODO: convert to context for easy state access
-export default function ProjectBuilderById({
-  projectId,
-}: ProjectBuilderByIdProps) {
+
+export default function ProjectBuilder({ projectId }: ProjectBuilderProps) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, projectId],
     queryFn: async () => {
@@ -75,5 +74,5 @@ export default function ProjectBuilderById({
     return <FullScreenSpin />;
   }
 
-  return <Builder project={project} roles={roles} />;
+  return <ProjectBuilderWithProvider project={project} roles={roles} />;
 }

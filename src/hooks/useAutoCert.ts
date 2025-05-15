@@ -1,4 +1,12 @@
-import useAutoCert from "@/components/builder/hooks/useAutoCert";
-import useAutoCertTable from "@/components/builder/hooks/useAutoCertTable";
+import { AutoCertContext } from "@/components/builder/context/AutoCertProvider";
+import { useContext } from "react";
 
-export { useAutoCert, useAutoCertTable };
+export function useAutoCert() {
+  const context = useContext(AutoCertContext);
+
+  if (!context) {
+    throw new Error("useAutoCert must be used within a AutoCertProvider");
+  }
+
+  return context;
+}

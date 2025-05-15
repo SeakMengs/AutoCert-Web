@@ -7,6 +7,7 @@ import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import ColumnAnnotateAdd from "./ColumnAnnotateAdd";
 import ColumnAnnotateCard from "./ColumnAnnotateCard";
+import fontMetadata from "../../../../../../public/font_metadata.json";
 
 // const logger = createScopedLogger(
 //   "components:builder:panel:tool:column:ColumnTool",
@@ -43,12 +44,10 @@ export type FontOption = {
   value: string;
 };
 
-// TODO: Add font options based on backend fonts
-export const fontOptions = [
-  { label: "Arial", value: "Arial" },
-  { label: "Helvetica", value: "Helvetica" },
-  { label: "Times New Roman", value: "Times New Roman" },
-] satisfies FontOption[];
+export const FontOptions = fontMetadata.map((f) => ({
+  label: f.name,
+  value: f.name,
+})) satisfies readonly FontOption[];
 
 export default function ColumnTool({
   currentPdfPage,

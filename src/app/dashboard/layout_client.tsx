@@ -277,7 +277,9 @@ function UserNameAndAvatar({
     >
       <Dropdown menu={menuProps} trigger={["click"]}>
         <Space className="hover:cursor-pointer">
-          <Avatar src={user.profileUrl} icon={<UserOutlined />} />
+          <Avatar src={user.profileUrl} icon={<UserOutlined />}>
+            {user.email.substring(0, 2).toUpperCase()}
+          </Avatar>
           {!collapsed && (
             <div className="overflow-hidden">
               <Text className="block font-medium whitespace-nowrap overflow-hidden text-ellipsis">

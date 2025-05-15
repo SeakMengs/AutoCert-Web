@@ -53,7 +53,8 @@ export default function useAutoCert({
   initialRoles,
   saveChanges,
 }: UseAutoCertProps) {
-  const memoInitialRoles = useMemo(() => {
+  // TODO: test if roles are updated
+  const roles = useMemo(() => {
     return initialRoles;
   }, [initialRoles]);
 
@@ -73,8 +74,6 @@ export default function useAutoCert({
   const { changes, enqueueChange, isPushingChanges } = useAutoCertChange({
     saveChanges,
   });
-  // TODO: test if roles are updated
-  const roles = memoInitialRoles;
 
   useEffect(() => {
     setSettings(memoizedInitialSettings);

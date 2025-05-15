@@ -1,5 +1,5 @@
 // import { createScopedLogger } from "@/utils/logger";
-import { memo } from "react";
+import { memo, PropsWithChildren } from "react";
 import { AnnotateColor } from "../hooks/useAutoCertAnnotate";
 import { isHexColor } from "@/utils/color";
 import Rnd, {
@@ -25,7 +25,6 @@ export interface BaseAnnotateProps
   selected: boolean;
   // When enable, annotate cannot be resized, dragged, or edited.
   previewMode: boolean;
-  children: React.ReactNode;
   // Background and border color of the annotate
   color: string;
   zoomScale: number;
@@ -70,7 +69,7 @@ function BaseAnnotate({
   onDragStop,
   onResizeStop,
   onAnnotateSelect,
-}: BaseAnnotateProps) {
+}: PropsWithChildren<BaseAnnotateProps>) {
   const bgColor = isHexColor(color) ? color : AnnotateColor;
 
   const onAnnotateSelectWithStopPropagation = (
