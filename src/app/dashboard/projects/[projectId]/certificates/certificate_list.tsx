@@ -193,6 +193,7 @@ function GridView({
             width={256}
             height={256}
             quality={100}
+            unoptimized
           />
         }
       >

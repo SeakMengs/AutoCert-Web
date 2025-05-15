@@ -76,12 +76,13 @@ export default function ProjectBuilderWithProvider({
   }, [project.embedQr]);
 
   const contextValue = {
-    initialRoles: roles,
     projectId: project.id,
+    pdfFileUrl: project.templateUrl,
+    csvFileUrl: project.csvFileUrl,
+    initialRoles: roles,
     initialPdfPage: 0,
     initialAnnotates: annot,
     initialSettings: initialSettings,
-    csvFileUrl: project.csvFileUrl,
     // TOOD: update change
     saveChanges: async (changes) => {
       const formData = new FormData();

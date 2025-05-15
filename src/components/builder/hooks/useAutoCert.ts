@@ -23,7 +23,7 @@ import { hasPermission, ProjectPermission } from "@/auth/rbac";
 import { App } from "antd";
 import { generateCertificatesByIdAction } from "../action";
 
-const logger = createScopedLogger("components:builder:hook:useAutoCert");
+const logger = createScopedLogger("components:builder:hooks:useAutoCert");
 
 export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
 
@@ -34,6 +34,7 @@ export interface UseAutoCertProps extends UseAutoCertChangeProps {
   initialSettings?: AutoCertSettings;
   projectId: string;
   csvFileUrl: string;
+  pdfFileUrl: string;
   tableTestConfig?: {
     rows: AutoCertTableRow[];
     columns: AutoCertTableColumn[];
@@ -49,6 +50,7 @@ export default function useAutoCert({
     qrCodeEnabled: false,
   } satisfies AutoCertSettings,
   csvFileUrl,
+  pdfFileUrl,
   tableTestConfig,
   initialRoles,
   saveChanges,
@@ -217,6 +219,10 @@ export default function useAutoCert({
   };
 
   return {
+    pdfFileUrl,
+    csvFileUrl,
+    roles,
+
     annotates,
     columnAnnotates,
     signatureAnnotates,

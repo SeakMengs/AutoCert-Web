@@ -7,35 +7,33 @@ import PdfRenderer, { PdfRendererProps } from "./renderer/pdf/PdfRenderer";
 import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { createScopedLogger } from "@/utils/logger";
 import { ProjectRole } from "@/types/project";
+import { useAutoCert } from "@/hooks/useAutoCert";
 
 const logger = createScopedLogger("components:builder/AutoCert");
 
-export interface AutoCertProps extends PdfRendererProps, ZoomProps {
+export interface AutoCertProps extends PdfRendererProps {
   roles: ProjectRole[];
 }
 
 export { AutoCertTable, AutoCertPanel, Zoom };
 
-export default function AutoCert({
-  // share
-  currentPdfPage,
-  zoomScale,
-  roles,
-  // zoom
-  transformWrapperRef,
-  onZoomScaleChange,
-  // pdf
-  pdfFile,
-  onDocumentLoadSuccess,
-  onPageClick,
-  // Annotate
-  annotates,
-  selectedAnnotateId,
-  onAnnotateSelect,
-  onDragStop,
-  onResizeStop,
-  previewMode,
-}: AutoCertProps) {
+export default function AutoCert({ previewMode }: AutoCertProps) {
+  const {
+    pdfFileUrl,
+    roles,
+    annotates,
+    currentPdfPage,
+    selectedAnnotateId,
+    zoomScale,
+    transformWrapperRef,
+    onZoomScaleChange,
+    onAnnotateSelect,
+    onDocumentLoadSuccess,
+    onPageClick,
+    onAnnotateDragStop,
+    onAnnotateResizeStop,
+  } = useAutoCert();
+
   const onDocumentLoadSuccessResetTransform = (pdf: DocumentCallback) => {
     if (!transformWrapperRef.current) {
       logger.error("TransformWrapper ref is null");
@@ -58,14 +56,14 @@ export default function AutoCert({
             zoomScale={zoomScale}
             currentPdfPage={currentPdfPage}
             // For pdf
-            pdfFile={pdfFile}
+            pdfFile={pdfFileUrl}
             onDocumentLoadSuccess={onDocumentLoadSuccessResetTransform}
             // For annotates
             previewMode={previewMode}
             annotates={annotates}
             selectedAnnotateId={selectedAnnotateId}
-            onDragStop={onDragStop}
-            onResizeStop={onResizeStop}
+            onDragStop={onAnnotateDragStop}
+            onResizeStop={onAnnotateResizeStop}
             onAnnotateSelect={onAnnotateSelect}
             onPageClick={onPageClick}
           />

@@ -74,20 +74,20 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
           }}
         >
           <AutoCert
-            roles={roles}
-            transformWrapperRef={transformWrapperRef}
-            zoomScale={zoomScale}
-            onZoomScaleChange={onZoomScaleChange}
-            onPageClick={onPageClick}
+            // roles={roles}
+            // transformWrapperRef={transformWrapperRef}
+            // zoomScale={zoomScale}
+            // onZoomScaleChange={onZoomScaleChange}
+            // onPageClick={onPageClick}
             previewMode={false}
-            annotates={annotates}
-            currentPdfPage={currentPdfPage}
-            selectedAnnotateId={selectedAnnotateId}
-            onDocumentLoadSuccess={onDocumentLoadSuccess}
-            onDragStop={onAnnotateDragStop}
-            onResizeStop={onAnnotateResizeStop}
-            onAnnotateSelect={onAnnotateSelect}
-            pdfFile={project.templateUrl}
+            // annotates={annotates}
+            // currentPdfPage={currentPdfPage}
+            // selectedAnnotateId={selectedAnnotateId}
+            // onDocumentLoadSuccess={onDocumentLoadSuccess}
+            // onDragStop={onAnnotateDragStop}
+            // onResizeStop={onAnnotateResizeStop}
+            // onAnnotateSelect={onAnnotateSelect}
+            // pdfFile={project.templateUrl}
           />
           <div className="absolute bottom-4 right-4">
             <ZoomPanel

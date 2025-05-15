@@ -3,11 +3,14 @@ import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
 import { createScopedLogger } from "@/utils/logger";
 import { nanoid } from "nanoid";
 import { useEffect, useState } from "react";
-import { BaseColumnAnnotate } from "../annotate/ColumnAnnotate";
+import { BaseColumnAnnotate, FontWeight } from "../annotate/ColumnAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signature/SignatureTool";
-import { ColumnAnnotateFormSchema } from "../panel/tool/column/ColumnTool";
+import {
+  ColumnAnnotateFormSchema,
+  FontOptions,
+} from "../panel/tool/column/ColumnTool";
 import { SettingsToolProps } from "../panel/tool/settings/settings";
 import useAutoCertChange, { AutoCertChangeType } from "./useAutoCertChange";
 import { SignatoryStatus } from "@/types/project";
@@ -19,7 +22,7 @@ import { responseFailed, responseSomethingWentWrong } from "@/utils/response";
 import { generateAndFormatZodError } from "@/utils/error";
 
 const logger = createScopedLogger(
-  "components:builder:hook:useAutoCertAnnotate",
+  "components:builder:hooks:useAutoCertAnnotate",
 );
 
 export const AnnotateType = {
@@ -74,9 +77,9 @@ const newColumnAnnotate = (): ColumnAnnotateState => {
     value: "",
     width: ColumnAnnotateWidth,
     height: ColumnAnnotateHeight,
-    fontName: "Arial",
+    fontName: FontOptions[0].value,
     fontSize: AnnotateFontSize,
-    fontWeight: "regular",
+    fontWeight: FontWeight.Regular,
     fontColor: "#000000",
     color: AnnotateColor,
     textFitRectBox: true,
@@ -576,10 +579,10 @@ export default function useAutoCertAnnotate({
       y: position.y,
     } satisfies AnnotateState;
 
-    setAnnotates((prev) => ({
-      ...prev,
-      [page]: prev[page].map((a) => (a.id === id ? updatedAnnotate : a)),
-    }));
+    // setAnnotates((prev) => ({
+    //   ...prev,
+    //   [page]: prev[page].map((a) => (a.id === id ? updatedAnnotate : a)),
+    // }));
 
     switch (updatedAnnotate.type) {
       case AnnotateType.Column:

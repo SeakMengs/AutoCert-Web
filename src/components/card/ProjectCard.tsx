@@ -89,6 +89,7 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
           width={256}
           height={256}
           quality={100}
+          unoptimized
         />
       }
       actions={getActions()}

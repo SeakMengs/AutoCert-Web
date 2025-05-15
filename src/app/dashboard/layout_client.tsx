@@ -29,7 +29,7 @@ import { AuthUser } from "@/auth";
 
 const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 export const BarSize = 56;
 
@@ -190,21 +190,16 @@ function Logo({ collapsed }: { collapsed: boolean }) {
       // gap={4}
     >
       <Image src="/logo.svg" alt="logo" width={48} height={48} />
-      <h1
-        className="motion-preset-blur-right"
+      <Title
+        level={3}
         style={{
-          margin: 0,
-          // Artificially center the text because the actual look doesn't feel centered
-          marginTop: "5px",
-          padding: 0,
           display: collapsed ? "none" : "block",
-          fontFamily: "Code Pro",
           color: "#0D0E21",
-          fontSize: "1.25rem",
         }}
+        className="motion-preset-blur-right m-0"
       >
         {APP_NAME}
-      </h1>
+      </Title>
     </Flex>
   );
 }

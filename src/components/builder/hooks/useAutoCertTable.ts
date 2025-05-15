@@ -10,7 +10,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { App } from "antd";
 import { parseCSVUrl } from "../utils";
 
-const logger = createScopedLogger("components:builder:hook:useAutoCertTable");
+const logger = createScopedLogger("components:builder:hooks:useAutoCertTable");
 
 export interface UseAutoCertTableProps
   extends Pick<
