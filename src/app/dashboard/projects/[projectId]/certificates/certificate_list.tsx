@@ -13,6 +13,7 @@ import {
   Space,
   Flex,
   App,
+  Skeleton,
 } from "antd";
 import {
   DownloadOutlined,
@@ -31,6 +32,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { downloadCertificate, toCertificateTitle } from "./utils";
 import { useMutation } from "@tanstack/react-query";
 import { useImageSrc } from "@/hooks/useImageSrc";
+import { cn } from "@/utils";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:certificate_list",
@@ -127,7 +129,7 @@ function GridView({
   certificate,
   onCertificateView,
 }: GridViewProps) {
-  const { src, onError } = useImageSrc(
+  const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
     `/api/proxy/projects/${projectId}/certificates/${certificate.number}/thumbnail`,
   );
   const { message } = App.useApp();
@@ -185,16 +187,28 @@ function GridView({
         className="border rounded-sm hover:shadow-sm relative group w-full"
         hoverable
         cover={
-          <Image
-            className="rounded-sm object-cover w-full"
-            alt={toCertificateTitle(certificate)}
-            src={src}
-            onError={onError}
-            width={256}
-            height={256}
-            quality={100}
-            unoptimized
-          />
+          <div className="relative w-full h-64 sm:h-48 xs:h-36">
+            <Image
+              className={cn("rounded-sm object-cover w-full", {
+                "opacity-0": loading,
+              })}
+              alt={toCertificateTitle(certificate)}
+              src={src}
+              fill
+              priority
+              onError={onError}
+              onLoadStart={onLoadStart}
+              onLoadingComplete={onLoadingComplete}
+            />
+            {loading && (
+              <div className="absolute inset-0 z-10">
+                <Skeleton.Image
+                  active
+                  className={cn("rounded-sm object-cover w-full h-full")}
+                />
+              </div>
+            )}
+          </div>
         }
       >
         <Flex justify="space-between" align="start" style={{ marginBottom: 8 }}>

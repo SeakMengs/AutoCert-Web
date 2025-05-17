@@ -1,5 +1,14 @@
 "use client";
-import { Avatar, Badge, Card, CardProps, Flex, Tag, Tooltip } from "antd";
+import {
+  Avatar,
+  Badge,
+  Card,
+  CardProps,
+  Flex,
+  Skeleton,
+  Tag,
+  Tooltip,
+} from "antd";
 import React, { memo } from "react";
 import {
   CheckCircleFilled,
@@ -21,6 +30,7 @@ import {
   SignatoryStatusLabels,
 } from "@/types/project";
 import { useImageSrc } from "@/hooks/useImageSrc";
+import { cn } from "@/utils";
 
 export type ProjectCardProps = {
   project: z.infer<typeof ProjectSchema>;
@@ -36,7 +46,7 @@ export const StatusColorMap = {
 const { Meta } = Card;
 
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
-  const { src, onError } = useImageSrc(
+  const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
     `/api/proxy/projects/${project.id}/thumbnail`,
   );
 
@@ -81,16 +91,28 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
       // loading={loading}
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
-        <Image
-          className="rounded-sm object-cover w-full"
-          alt="Certificate Template"
-          src={src}
-          onError={onError}
-          width={256}
-          height={256}
-          quality={100}
-          unoptimized
-        />
+        <div className="relative w-full h-64 sm:h-48 xs:h-36">
+          <Image
+            className={cn("rounded-sm object-cover w-full", {
+              "opacity-0": loading,
+            })}
+            alt="Certificate Template"
+            src={src}
+            fill
+            priority
+            onError={onError}
+            onLoadStart={onLoadStart}
+            onLoadingComplete={onLoadingComplete}
+          />
+          {loading && (
+            <div className="absolute inset-0 z-10">
+              <Skeleton.Image
+                active
+                className={cn("rounded-sm object-cover w-full h-full")}
+              />
+            </div>
+          )}
+        </div>
       }
       actions={getActions()}
     >
