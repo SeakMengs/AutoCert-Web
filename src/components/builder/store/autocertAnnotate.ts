@@ -99,14 +99,14 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
   };
 };
 
-type AutocertAnnotateSliceState = {
+export type AutocertAnnotateSliceState = {
   annotates: AnnotateStates;
   columnAnnotates: ColumnAnnotateStates; // Derived from annotates
   signatureAnnotates: SignatureAnnotateStates; // Derived from annotates
   selectedAnnotateId?: string;
 };
 
-interface AutocertAnnotateSliceActions {
+export interface AutocertAnnotateSliceActions {
   initAnnotates: (annotates: AnnotateStates) => void;
 
   setAnnotates: (annotates: AnnotateStates) => void;

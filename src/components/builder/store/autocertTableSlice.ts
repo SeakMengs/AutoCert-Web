@@ -17,7 +17,7 @@ const logger = createScopedLogger(
 
 const denyMsg = "You do not have permission to update table";
 
-type AutoCertTableState = {
+export type AutoCertTableState = {
   csvFileUrl?: string;
   rows: AutoCertTableRow[];
   columns: AutoCertTableColumn[];
@@ -25,7 +25,7 @@ type AutoCertTableState = {
   initialCSVParsed: boolean;
 };
 
-interface AutoCertTableActions {
+export interface AutoCertTableActions {
   initTable: (csvUrl: string) => Promise<void>;
   setRows: (rows: AutoCertTableRow[]) => void;
   setColumns: (columns: AutoCertTableColumn[]) => void;

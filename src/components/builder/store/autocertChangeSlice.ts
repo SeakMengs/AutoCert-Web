@@ -101,7 +101,7 @@ const CHANGE_DEBOUNCE_TIME = 1 * SECOND;
 export const FAKE_LOADING_TIME = 0.5 * SECOND;
 const messageKey = "autoCertPushChangesMessageKey";
 
-type AutoCertChangeState = {
+export type AutoCertChangeState = {
   changes: AutoCertChangeEvent[];
   isPushingChanges: boolean;
   changeMap: Map<string, AutoCertChangeEvent>;
@@ -111,7 +111,7 @@ export type SaveChangesCallback = (
   changes: AutoCertChangeEvent[],
 ) => Promise<boolean>;
 
-interface AutoCertChangeActions {
+export interface AutoCertChangeActions {
   initChange: (fn: SaveChangesCallback) => void;
   enqueueChange: (change: AutoCertChangeEvent) => void;
   clearChanges: () => void;

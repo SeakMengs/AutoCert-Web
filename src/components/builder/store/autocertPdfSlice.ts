@@ -7,13 +7,13 @@ import { IS_PRODUCTION } from "@/utils/env";
 
 const logger = createScopedLogger("components:builder:store:autocertPdfSlice");
 
-type AutocertPdfSliceState = {
+export type AutocertPdfSliceState = {
   totalPdfPage: number;
   currentPdfPage: number;
   pdfFileUrl?: string;
 };
 
-interface AutocertPdfSliceActions {
+export interface AutocertPdfSliceActions {
   initPdf: (pdfFileUrl: string) => void;
   setTotalPdfPage: (pageCount: number) => void;
   setCurrentPdfPage: (page: number) => void;

@@ -11,12 +11,12 @@ import { SaveChangesCallback } from "./autocertChangeSlice";
 
 const logger = createScopedLogger("components:builder:store:autocertSlice");
 
-type AutocertState = {
+export type AutocertState = {
   projectId: string;
   roles: ProjectRole[];
 };
 
-interface AutocertActions {
+export interface AutocertActions {
   init: (params: {
     projectId: string;
     roles: ProjectRole[];

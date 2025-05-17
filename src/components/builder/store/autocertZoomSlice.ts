@@ -7,12 +7,12 @@ import { createRef, RefObject } from "react";
 
 const logger = createScopedLogger("components:builder:store:autocertZoomSlice");
 
-type AutocertZoomSliceState = {
+export type AutocertZoomSliceState = {
   zoom: number;
   transformWrapperRef: RefObject<ReactZoomPanPinchContentRef | null>;
 };
 
-interface AutocertZoomSliceActions {
+export interface AutocertZoomSliceActions {
   setZoom: (scale: number) => void;
   onZoomChange: (newZoom: number) => void;
 }

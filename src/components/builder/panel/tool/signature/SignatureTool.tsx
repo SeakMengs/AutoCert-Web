@@ -4,7 +4,7 @@ import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import SignatureAnnotateAdd from "./SignatureAnnotateAdd";
 import SignatureAnnotateCard from "./SignatureAnnotateCard";
-import { useAutoCert } from "@/hooks/useAutoCert";
+import { AutocertAnnotateSliceActions } from "@/components/builder/store/autocertAnnotate";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({
@@ -33,9 +33,7 @@ export interface SignatureToolProps {
   ) => void;
   onSignatureAnnotateRemove: (id: string) => void;
   onSignatureAnnotateInvite: (id: string) => void;
-  onSignatureAnnotateSign: ReturnType<
-    typeof useAutoCert
-  >["onSignatureAnnotateSign"];
+  onSignatureAnnotateSign: AutocertAnnotateSliceActions["signSignatureAnnotate"];
   onAnnotateSelect: (id: string) => void;
 }
 

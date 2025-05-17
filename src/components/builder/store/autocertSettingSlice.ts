@@ -13,11 +13,11 @@ const logger = createScopedLogger(
 
 export type AutoCertSettings = Pick<SettingsToolProps, "qrCodeEnabled"> & {};
 
-type AutocertSettingState = {
+export type AutocertSettingState = {
   settings: AutoCertSettings;
 };
 
-interface AutocertSettingActions {
+export interface AutocertSettingActions {
   initSettings: (settings: AutoCertSettings) => void;
   setSettings: (settings: AutoCertSettings) => void;
   onQrCodeEnabledChange: (enabled: boolean) => void;
