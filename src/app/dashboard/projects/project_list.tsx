@@ -1,13 +1,12 @@
 import { PageSize } from "@/utils/pagination";
 import { getOwnProjectsAction, GetOwnProjectsParams } from "./action";
-import { ProjectRole, ProjectStatus } from "@/types/project";
+import { ProjectRole } from "@/types/project";
 import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "@/components/card/ProjectCard";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import FetchLoading from "@/components/loading/FetchLoading";
 import { Flex, Empty, Row, Col, Pagination, Space } from "antd";
 import { QueryKey } from "./certificate_project_section";
-import { useMemo } from "react";
 
 interface CertificateProjectListProps {
   queryParams: GetOwnProjectsParams;

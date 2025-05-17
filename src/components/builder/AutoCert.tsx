@@ -23,15 +23,6 @@ export default function AutoCert({ previewMode }: AutoCertProps) {
       onDocumentLoadSuccess: state.onDocumentLoadSuccess,
     }));
 
-  const onDocumentLoadSuccessResetTransform = (pdf: DocumentCallback) => {
-    if (!transformWrapperRef || !transformWrapperRef.current) {
-      logger.error("TransformWrapper ref is null");
-      return;
-    }
-
-    onDocumentLoadSuccess(pdf);
-  };
-
   return (
     <Zoom
       transformWrapperRef={transformWrapperRef}

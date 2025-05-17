@@ -1,6 +1,5 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import Builder from "./builder";
 import { getProjectByIdAction } from "./action";
 import { notFound } from "next/navigation";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";

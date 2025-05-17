@@ -22,6 +22,9 @@ import {
   AutocertAnnotateSlice,
   createAutocertAnnotateSlice,
 } from "./autocertAnnotate";
+import { setAutoFreeze } from "immer";
+
+setAutoFreeze(false);
 
 export type AutoCertStore = AutocertSlice &
   AutoCertChangeSlice &
@@ -33,7 +36,9 @@ export type AutoCertStore = AutocertSlice &
 
 export const createAutoCertStore = () =>
   create<AutoCertStore>()(
-    immer((...a) => ({
+    immer(
+      (...a) => (
+      {
       ...createAutocertSlice(...a),
       ...createAutoCertChangeSlice(...a),
       ...createAutoCertTableSlice(...a),

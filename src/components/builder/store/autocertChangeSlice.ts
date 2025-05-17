@@ -181,11 +181,8 @@ export const createAutoCertChangeSlice: StateCreator<
 
     enqueueChange: (change) => {
       const key = getChangeKey(change);
-      // cuz immer freezes the state, we need to create a new Map
-      const newMap = new Map(get().changeMap);
-      newMap.set(key, change);
+      get().changeMap.set(key, change);
       set((state) => {
-        state.changeMap = newMap;
         state.changes = Array.from(get().changeMap.values());
       });
 
@@ -222,7 +219,7 @@ export const createAutoCertChangeSlice: StateCreator<
           throw new Error("saveChanges function is not set");
         }
 
-        const success = await get().saveChanges?.(batchedChanges) ?? false;
+        const success = (await get().saveChanges?.(batchedChanges)) ?? false;
 
         if (!success) {
           throw new Error("Failed to save changes");
