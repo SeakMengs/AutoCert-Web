@@ -28,7 +28,7 @@ import {
 } from "./EditableTable";
 import { parseCSVFile } from "../../utils";
 import { wait } from "@/utils";
-import { FAKE_LOADING_TIME } from "../../hooks/useAutoCertChange";
+import { FAKE_LOADING_TIME } from "../../store/autocertChangeSlice";
 
 const logger = createScopedLogger(
   "components:builder:panel:table:AutoCertTable",

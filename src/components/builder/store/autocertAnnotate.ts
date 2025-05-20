@@ -508,7 +508,7 @@ export const createAutocertAnnotateSlice: StateCreator<
       }
 
       const res = await approveSignatureAction({
-        projectId: get().projectId,
+        projectId: get().project.id,
         signatureAnnotateId: id,
       });
 

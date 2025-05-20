@@ -1,12 +1,9 @@
 import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
 import SignatureAnnotate from "@/components/builder/annotate/SignatureAnnotate";
 import ColumnAnnotate from "@/components/builder/annotate/ColumnAnnotate";
-import {
-  AnnotateState,
-  AnnotateType,
-} from "@/components/builder/hooks/useAutoCertAnnotate";
 import { JSX, MouseEvent, memo } from "react";
 import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
+import { AnnotateState, AnnotateType } from "../../store/autocertAnnotate";
 
 export interface AnnotateRendererProps
   extends Pick<

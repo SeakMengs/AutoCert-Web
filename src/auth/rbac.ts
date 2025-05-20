@@ -1,4 +1,4 @@
-import { AutoCertChangeType } from "@/components/builder/hooks/useAutoCertChange";
+import { AutoCertChangeType } from "@/components/builder/store/autocertChangeSlice";
 import { ProjectRole } from "@/types/project";
 
 export const ProjectPermission = {

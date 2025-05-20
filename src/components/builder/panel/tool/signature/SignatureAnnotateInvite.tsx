@@ -4,8 +4,8 @@ import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
 import { createScopedLogger } from "@/utils/logger";
 import { boolean } from "zod";
 import { useState } from "react";
-import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
 import { wait } from "@/utils";
+import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateInvite",

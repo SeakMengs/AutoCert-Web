@@ -117,7 +117,7 @@ export const createAutoCertTableSlice: StateCreator<
       get().enqueueChange({
         type: AutoCertChangeType.TableUpdate,
         data: {
-          csvFile: get().onExportToCSV(`${get().projectId}.csv`),
+          csvFile: get().onExportToCSV(`${get().project.id}.csv`),
         },
       });
     },

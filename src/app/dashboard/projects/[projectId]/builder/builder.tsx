@@ -7,6 +7,10 @@ import Header from "./header";
 import { z } from "zod";
 import { getProjectByIdSuccessResponseSchema } from "./schema";
 import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
+import { useEffect } from "react";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger("src:app:components:builder:builder.tsx");
 export interface ProjectBuilderProps
   extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
 
@@ -15,36 +19,21 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     token: { colorSplit },
   } = theme.useToken();
   const {
-    columnAnnotates,
-    signatureAnnotates,
-    currentPdfPage,
-    selectedAnnotateId,
+    initialCSVParsed,
+    removeUnnecessaryAnnotates,
+    columns,
     zoom,
     transformWrapperRef,
-    settings,
-    onQrCodeEnabledChange,
-    addColumnAnnotate,
-    updateColumnAnnotate,
-    removeColumnAnnotate,
-    addSignatureAnnotate,
-    removeSignatureAnnotate,
-    inviteSignatureAnnotate,
-    signSignatureAnnotate,
-    setSelectedAnnotateId,
-    onGenerateCertificates,
-
-    rows,
-    columns,
-    tableLoading,
-    onRowAdd,
-    onRowUpdate,
-    onRowsDelete,
-    onColumnAdd,
-    onColumnDelete,
-    // onAutoCertTableColumnTitleUpdate,
-    onImportFromCSV,
-    onExportToCSV,
   } = useAutoCertStore((state) => state);
+
+  useEffect(() => {
+    if (!initialCSVParsed) {
+      logger.debug("Initial CSV parsed, skip remove unnecessary annotates");
+      return;
+    }
+
+    removeUnnecessaryAnnotates(columns);
+  }, [columns, initialCSVParsed]);
 
   return (
     <Splitter
@@ -85,36 +74,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
         className="w-1/5"
         collapsible
       >
-        <AutoCertPanel
-          projectId={project.id}
-          signatureAnnotates={signatureAnnotates}
-          columns={columns}
-          rows={rows}
-          tableLoading={tableLoading}
-          qrCodeEnabled={settings.qrCodeEnabled}
-          onQrCodeEnabledChange={onQrCodeEnabledChange}
-          onColumnUpdate={() => {}}
-          onRowAdd={onRowAdd}
-          onRowUpdate={onRowUpdate}
-          onRowsDelete={onRowsDelete}
-          onColumnAdd={onColumnAdd}
-          onColumnDelete={onColumnDelete}
-          onImportFromCSV={onImportFromCSV}
-          onExportToCSV={onExportToCSV}
-          // End of table props
-          currentPdfPage={currentPdfPage}
-          selectedAnnotateId={selectedAnnotateId}
-          onGenerateCertificates={onGenerateCertificates}
-          columnAnnotates={columnAnnotates}
-          onColumnAnnotateAdd={addColumnAnnotate}
-          onColumnAnnotateUpdate={updateColumnAnnotate}
-          onColumnAnnotateRemove={removeColumnAnnotate}
-          onSignatureAnnotateAdd={addSignatureAnnotate}
-          onSignatureAnnotateRemove={removeSignatureAnnotate}
-          onSignatureAnnotateInvite={inviteSignatureAnnotate}
-          onSignatureAnnotateSign={signSignatureAnnotate}
-          onAnnotateSelect={setSelectedAnnotateId}
-        />
+        <AutoCertPanel />
       </Splitter.Panel>
     </Splitter>
   );

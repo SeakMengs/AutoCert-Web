@@ -7,14 +7,19 @@ import { Flex } from "antd";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import ProjectNotFound from "./not-found";
 import ProjectBuilderWithProvider from "./builder_with_provider";
+import { AuthUser } from "@/auth";
 
-interface ProjectBuilderProps {
+interface ProjectBuilderQueryProps {
   projectId: string;
+  user: AuthUser;
 }
 
 export const QueryKey = "project_builder_by_id";
 
-export default function ProjectBuilder({ projectId }: ProjectBuilderProps) {
+export default function ProjectBuilderQuery({
+  projectId,
+  user,
+}: ProjectBuilderQueryProps) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QueryKey, projectId],
     queryFn: async () => {
@@ -73,5 +78,7 @@ export default function ProjectBuilder({ projectId }: ProjectBuilderProps) {
     return <FullScreenSpin />;
   }
 
-  return <ProjectBuilderWithProvider project={project} roles={roles} />;
+  return (
+    <ProjectBuilderWithProvider project={project} roles={roles} user={user} />
+  );
 }

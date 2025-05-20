@@ -1,4 +1,3 @@
-import { AnnotateColor } from "@/components/builder/hooks/useAutoCertAnnotate";
 import {
   Select,
   Form,
@@ -20,8 +19,9 @@ import {
 } from "./ColumnTool";
 import { PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
-import { FAKE_LOADING_TIME } from "@/components/builder/hooks/useAutoCertChange";
 import { wait } from "@/utils";
+import { AnnotateColor } from "@/components/builder/store/autocertAnnotate";
+import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateAdd",

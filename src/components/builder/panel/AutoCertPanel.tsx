@@ -9,11 +9,9 @@ import {
   theme,
   Typography,
 } from "antd";
-import ColumnTool, { ColumnToolProps } from "./tool/column/ColumnTool";
-import SignatureTool, {
-  SignatureToolProps,
-} from "./tool/signature/SignatureTool";
-import AutoCertTable, { AutoCertTableProps } from "./table/AutoCertTable";
+import ColumnTool from "./tool/column/ColumnTool";
+import SignatureTool from "./tool/signature/SignatureTool";
+import AutoCertTable from "./table/AutoCertTable";
 import {
   FontSizeOutlined,
   FormOutlined,
@@ -23,53 +21,54 @@ import {
 } from "@ant-design/icons";
 import { BarSize } from "@/app/dashboard/layout_client";
 import { memo, PropsWithChildren } from "react";
-import SettingsTool, { SettingsToolProps } from "./tool/settings/settings";
+import SettingsTool from "./tool/settings/settings";
 import { useMutation } from "@tanstack/react-query";
-import useAutoCert from "../hooks/useAutoCert";
 import { createScopedLogger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
+import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
 );
 
-export interface AutoCertPanelProps
-  extends ColumnToolProps,
-    SignatureToolProps,
-    AutoCertTableProps,
-    SettingsToolProps {
-  onGenerateCertificates: ReturnType<
-    typeof useAutoCert
-  >["onGenerateCertificates"];
-  projectId: string;
-}
+export interface AutoCertPanelProps {}
 
 const { Text } = Typography;
 
-function AutoCertPanel({
-  projectId,
-  // Annotate
-  selectedAnnotateId,
-  currentPdfPage,
-  columnAnnotates,
-  signatureAnnotates,
-  qrCodeEnabled,
+function AutoCertPanel({}: AutoCertPanelProps) {
+  const {
+    // Annotate
+    selectedAnnotateId,
+    currentPdfPage,
+    columnAnnotates,
+    signatureAnnotates,
 
-  onQrCodeEnabledChange,
-  onAnnotateSelect,
-  onColumnAnnotateAdd,
-  onColumnAnnotateUpdate,
-  onColumnAnnotateRemove,
-  onSignatureAnnotateAdd,
-  onSignatureAnnotateRemove,
-  onSignatureAnnotateInvite,
-  onSignatureAnnotateSign,
-  onGenerateCertificates,
-  // Table,
-  columns,
-  ...autoCertTableProps
-}: AutoCertPanelProps) {
+    settings,
+    onQrCodeEnabledChange,
+    setSelectedAnnotateId: onAnnotateSelect,
+    addColumnAnnotate: onColumnAnnotateAdd,
+    updateColumnAnnotate: onColumnAnnotateUpdate,
+    removeColumnAnnotate: onColumnAnnotateRemove,
+    addSignatureAnnotate: onSignatureAnnotateAdd,
+    removeSignatureAnnotate: onSignatureAnnotateRemove,
+    inviteSignatureAnnotate: onSignatureAnnotateInvite,
+    signSignatureAnnotate: onSignatureAnnotateSign,
+
+    // Table,
+    columns,
+    rows,
+    tableLoading,
+    onColumnAdd,
+    onColumnDelete,
+    onColumnUpdate,
+    onRowAdd,
+    onRowUpdate,
+    onRowsDelete,
+    onImportFromCSV,
+    onExportToCSV,
+  } = useAutoCertStore((state) => state);
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -124,7 +123,7 @@ function AutoCertPanel({
       ),
       children: (
         <SettingsTool
-          qrCodeEnabled={qrCodeEnabled}
+          qrCodeEnabled={settings.qrCodeEnabled}
           onQrCodeEnabledChange={onQrCodeEnabledChange}
         />
       ),
@@ -140,10 +139,7 @@ function AutoCertPanel({
         </Text>
       ),
       children: (
-        <Layout
-          onGenerateCertificates={onGenerateCertificates}
-          projectId={projectId}
-        >
+        <Layout>
           <Collapse
             defaultActiveKey={["1", "2", "3"]}
             items={collapseItems}
@@ -161,11 +157,20 @@ function AutoCertPanel({
         </Text>
       ),
       children: (
-        <Layout
-          onGenerateCertificates={onGenerateCertificates}
-          projectId={projectId}
-        >
-          <AutoCertTable columns={columns} {...autoCertTableProps} />
+        <Layout>
+          <AutoCertTable
+            columns={columns}
+            rows={rows}
+            tableLoading={tableLoading}
+            onColumnAdd={onColumnAdd}
+            onColumnDelete={onColumnDelete}
+            onColumnUpdate={onColumnUpdate}
+            onRowAdd={onRowAdd}
+            onRowUpdate={onRowUpdate}
+            onRowsDelete={onRowsDelete}
+            onImportFromCSV={onImportFromCSV}
+            onExportToCSV={onExportToCSV}
+          />
         </Layout>
       ),
     },
@@ -206,99 +211,96 @@ function AutoCertPanel({
 
 export default memo(AutoCertPanel);
 
-interface LayoutProps
-  extends Pick<AutoCertPanelProps, "onGenerateCertificates" | "projectId"> {}
+interface LayoutProps {}
 
-const Layout = memo(
-  ({
-    onGenerateCertificates,
-    projectId,
-    children,
-  }: PropsWithChildren<LayoutProps>) => {
-    const router = useRouter();
-    const { message, modal } = App.useApp();
-    const {
-      token: { colorSplit },
-    } = theme.useToken();
+const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
+  const { onGenerateCertificates, project } = useAutoCertStore(
+    (state) => state,
+  );
 
-    const { mutateAsync: onGenerateCertificatesMutation, isPending } =
-      useMutation({
-        mutationFn: onGenerateCertificates,
-        onSuccess: (data, variables) => {
-          if (!data.success) {
-            const { errors } = data;
+  const router = useRouter();
+  const { message, modal } = App.useApp();
+  const {
+    token: { colorSplit },
+  } = theme.useToken();
 
-            // TODO: add more specific error handling
-            const specificError = getTranslatedErrorMessage(errors, {
-              status:
-                "Certificates cannot be generated as the project is not in draft status!",
-              noAnnotate:
-                "Certificates cannot be generated as because there are no annotations!",
-            });
-            if (specificError) {
-              message.error(specificError);
-              return;
-            }
+  const { mutateAsync: onGenerateCertificatesMutation, isPending } =
+    useMutation({
+      mutationFn: onGenerateCertificates,
+      onSuccess: (data, variables) => {
+        if (!data.success) {
+          const { errors } = data;
 
-            message.error("Failed to generate certificates");
+          // TODO: add more specific error handling
+          const specificError = getTranslatedErrorMessage(errors, {
+            status:
+              "Certificates cannot be generated as the project is not in draft status!",
+            noAnnotate:
+              "Certificates cannot be generated as because there are no annotations!",
+          });
+          if (specificError) {
+            message.error(specificError);
             return;
           }
 
-          modal.success({
-            title: "Certificates generated successfully",
-            content: (
-              <div className="motion-preset-confetti">
-                <p>Certificates have been generated successfully.</p>
-                <p>
-                  <Button
-                    type="link"
-                    onClick={() => {
-                      router.push(
-                        `/dashboard/projects/${projectId}/certificates`,
-                      );
-                    }}
-                  >
-                    Go to Generated Certificates Page
-                  </Button>
-                </p>
-              </div>
-            ),
-          });
-        },
-        onError: (error) => {
-          logger.error("Failed to generate certificates", error);
           message.error("Failed to generate certificates");
-        },
-      });
+          return;
+        }
 
-    const handleGenerateCertificates = async () => {
-      await onGenerateCertificatesMutation();
-    };
+        modal.success({
+          title: "Certificates generated successfully",
+          content: (
+            <div className="motion-preset-confetti">
+              <p>Certificates have been generated successfully.</p>
+              <p>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    router.push(
+                      `/dashboard/projects/${project.id}/certificates`,
+                    );
+                  }}
+                >
+                  Go to Generated Certificates Page
+                </Button>
+              </p>
+            </div>
+          ),
+        });
+      },
+      onError: (error) => {
+        logger.error("Failed to generate certificates", error);
+        message.error("Failed to generate certificates");
+      },
+    });
 
-    return (
-      <Flex
-        vertical
-        justify="space-between"
-        style={{
-          height: `calc(100vh - ${BarSize}px)`,
-        }}
-      >
-        <div className="overflow-auto">
-          <div className="m-2">{children}</div>
-        </div>
-        <div style={{ borderTop: `1px solid ${colorSplit}` }}>
-          <Flex className="m-2" justify="center">
-            <Button
-              type="primary"
-              onClick={handleGenerateCertificates}
-              loading={isPending}
-              disabled={isPending}
-            >
-              Generate certificates
-            </Button>
-          </Flex>
-        </div>
-      </Flex>
-    );
-  },
-);
+  const handleGenerateCertificates = async () => {
+    await onGenerateCertificatesMutation();
+  };
+
+  return (
+    <Flex
+      vertical
+      justify="space-between"
+      style={{
+        height: `calc(100vh - ${BarSize}px)`,
+      }}
+    >
+      <div className="overflow-auto">
+        <div className="m-2">{children}</div>
+      </div>
+      <div style={{ borderTop: `1px solid ${colorSplit}` }}>
+        <Flex className="m-2" justify="center">
+          <Button
+            type="primary"
+            onClick={handleGenerateCertificates}
+            loading={isPending}
+            disabled={isPending}
+          >
+            Generate certificates
+          </Button>
+        </Flex>
+      </div>
+    </Flex>
+  );
+});

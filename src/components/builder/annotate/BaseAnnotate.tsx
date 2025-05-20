@@ -1,6 +1,5 @@
 // import { createScopedLogger } from "@/utils/logger";
 import { memo, PropsWithChildren } from "react";
-import { AnnotateColor } from "../hooks/useAutoCertAnnotate";
 import { isHexColor } from "@/utils/color";
 import Rnd, {
   RectPxAndPercent,
@@ -12,6 +11,7 @@ import Rnd, {
 import { cn } from "@/utils";
 import { ProjectRole } from "@/types/project";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { AnnotateColor } from "../store/autocertAnnotate";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 

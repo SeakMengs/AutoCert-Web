@@ -1,10 +1,9 @@
 import { Space } from "antd";
-import { SignatureAnnotateStates } from "@/components/builder/hooks/useAutoCertAnnotate";
 import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import SignatureAnnotateAdd from "./SignatureAnnotateAdd";
 import SignatureAnnotateCard from "./SignatureAnnotateCard";
-import { AutocertAnnotateSliceActions } from "@/components/builder/store/autocertAnnotate";
+import { AutocertAnnotateSliceActions, SignatureAnnotateStates } from "@/components/builder/store/autocertAnnotate";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({

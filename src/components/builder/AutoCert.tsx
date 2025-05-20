@@ -1,27 +1,23 @@
 "use client";
-import Zoom, { ZoomProps } from "./zoom/Zoom";
+import Zoom from "./zoom/Zoom";
 import AutoCertPanel from "./panel/AutoCertPanel";
 import AutoCertTable from "./panel/table/AutoCertTable";
 ("./panel/AutoCertPanel");
 import PdfRenderer, { PdfRendererProps } from "./renderer/pdf/PdfRenderer";
-import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { createScopedLogger } from "@/utils/logger";
-import { ProjectRole } from "@/types/project";
 import { useAutoCertStore } from "./providers/AutoCertStoreProvider";
 
-const logger = createScopedLogger("components:builder/AutoCert");
+const logger = createScopedLogger("components:builder:AutoCert");
 
 export interface AutoCertProps extends PdfRendererProps {}
 
 export { AutoCertTable, AutoCertPanel, Zoom };
 
 export default function AutoCert({ previewMode }: AutoCertProps) {
-  const { transformWrapperRef, onZoomChange, onDocumentLoadSuccess } =
-    useAutoCertStore((state) => ({
-      transformWrapperRef: state.transformWrapperRef,
-      onZoomChange: state.onZoomChange,
-      onDocumentLoadSuccess: state.onDocumentLoadSuccess,
-    }));
+  const { transformWrapperRef, onZoomChange } = useAutoCertStore((state) => ({
+    transformWrapperRef: state.transformWrapperRef,
+    onZoomChange: state.onZoomChange,
+  }));
 
   return (
     <Zoom

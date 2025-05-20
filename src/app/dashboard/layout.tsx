@@ -14,7 +14,6 @@ export default async function DashboardLayout({
   children: ReactNode;
 }) {
   const result = await validateAccessToken();
-
   if (!result.isAuthenticated) {
     logger.warn("User is not authenticated, redirecting to '/' page");
     redirect("/");

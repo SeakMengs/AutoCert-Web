@@ -2,21 +2,27 @@ import {
   AutoCertStoreProvider,
   AutoCertStoreProviderProps,
 } from "@/components/builder/providers/AutoCertStoreProvider";
-import { AutoCertSettings } from "@/components/builder/hooks/useAutoCert";
+import { apiWithAuth } from "@/utils/axios";
+import { useMemo } from "react";
+import Builder, { ProjectBuilderProps } from "./builder";
+import { AuthUser } from "@/auth";
 import {
   SignatureAnnotateStates,
   ColumnAnnotateStates,
   AnnotateStates,
-} from "@/components/builder/hooks/useAutoCertAnnotate";
-import { AutoCertChangeType } from "@/components/builder/hooks/useAutoCertChange";
-import { apiWithAuth } from "@/utils/axios";
-import { useMemo } from "react";
-import Builder, { ProjectBuilderProps } from "./builder";
+} from "@/components/builder/store/autocertAnnotate";
+import { AutoCertChangeType } from "@/components/builder/store/autocertChangeSlice";
+import { AutoCertSettings } from "@/components/builder/store/autocertSettingSlice";
+
+interface ProjectBuilderWithProviderProps extends ProjectBuilderProps {
+  user: AuthUser;
+}
 
 export default function ProjectBuilderWithProvider({
+  user,
   project,
   roles,
-}: ProjectBuilderProps) {
+}: ProjectBuilderWithProviderProps) {
   const { annot } = useMemo(() => {
     const sigAnnot: SignatureAnnotateStates = {};
     const colAnnot: ColumnAnnotateStates = {};
@@ -76,7 +82,8 @@ export default function ProjectBuilderWithProvider({
   }, [project.embedQr]);
 
   const contextValue = {
-    projectId: project.id,
+    user,
+    project,
     annotates: annot,
     csvUrl: project.csvFileUrl,
     pdfUrl: project.templateUrl,
@@ -85,7 +92,7 @@ export default function ProjectBuilderWithProvider({
     // TOOD: update change
     saveChanges: async (changes) => {
       console.log("saveChanges called with changes:", changes);
-      
+
       const formData = new FormData();
 
       // TODO: Optimzie this

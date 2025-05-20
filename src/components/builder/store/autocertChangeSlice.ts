@@ -4,12 +4,9 @@ import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
 import useApp from "antd/es/app/useApp";
 import { SECOND } from "@/utils/time";
-import { AutoCertSettings } from "../hooks/useAutoCert";
-import {
-  ColumnAnnotateState,
-  SignatureAnnotateState,
-} from "../hooks/useAutoCertAnnotate";
 import debounce from "lodash.debounce";
+import { ColumnAnnotateState, SignatureAnnotateState } from "./autocertAnnotate";
+import { AutoCertSettings } from "./autocertSettingSlice";
 
 const logger = createScopedLogger(
   "components:builder:store:autocertChangeSlice",

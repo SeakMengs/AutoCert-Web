@@ -1,6 +1,5 @@
 "use client";
 import { Space } from "antd";
-import { ColumnAnnotateStates } from "@/components/builder/hooks/useAutoCertAnnotate";
 // import { createScopedLogger } from "@/utils/logger";
 import { AutoCertTableColumn } from "../../table/AutoCertTable";
 import { z } from "zod";
@@ -8,6 +7,7 @@ import { isHexColor } from "@/utils/color";
 import ColumnAnnotateAdd from "./ColumnAnnotateAdd";
 import ColumnAnnotateCard from "./ColumnAnnotateCard";
 import fontMetadata from "../../../../../../public/font_metadata.json";
+import { ColumnAnnotateStates } from "@/components/builder/store/autocertAnnotate";
 
 // const logger = createScopedLogger(
 //   "components:builder:panel:tool:column:ColumnTool",

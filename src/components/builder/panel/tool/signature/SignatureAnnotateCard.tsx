@@ -1,12 +1,12 @@
-import { Tag, Card, Avatar, Space, Typography, Flex, theme } from "antd";
-import { SignatureAnnotateState } from "@/components/builder/hooks/useAutoCertAnnotate";
+import {  Card, Avatar, Space, Typography, Flex, theme } from "antd";
 import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
 import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
-import { SignatoryStatus, SignatoryStatusLabels } from "@/types/project";
+import { SignatoryStatus } from "@/types/project";
 import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
 import SignatureAnnotateSign from "./SignatureAnnotateSign";
+import { SignatureAnnotateState } from "@/components/builder/store/autocertAnnotate";
 
 export interface SignatureAnnotateCardProps
   extends Pick<

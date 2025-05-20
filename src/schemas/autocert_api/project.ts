@@ -1,5 +1,6 @@
 import { ProjectStatus, SignatoryStatus } from "@/types/project";
 import { z } from "zod";
+import { columnAnnotateSchema, signatureAnnotateSchema } from "./annotate";
 
 export const ProjectSignatorySchema = z.object({
   email: z.string().email(),
@@ -24,4 +25,18 @@ export const ProjectLogSchema = z.object({
   action: z.string(),
   description: z.string(),
   timestamp: z.string(),
+});
+
+export const ProjectByIdSchema = ProjectSchema.pick({
+  id: true,
+  title: true,
+  isPublic: true,
+  signatories: true,
+  status: true,
+  templateUrl: true,
+}).extend({
+  embedQr: z.boolean(),
+  csvFileUrl: z.string(),
+  columnAnnotates: z.array(columnAnnotateSchema),
+  signatureAnnotates: z.array(signatureAnnotateSchema),
 });

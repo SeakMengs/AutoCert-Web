@@ -6,7 +6,6 @@ import { DocumentCallback } from "react-pdf/src/shared/types.js";
 import { memo, useEffect, useState } from "react";
 import { Result, Skeleton, Space } from "antd";
 import PageRenderer, { PageRendererProps } from "./PageRenderer";
-import { AnnotateStates } from "../../hooks/useAutoCertAnnotate";
 import PdfDocumentError from "@/components/error/PdfDocumentError";
 import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 

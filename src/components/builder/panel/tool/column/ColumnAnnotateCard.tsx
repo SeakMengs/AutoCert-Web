@@ -1,6 +1,4 @@
-import { ColumnAnnotateState } from "@/components/builder/hooks/useAutoCertAnnotate";
 import {
-  Button,
   Card,
   Flex,
   Space,
@@ -13,6 +11,7 @@ import { ColumnToolProps } from "./ColumnTool";
 import ColumnAnnotateEdit from "./ColumnAnnotateEdit";
 import ColumnAnnotateRemove from "./ColumnAnnotateRemove";
 import { FontSizeOutlined } from "@ant-design/icons";
+import { ColumnAnnotateState } from "@/components/builder/store/autocertAnnotate";
 
 export interface ColumnAnnotateCardProps
   extends Pick<

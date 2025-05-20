@@ -8,17 +8,22 @@ import { ProjectRole } from "@/types/project";
 import { AnnotateStates } from "./autocertAnnotate";
 import { AutoCertSettings } from "./autocertSettingSlice";
 import { SaveChangesCallback } from "./autocertChangeSlice";
+import { AuthUser } from "@/auth";
+import { z } from "zod";
+import { ProjectByIdSchema } from "@/schemas/autocert_api/project";
 
 const logger = createScopedLogger("components:builder:store:autocertSlice");
 
 export type AutocertState = {
-  projectId: string;
+  project: z.infer<typeof ProjectByIdSchema>;
+  user: AuthUser;
   roles: ProjectRole[];
 };
 
 export interface AutocertActions {
   init: (params: {
-    projectId: string;
+    user: AuthUser;
+    project: z.infer<typeof ProjectByIdSchema>;
     roles: ProjectRole[];
     annotates: AnnotateStates;
     settings: AutoCertSettings;
@@ -43,11 +48,13 @@ export const createAutocertSlice: StateCreator<
   const { message } = useApp();
 
   return {
-    projectId: "",
+    project: {} as z.infer<typeof ProjectByIdSchema>,
     roles: [],
+    user: {} as AuthUser,
 
     init: async ({
-      projectId,
+      user,
+      project,
       roles,
       annotates,
       settings,
@@ -56,7 +63,7 @@ export const createAutocertSlice: StateCreator<
       saveChanges,
     }) => {
       logger.info("Initializing AutoCert store", {
-        projectId,
+        project,
         roles,
         annotates,
         settings,
@@ -64,7 +71,8 @@ export const createAutocertSlice: StateCreator<
         pdfUrl,
       });
       set((state) => {
-        state.projectId = projectId;
+        state.user = user;
+        state.project = project;
         state.roles = roles;
       });
       get().initAnnotates(annotates);
@@ -84,7 +92,7 @@ export const createAutocertSlice: StateCreator<
     onGenerateCertificates: async () => {
       logger.info("Generate certificates");
       return await generateCertificatesByIdAction({
-        projectId: get().projectId,
+        projectId: get().project.id,
       });
     },
   };
