@@ -11,7 +11,8 @@ import Rnd, {
 import { cn } from "@/utils";
 import { ProjectRole } from "@/types/project";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
-import { AnnotateColor } from "../store/autocertAnnotate";
+
+export const AnnotateColor = "#FFC4C4";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
 

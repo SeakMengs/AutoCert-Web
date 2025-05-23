@@ -2,11 +2,14 @@ import { StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
-import useApp from "antd/es/app/useApp";
 import { SECOND } from "@/utils/time";
 import debounce from "lodash.debounce";
-import { ColumnAnnotateState, SignatureAnnotateState } from "./autocertAnnotate";
+import {
+  ColumnAnnotateState,
+  SignatureAnnotateState,
+} from "./autocertAnnotate";
 import { AutoCertSettings } from "./autocertSettingSlice";
+import { App } from "antd";
 
 const logger = createScopedLogger(
   "components:builder:store:autocertChangeSlice",
@@ -126,7 +129,7 @@ export const createAutoCertChangeSlice: StateCreator<
   [],
   AutoCertChangeSlice
 > = (set, get) => {
-  const { message } = useApp();
+  const { message } = App.useApp();
 
   /**
    * Returns a unique key for the change.

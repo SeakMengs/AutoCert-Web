@@ -1,6 +1,10 @@
 import { createScopedLogger } from "@/utils/logger";
-import { BaseAnnotateProps } from "../annotate/BaseAnnotate";
-import { BaseColumnAnnotate, FontWeight } from "../annotate/ColumnAnnotate";
+import { AnnotateColor, BaseAnnotateProps } from "../annotate/BaseAnnotate";
+import {
+  AnnotateFontSize,
+  BaseColumnAnnotate,
+  FontWeight,
+} from "../annotate/ColumnAnnotate";
 import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
 import { SignatoryStatus } from "@/types/project";
 import { nanoid } from "nanoid";
@@ -62,9 +66,6 @@ const ColumnAnnotateHeight = 40;
 
 const SignatureAnnotateWidth = 140;
 const SignatureAnnotateHeight = 90;
-
-export const AnnotateColor = "#FFC4C4";
-export const AnnotateFontSize = 24;
 
 const newColumnAnnotate = (): ColumnAnnotateState => {
   return {

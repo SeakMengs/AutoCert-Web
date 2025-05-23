@@ -20,8 +20,8 @@ import {
 import { PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
 import { wait } from "@/utils";
-import { AnnotateColor } from "@/components/builder/store/autocertAnnotate";
 import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
+import { AnnotateColor } from "@/components/builder/annotate/BaseAnnotate";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateAdd",

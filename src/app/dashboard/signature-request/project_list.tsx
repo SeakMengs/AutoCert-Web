@@ -1,5 +1,5 @@
 import { PageSize } from "@/utils/pagination";
-import { ProjectRole, ProjectStatus } from "@/types/project";
+import { ProjectRole } from "@/types/project";
 import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "@/components/card/ProjectCard";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
@@ -10,7 +10,6 @@ import {
   GetSignatoryProjectsParams,
 } from "./action";
 import { QueryKey } from "./signature_request_section";
-import { useMemo } from "react";
 
 interface SignatoryProjectListProps {
   queryParams: GetSignatoryProjectsParams;

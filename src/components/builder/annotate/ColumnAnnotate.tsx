@@ -1,6 +1,8 @@
 import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
 import { memo } from "react";
 
+export const AnnotateFontSize = 24;
+
 export const FontWeight = {
   Regular: "regular",
   Bold: "bold",

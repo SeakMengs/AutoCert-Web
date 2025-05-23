@@ -2,7 +2,7 @@ import { FontWeight } from "@/components/builder/annotate/ColumnAnnotate";
 import { SignatoryStatus } from "@/types/project";
 import { z } from "zod";
 
-export const columnAnnotateSchema = z.object({
+export const ColumnAnnotateSchema = z.object({
   page: z.number(),
   x: z.number(),
   y: z.number(),
@@ -18,7 +18,7 @@ export const columnAnnotateSchema = z.object({
   textFitRectBox: z.boolean(),
 });
 
-export const signatureAnnotateSchema = z.object({
+export const SignatureAnnotateSchema = z.object({
   page: z.number(),
   x: z.number(),
   y: z.number(),

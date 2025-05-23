@@ -2,7 +2,6 @@ import { StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
-import useApp from "antd/es/app/useApp";
 import { generateCertificatesByIdAction } from "../action";
 import { ProjectRole } from "@/types/project";
 import { AnnotateStates } from "./autocertAnnotate";
@@ -11,6 +10,7 @@ import { SaveChangesCallback } from "./autocertChangeSlice";
 import { AuthUser } from "@/auth";
 import { z } from "zod";
 import { ProjectByIdSchema } from "@/schemas/autocert_api/project";
+import { App } from "antd";
 
 const logger = createScopedLogger("components:builder:store:autocertSlice");
 
@@ -45,7 +45,7 @@ export const createAutocertSlice: StateCreator<
   [],
   AutocertSlice
 > = (set, get) => {
-  const { message } = useApp();
+  const { message} = App.useApp();
 
   return {
     project: {} as z.infer<typeof ProjectByIdSchema>,

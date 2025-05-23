@@ -1,7 +1,7 @@
-import { ProjectSchema } from "@/schemas/autocert_api/project";
+import { z } from "zod";
 import { ProjectStatus } from "@/types/project";
 import { MB, readableFileSize } from "@/utils/file";
-import { z } from "zod";
+import { ProjectSchema } from "@/schemas/autocert_api/project";
 
 export const getSignatoryProjectsSuccessResponseSchema = z.object({
   total: z.number(),
