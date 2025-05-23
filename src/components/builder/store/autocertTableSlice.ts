@@ -237,6 +237,7 @@ export const createAutoCertTableSlice: StateCreator<
       get().setRows(newRows);
 
       get().onTableChange();
+      get().replaceAnnotatesColumnValue(oldTitle, newTitle);
     },
 
     onRowsDelete: (selectedKeys) => {

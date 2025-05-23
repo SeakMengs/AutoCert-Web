@@ -7,6 +7,11 @@ import {
   createAutoCertStore,
 } from "@/components/builder/store/useAutoCertStore";
 import { AutocertSlice } from "../store/autocertSlice";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger(
+  "components:builder:providers:AutoCertStoreProvider",
+);
 
 export type AutoCertStoreApi = ReturnType<typeof createAutoCertStore>;
 

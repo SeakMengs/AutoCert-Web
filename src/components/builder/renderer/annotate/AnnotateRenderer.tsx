@@ -4,6 +4,7 @@ import ColumnAnnotate from "@/components/builder/annotate/ColumnAnnotate";
 import { JSX, MouseEvent, memo } from "react";
 import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 import { AnnotateState, AnnotateType } from "../../store/autocertAnnotate";
+import { useShallow } from "zustand/react/shallow";
 
 export interface AnnotateRendererProps
   extends Pick<
@@ -35,14 +36,16 @@ function AnnotateRenderer({
     onDragStop,
     onResizeStop,
     roles,
-  } = useAutoCertStore((state) => ({
-    selectedAnnotateId: state.selectedAnnotateId,
-    onAnnotateSelect: state.setSelectedAnnotateId,
-    zoom: state.zoom,
-    onDragStop: state.onAnnotateDragStop,
-    onResizeStop: state.onAnnotateResizeStop,
-    roles: state.roles,
-  }));
+  } = useAutoCertStore(
+    useShallow((state) => ({
+      selectedAnnotateId: state.selectedAnnotateId,
+      onAnnotateSelect: state.setSelectedAnnotateId,
+      zoom: state.zoom,
+      onDragStop: state.onAnnotateDragStop,
+      onResizeStop: state.onAnnotateResizeStop,
+      roles: state.roles,
+    })),
+  );
 
   const onAnnotationSelect = (id: string | undefined): void => {
     if (restProps.previewMode) {

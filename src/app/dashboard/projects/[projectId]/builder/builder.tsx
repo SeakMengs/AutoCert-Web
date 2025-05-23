@@ -1,4 +1,5 @@
 "use client";
+import { useShallow } from "zustand/react/shallow";
 import AutoCert, { AutoCertPanel } from "@/components/builder/AutoCert";
 import { Flex, Splitter, theme } from "antd";
 import { BarSize } from "@/app/dashboard/layout_client";
@@ -24,7 +25,17 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
     columns,
     zoom,
     transformWrapperRef,
-  } = useAutoCertStore((state) => state);
+  } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        initialCSVParsed: state.initialCSVParsed,
+        removeUnnecessaryAnnotates: state.removeUnnecessaryAnnotates,
+        columns: state.columns,
+        zoom: state.zoom,
+        transformWrapperRef: state.transformWrapperRef,
+      };
+    }),
+  );
 
   useEffect(() => {
     if (!initialCSVParsed) {

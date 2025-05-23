@@ -39,13 +39,13 @@ export interface AutocertActions {
 
 export type AutocertSlice = AutocertState & AutocertActions;
 
-export const createAutocertSlice: StateCreator<
+export const createAutoCertSlice: StateCreator<
   AutoCertStore,
   [["zustand/immer", never]],
   [],
   AutocertSlice
 > = (set, get) => {
-  const { message} = App.useApp();
+  const { message } = App.useApp();
 
   return {
     project: {} as z.infer<typeof ProjectByIdSchema>,

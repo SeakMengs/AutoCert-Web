@@ -7,20 +7,20 @@ import {
   AutoCertChangeSlice,
   createAutoCertChangeSlice,
 } from "./autocertChangeSlice";
-import { AutocertSlice, createAutocertSlice } from "./autocertSlice";
+import { AutocertSlice, createAutoCertSlice } from "./autocertSlice";
 import { immer } from "zustand/middleware/immer";
 import {
   AutocertSettingSlice,
-  createAutocertSettingSlice,
+  createAutoCertSettingSlice,
 } from "./autocertSettingSlice";
-import { AutocertPdfSlice, createAutocertPdfSlice } from "./autocertPdfSlice";
+import { AutocertPdfSlice, createAutoCertPdfSlice } from "./autocertPdfSlice";
 import {
   AutocertZoomSlice,
-  createAutocertZoomSlice,
+  createAutoCertZoomSlice,
 } from "./autocertZoomSlice";
 import {
   AutocertAnnotateSlice,
-  createAutocertAnnotateSlice,
+  createAutoCertAnnotateSlice,
 } from "./autocertAnnotate";
 import { setAutoFreeze } from "immer";
 
@@ -36,15 +36,13 @@ export type AutoCertStore = AutocertSlice &
 
 export const createAutoCertStore = () =>
   create<AutoCertStore>()(
-    immer(
-      (...a) => (
-      {
-      ...createAutocertSlice(...a),
+    immer((...a) => ({
+      ...createAutoCertSlice(...a),
       ...createAutoCertChangeSlice(...a),
       ...createAutoCertTableSlice(...a),
-      ...createAutocertSettingSlice(...a),
-      ...createAutocertPdfSlice(...a),
-      ...createAutocertZoomSlice(...a),
-      ...createAutocertAnnotateSlice(...a),
+      ...createAutoCertSettingSlice(...a),
+      ...createAutoCertPdfSlice(...a),
+      ...createAutoCertZoomSlice(...a),
+      ...createAutoCertAnnotateSlice(...a),
     })),
   );

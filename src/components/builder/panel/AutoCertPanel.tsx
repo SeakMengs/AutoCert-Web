@@ -27,6 +27,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
+import { useShallow } from "zustand/react/shallow";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -46,14 +47,14 @@ function AutoCertPanel({}: AutoCertPanelProps) {
 
     settings,
     onQrCodeEnabledChange,
-    setSelectedAnnotateId: onAnnotateSelect,
-    addColumnAnnotate: onColumnAnnotateAdd,
-    updateColumnAnnotate: onColumnAnnotateUpdate,
-    removeColumnAnnotate: onColumnAnnotateRemove,
-    addSignatureAnnotate: onSignatureAnnotateAdd,
-    removeSignatureAnnotate: onSignatureAnnotateRemove,
-    inviteSignatureAnnotate: onSignatureAnnotateInvite,
-    signSignatureAnnotate: onSignatureAnnotateSign,
+    onAnnotateSelect,
+    onColumnAnnotateAdd,
+    onColumnAnnotateUpdate,
+    onColumnAnnotateRemove,
+    onSignatureAnnotateAdd,
+    onSignatureAnnotateRemove,
+    onSignatureAnnotateInvite,
+    onSignatureAnnotateSign,
 
     // Table,
     columns,
@@ -67,7 +68,39 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     onRowsDelete,
     onImportFromCSV,
     onExportToCSV,
-  } = useAutoCertStore((state) => state);
+  } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        selectedAnnotateId: state.selectedAnnotateId,
+        currentPdfPage: state.currentPdfPage,
+        columnAnnotates: state.columnAnnotates,
+        signatureAnnotates: state.signatureAnnotates,
+        settings: state.settings,
+        onQrCodeEnabledChange: state.onQrCodeEnabledChange,
+        onAnnotateSelect: state.setSelectedAnnotateId,
+        onColumnAnnotateAdd: state.addColumnAnnotate,
+        onColumnAnnotateUpdate: state.updateColumnAnnotate,
+        onColumnAnnotateRemove: state.removeColumnAnnotate,
+        onSignatureAnnotateAdd: state.addSignatureAnnotate,
+        onSignatureAnnotateRemove: state.removeSignatureAnnotate,
+        onSignatureAnnotateInvite: state.inviteSignatureAnnotate,
+        onSignatureAnnotateSign: state.signSignatureAnnotate,
+
+        // Table
+        columns: state.columns,
+        rows: state.rows,
+        tableLoading: state.tableLoading,
+        onColumnAdd: state.onColumnAdd,
+        onColumnDelete: state.onColumnDelete,
+        onColumnUpdate: state.onColumnUpdate,
+        onRowAdd: state.onRowAdd,
+        onRowUpdate: state.onRowUpdate,
+        onRowsDelete: state.onRowsDelete,
+        onImportFromCSV: state.onImportFromCSV,
+        onExportToCSV: state.onExportToCSV,
+      };
+    }),
+  );
 
   const {
     token: { colorBgContainer },
@@ -215,7 +248,12 @@ interface LayoutProps {}
 
 const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
   const { onGenerateCertificates, project } = useAutoCertStore(
-    (state) => state,
+    useShallow((state) => {
+      return {
+        onGenerateCertificates: state.onGenerateCertificates,
+        project: state.project,
+      };
+    }),
   );
 
   const router = useRouter();

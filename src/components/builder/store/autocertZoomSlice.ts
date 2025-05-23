@@ -20,7 +20,7 @@ export interface AutocertZoomSliceActions {
 export type AutocertZoomSlice = AutocertZoomSliceState &
   AutocertZoomSliceActions;
 
-export const createAutocertZoomSlice: StateCreator<
+export const createAutoCertZoomSlice: StateCreator<
   AutoCertStore,
   [["zustand/immer", never]],
   [],
@@ -36,7 +36,6 @@ export const createAutocertZoomSlice: StateCreator<
       }),
 
     onZoomChange: (newZoom) => {
-      // logger.debug(`Zoom changed to ${newZoom}`);
       if (get().zoom === newZoom) {
         logger.debug(`Zoom scale not changed: ${newZoom} skip state update`);
         return;

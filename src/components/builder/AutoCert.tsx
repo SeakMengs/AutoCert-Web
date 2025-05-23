@@ -1,4 +1,5 @@
 "use client";
+import { useShallow } from "zustand/react/shallow";
 import Zoom from "./zoom/Zoom";
 import AutoCertPanel from "./panel/AutoCertPanel";
 import AutoCertTable from "./panel/table/AutoCertTable";
@@ -14,10 +15,12 @@ export interface AutoCertProps extends PdfRendererProps {}
 export { AutoCertTable, AutoCertPanel, Zoom };
 
 export default function AutoCert({ previewMode }: AutoCertProps) {
-  const { transformWrapperRef, onZoomChange } = useAutoCertStore((state) => ({
-    transformWrapperRef: state.transformWrapperRef,
-    onZoomChange: state.onZoomChange,
-  }));
+  const { transformWrapperRef, onZoomChange } = useAutoCertStore(
+    useShallow((state) => ({
+      transformWrapperRef: state.transformWrapperRef,
+      onZoomChange: state.onZoomChange,
+    })),
+  );
 
   return (
     <Zoom

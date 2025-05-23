@@ -26,7 +26,7 @@ export interface AutocertSettingActions {
 export type AutocertSettingSlice = AutocertSettingState &
   AutocertSettingActions;
 
-export const createAutocertSettingSlice: StateCreator<
+export const createAutoCertSettingSlice: StateCreator<
   AutoCertStore,
   [["zustand/immer", never]],
   [],

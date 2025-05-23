@@ -23,7 +23,7 @@ export interface AutocertPdfSliceActions {
 
 export type AutocertPdfSlice = AutocertPdfSliceState & AutocertPdfSliceActions;
 
-export const createAutocertPdfSlice: StateCreator<
+export const createAutoCertPdfSlice: StateCreator<
   AutoCertStore,
   [["zustand/immer", never]],
   [],

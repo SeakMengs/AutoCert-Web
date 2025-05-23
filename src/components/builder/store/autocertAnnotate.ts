@@ -143,7 +143,7 @@ export interface AutocertAnnotateSliceActions {
 export type AutocertAnnotateSlice = AutocertAnnotateSliceState &
   AutocertAnnotateSliceActions;
 
-export const createAutocertAnnotateSlice: StateCreator<
+export const createAutoCertAnnotateSlice: StateCreator<
   AutoCertStore,
   [["zustand/immer", never]],
   [],
