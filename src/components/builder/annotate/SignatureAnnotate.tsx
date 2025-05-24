@@ -1,5 +1,8 @@
 import { memo } from "react";
-import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
+import BaseAnnotate, {
+  BaseAnnotateLock,
+  BaseAnnotateProps,
+} from "./BaseAnnotate";
 import { SignatoryStatus } from "@/types/project";
 import { SignatureOutlined } from "@ant-design/icons";
 import { Flex } from "antd";
@@ -13,6 +16,11 @@ export const SignatureStatusColors: Record<
   [SignatoryStatus.Signed]: "#90EE90",
 };
 
+export type SignatureAnnotateLock = BaseAnnotateLock & {
+  sign: boolean;
+  invite: boolean;
+};
+
 export type BaseSignatureAnnotate = {
   signatureData: string | null;
   email: string;
@@ -21,7 +29,9 @@ export type BaseSignatureAnnotate = {
 
 export interface SignatureAnnotateProps
   extends BaseAnnotateProps,
-    BaseSignatureAnnotate {}
+    BaseSignatureAnnotate {
+  lock: SignatureAnnotateLock;
+}
 
 function SignatureAnnotate({
   signatureData,

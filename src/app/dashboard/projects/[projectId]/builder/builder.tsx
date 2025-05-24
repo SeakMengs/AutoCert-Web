@@ -67,7 +67,7 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
             height: `calc(100vh - ${BarSize}px)`,
           }}
         >
-          <AutoCert previewMode={false} />
+          <AutoCert />
           <div className="absolute bottom-4 right-4">
             <ZoomPanel
               transformWrapperRef={transformWrapperRef}

@@ -14,7 +14,7 @@ export interface AutoCertProps extends PdfRendererProps {}
 
 export { AutoCertTable, AutoCertPanel, Zoom };
 
-export default function AutoCert({ previewMode }: AutoCertProps) {
+export default function AutoCert({}: AutoCertProps) {
   const { transformWrapperRef, onZoomChange } = useAutoCertStore(
     useShallow((state) => ({
       transformWrapperRef: state.transformWrapperRef,
@@ -29,10 +29,7 @@ export default function AutoCert({ previewMode }: AutoCertProps) {
     >
       <div className="flex">
         <div className="my-8 relative w-full h-full">
-          <PdfRenderer
-            // For annotates
-            previewMode={previewMode}
-          />
+          <PdfRenderer />
         </div>
       </div>
     </Zoom>

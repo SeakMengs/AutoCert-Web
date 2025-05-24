@@ -6,7 +6,7 @@ import {
   AutoCertStore,
   createAutoCertStore,
 } from "@/components/builder/store/useAutoCertStore";
-import { AutocertSlice } from "../store/autocertSlice";
+import { AutoCertSlice } from "../store/autocertSlice";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger(
@@ -20,7 +20,7 @@ export const AutoCertStoreContext = createContext<AutoCertStoreApi | undefined>(
 );
 
 export interface AutoCertStoreProviderProps {
-  value: Parameters<AutocertSlice["init"]>[0];
+  value: Parameters<AutoCertSlice["init"]>[0];
 }
 
 export const AutoCertStoreProvider = ({

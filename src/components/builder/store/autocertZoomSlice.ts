@@ -1,5 +1,4 @@
 import { StateCreator } from "zustand";
-import { immer } from "zustand/middleware/immer";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
 import { ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";

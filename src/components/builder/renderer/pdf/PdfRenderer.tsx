@@ -21,7 +21,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 export interface PdfRendererProps
   extends Omit<PageRendererProps, "pageNumber" | "annotatesByPage"> {}
 
-function PdfRenderer({ previewMode }: PdfRendererProps) {
+function PdfRenderer({}: PdfRendererProps) {
   const { annotates, pdfFile, onDocumentLoadSuccess } = useAutoCertStore(
     (state) => ({
       annotates: state.annotates,
@@ -69,7 +69,6 @@ function PdfRenderer({ previewMode }: PdfRendererProps) {
               pageNumber={index + 1}
               // Annotate
               annotatesByPage={annotates[index + 1] ?? []}
-              previewMode={previewMode}
             />
           ))}
         </Space>

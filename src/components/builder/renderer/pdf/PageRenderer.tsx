@@ -23,7 +23,6 @@ function PageRenderer({
 
   // annotate
   annotatesByPage,
-  previewMode,
 }: PageRendererProps) {
   const {
     token: { colorPrimary },
@@ -93,7 +92,6 @@ function PageRenderer({
             containerRef={containerRef}
             pageNumber={pageNumber}
             pageOriginalSize={pdfViewPort}
-            previewMode={previewMode}
             annotatesByPage={annotatesByPage}
           />
 

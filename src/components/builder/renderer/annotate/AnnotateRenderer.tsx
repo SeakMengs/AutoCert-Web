@@ -1,6 +1,10 @@
 import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
-import SignatureAnnotate from "@/components/builder/annotate/SignatureAnnotate";
-import ColumnAnnotate from "@/components/builder/annotate/ColumnAnnotate";
+import SignatureAnnotate, {
+  SignatureAnnotateLock,
+} from "@/components/builder/annotate/SignatureAnnotate";
+import ColumnAnnotate, {
+  ColumnAnnotateLock,
+} from "@/components/builder/annotate/ColumnAnnotate";
 import { JSX, MouseEvent, memo } from "react";
 import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 import { AnnotateState, AnnotateType } from "../../store/autocertAnnotate";
@@ -9,7 +13,7 @@ import { useShallow } from "zustand/react/shallow";
 export interface AnnotateRendererProps
   extends Pick<
     BaseAnnotateProps,
-    "previewMode" | "pageNumber" | "pageOriginalSize" | "containerRef"
+    "pageNumber" | "pageOriginalSize" | "containerRef"
   > {
   annotatesByPage: AnnotateState[];
 }
@@ -27,7 +31,9 @@ export interface AnnotateRendererProps
 
 function AnnotateRenderer({
   annotatesByPage,
-  ...restProps
+  containerRef,
+  pageNumber,
+  pageOriginalSize,
 }: AnnotateRendererProps) {
   const {
     selectedAnnotateId,
@@ -36,6 +42,7 @@ function AnnotateRenderer({
     onDragStop,
     onResizeStop,
     roles,
+    getAnnotateLockState,
   } = useAutoCertStore(
     useShallow((state) => ({
       selectedAnnotateId: state.selectedAnnotateId,
@@ -44,16 +51,9 @@ function AnnotateRenderer({
       onDragStop: state.onAnnotateDragStop,
       onResizeStop: state.onAnnotateResizeStop,
       roles: state.roles,
+      getAnnotateLockState: state.getAnnotateLockState,
     })),
   );
-
-  const onAnnotationSelect = (id: string | undefined): void => {
-    if (restProps.previewMode) {
-      return;
-    }
-
-    onAnnotateSelect(id);
-  };
 
   const Annotates = (): (JSX.Element | null)[] | null => {
     if (!Array.isArray(annotatesByPage) || annotatesByPage.length === 0) {
@@ -67,28 +67,34 @@ function AnnotateRenderer({
           return (
             <ColumnAnnotate
               {...annotate}
-              {...restProps}
+              pageNumber={pageNumber}
+              pageOriginalSize={pageOriginalSize}
+              containerRef={containerRef}
               key={annotate.id}
               selected={selected}
-              onAnnotateSelect={onAnnotationSelect}
+              onAnnotateSelect={onAnnotateSelect}
               zoomScale={zoom}
               onDragStop={onDragStop}
               onResizeStop={onResizeStop}
               roles={roles}
+              lock={getAnnotateLockState(annotate) as ColumnAnnotateLock}
             />
           );
         case AnnotateType.Signature:
           return (
             <SignatureAnnotate
               {...annotate}
-              {...restProps}
               key={annotate.id}
+              pageNumber={pageNumber}
+              pageOriginalSize={pageOriginalSize}
+              containerRef={containerRef}
               selected={selected}
-              onAnnotateSelect={onAnnotationSelect}
+              onAnnotateSelect={onAnnotateSelect}
               zoomScale={zoom}
               onDragStop={onDragStop}
               onResizeStop={onResizeStop}
               roles={roles}
+              lock={getAnnotateLockState(annotate) as SignatureAnnotateLock}
             />
           );
         default:
@@ -99,9 +105,9 @@ function AnnotateRenderer({
 
   const handleContainerClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    const isAnnotationClick = target.closest(".autocert-drag");
-    if (!isAnnotationClick) {
-      onAnnotationSelect(undefined);
+    const isAnnotClicked = target.closest(".autocert-drag");
+    if (!isAnnotClicked) {
+      onAnnotateSelect(undefined);
     }
   };
 

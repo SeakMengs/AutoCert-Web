@@ -15,6 +15,13 @@ import { hasPermission, ProjectPermission } from "@/auth/rbac";
 export const AnnotateColor = "#FFC4C4";
 
 // const logger = createScopedLogger("components:builder:annotate:BaseAnnotate");
+export type BaseAnnotateLock = {
+  resize: boolean;
+  drag: boolean;
+  update: boolean;
+  remove: boolean;
+  disable: boolean;
+};
 
 export interface BaseAnnotateProps
   extends Pick<RndProps, "containerRef" | "lockResizeX" | "lockResizeY"> {
@@ -24,8 +31,7 @@ export interface BaseAnnotateProps
   width: WHSize["width"];
   height: WHSize["height"];
   selected: boolean;
-  // When enable, annotate cannot be resized, dragged, or edited.
-  previewMode: boolean;
+  lock: BaseAnnotateLock;
   // Background and border color of the annotate
   color: string;
   zoomScale: number;
@@ -56,7 +62,7 @@ function BaseAnnotate({
   height,
   children,
   roles,
-  previewMode,
+  lock,
   selected,
   color,
   containerRef,
@@ -73,6 +79,16 @@ function BaseAnnotate({
 }: PropsWithChildren<BaseAnnotateProps>) {
   const bgColor = isHexColor(color) ? color : AnnotateColor;
 
+  const canUpdate = hasPermission(roles, [
+    ProjectPermission.AnnotateSignatureUpdate,
+    ProjectPermission.AnnotateColumnUpdate,
+  ]);
+
+  const enableDragging = !lock.disable && lock.drag && canUpdate;
+  const enableResizing = !lock.disable && lock.resize && canUpdate;
+  const showResizeHandle =
+    !lock.disable && selected && lock.resize && canUpdate;
+
   const onAnnotateSelectWithStopPropagation = (
     annotateId: string,
     e: MouseEvent,
@@ -83,8 +99,7 @@ function BaseAnnotate({
       e.stopPropagation();
     }
 
-    if (previewMode) {
-      // If preview mode is enabled, do not select the annotate
+    if (!enableDragging) {
       return;
     }
 
@@ -108,15 +123,6 @@ function BaseAnnotate({
   const handleClick = (e: React.MouseEvent) => {
     onAnnotateSelectWithStopPropagation(id, e as unknown as MouseEvent);
   };
-
-  const canUpdate = hasPermission(roles, [
-    ProjectPermission.AnnotateSignatureUpdate,
-    ProjectPermission.AnnotateColumnUpdate,
-  ]);
-
-  const enableDragging = !previewMode && canUpdate;
-  const enableResizing = !previewMode && canUpdate;
-  const showResizeHandle = selected && !previewMode && canUpdate;
 
   return (
     <Rnd
@@ -151,7 +157,9 @@ function BaseAnnotate({
     >
       <div
         onClick={handleClick}
-        className="relative rounded w-full h-full cursor-move"
+        className={cn("relative rounded w-full h-full cursor-move", {
+          "cursor-auto": lock.disable || !canUpdate,
+        })}
         style={{
           border: selected ? `1px solid ${bgColor}` : `1px solid transparent`,
         }}
@@ -159,7 +167,7 @@ function BaseAnnotate({
         <div
           className="absolute inset-0 rounded z-0 opacity-[0.4]"
           style={{
-            backgroundColor: previewMode ? "transparent" : bgColor,
+            backgroundColor: lock.disable ? "transparent" : bgColor,
           }}
         ></div>
         <div className="relative flex items-center justify-center w-full h-full">

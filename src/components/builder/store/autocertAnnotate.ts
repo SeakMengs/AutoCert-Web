@@ -1,12 +1,20 @@
 import { createScopedLogger } from "@/utils/logger";
-import { AnnotateColor, BaseAnnotateProps } from "../annotate/BaseAnnotate";
+import {
+  AnnotateColor,
+  BaseAnnotateLock,
+  BaseAnnotateProps,
+} from "../annotate/BaseAnnotate";
 import {
   AnnotateFontSize,
   BaseColumnAnnotate,
+  ColumnAnnotateLock,
   FontWeight,
 } from "../annotate/ColumnAnnotate";
-import { BaseSignatureAnnotate } from "../annotate/SignatureAnnotate";
-import { SignatoryStatus } from "@/types/project";
+import {
+  BaseSignatureAnnotate,
+  SignatureAnnotateLock,
+} from "../annotate/SignatureAnnotate";
+import { ProjectStatus, SignatoryStatus } from "@/types/project";
 import { nanoid } from "nanoid";
 import {
   ColumnAnnotateFormSchema,
@@ -26,6 +34,26 @@ import { generateAndFormatZodError } from "@/utils/error";
 const logger = createScopedLogger(
   "components:builder:store:autocertAnnotateSlice",
 );
+
+const DefaultBaseAnnotateLock: BaseAnnotateLock = {
+  resize: false,
+  drag: false,
+  update: false,
+  remove: false,
+  disable: false,
+};
+
+const DefaultColumnLock: ColumnAnnotateLock = {
+  ...DefaultBaseAnnotateLock,
+};
+
+const DefaultSignatureLock: SignatureAnnotateLock = {
+  ...DefaultBaseAnnotateLock,
+  invite: false,
+  sign: false,
+};
+
+export type AnnotateLock = ColumnAnnotateLock | SignatureAnnotateLock;
 
 export const AnnotateType = {
   Column: "column",
@@ -138,6 +166,7 @@ export interface AutocertAnnotateSliceActions {
   findAnnotateById: (
     id: string,
   ) => { annotate: AnnotateState; page: number } | undefined;
+  getAnnotateLockState: (annot: AnnotateState) => AnnotateLock;
 }
 
 export type AutocertAnnotateSlice = AutocertAnnotateSliceState &
@@ -643,6 +672,123 @@ export const createAutoCertAnnotateSlice: StateCreator<
             },
           });
           break;
+      }
+    },
+
+    getAnnotateLockState: (annot) => {
+      switch (annot.type) {
+        case AnnotateType.Column:
+          let colLock: ColumnAnnotateLock = { ...DefaultColumnLock };
+
+          if (Array.isArray(get().roles) && get().roles.length === 0) {
+            logger.debug(`No roles found, disabling all annotate actions`);
+            colLock = {
+              ...DefaultColumnLock,
+            };
+            colLock.disable = true;
+          }
+
+          if (
+            hasPermission(get().roles, [ProjectPermission.AnnotateColumnUpdate])
+          ) {
+            colLock.resize = true;
+            colLock.drag = true;
+            colLock.update = true;
+          }
+
+          if (
+            hasPermission(get().roles, [ProjectPermission.AnnotateColumnRemove])
+          ) {
+            colLock.remove = true;
+          }
+
+          if (get().project.status !== ProjectStatus.Draft) {
+            logger.debug(
+              `Project status is not draft, disabling all annotate actions`,
+            );
+
+            colLock = {
+              ...DefaultColumnLock,
+            };
+            colLock.disable = true;
+          }
+
+          return colLock as ColumnAnnotateLock;
+        case AnnotateType.Signature:
+          let sigLock: SignatureAnnotateLock = {
+            ...DefaultSignatureLock,
+          };
+
+          if (Array.isArray(get().roles) && get().roles.length === 0) {
+            logger.debug(`No roles found, disabling all annotate actions`);
+            sigLock = {
+              ...DefaultSignatureLock,
+            };
+            sigLock.disable = true;
+          }
+
+          if (
+            hasPermission(get().roles, [
+              ProjectPermission.AnnotateSignatureUpdate,
+            ])
+          ) {
+            sigLock.resize = true;
+            sigLock.drag = true;
+            sigLock.update = true;
+
+            if (annot.status === SignatoryStatus.NotInvited) {
+              sigLock.invite = true;
+            }
+          }
+
+          if (
+            hasPermission(get().roles, [
+              ProjectPermission.AnnotateSignatureRemove,
+            ])
+          ) {
+            sigLock.remove = true;
+          }
+
+          if (
+            hasPermission(get().roles, [
+              ProjectPermission.AnnotateSignatureApprove,
+            ])
+          ) {
+            sigLock.sign = true;
+          }
+
+          if (annot.status === SignatoryStatus.Signed) {
+            sigLock.resize = false;
+            sigLock.drag = false;
+            sigLock.update = false;
+            sigLock.invite = false;
+            sigLock.sign = false;
+            // intentionally allow remove signature annotate even after signed
+            // sigLock.remove = false;
+            sigLock.disable = true;
+          }
+
+          if (get().project.status !== ProjectStatus.Draft) {
+            logger.debug(
+              `Project status is not draft, disabling all annotate actions`,
+            );
+
+            sigLock = {
+              ...DefaultSignatureLock,
+            };
+            sigLock.disable = true;
+          }
+
+          return sigLock as SignatureAnnotateLock;
+        default:
+          logger.warn(
+            `Annotate lock: unknown annotate type: ${String((annot as any).type)}`,
+          );
+          return {
+            ...DefaultBaseAnnotateLock,
+            // Disable all actions for unknown annotate types
+            disable: true,
+          };
       }
     },
 

@@ -1,5 +1,4 @@
 import { StateCreator } from "zustand";
-import { immer } from "zustand/middleware/immer";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
 import { generateCertificatesByIdAction } from "../action";
@@ -14,13 +13,13 @@ import { App } from "antd";
 
 const logger = createScopedLogger("components:builder:store:autocertSlice");
 
-export type AutocertState = {
+export type AutoCertState = {
   project: z.infer<typeof ProjectByIdSchema>;
   user: AuthUser;
   roles: ProjectRole[];
 };
 
-export interface AutocertActions {
+export interface AutoCertActions {
   init: (params: {
     user: AuthUser;
     project: z.infer<typeof ProjectByIdSchema>;
@@ -37,13 +36,13 @@ export interface AutocertActions {
   >;
 }
 
-export type AutocertSlice = AutocertState & AutocertActions;
+export type AutoCertSlice = AutoCertState & AutoCertActions;
 
 export const createAutoCertSlice: StateCreator<
   AutoCertStore,
   [["zustand/immer", never]],
   [],
-  AutocertSlice
+  AutoCertSlice
 > = (set, get) => {
   const { message } = App.useApp();
 

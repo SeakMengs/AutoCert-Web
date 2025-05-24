@@ -1,4 +1,7 @@
-import BaseAnnotate, { BaseAnnotateProps } from "./BaseAnnotate";
+import BaseAnnotate, {
+  BaseAnnotateLock,
+  BaseAnnotateProps,
+} from "./BaseAnnotate";
 import { memo } from "react";
 
 export const AnnotateFontSize = 24;
@@ -16,6 +19,8 @@ export type ColumnAnnotateFont = {
   fontColor: string;
 };
 
+export type ColumnAnnotateLock = BaseAnnotateLock & {};
+
 export type BaseColumnAnnotate = ColumnAnnotateFont & {
   value: string;
   textFitRectBox: boolean;
@@ -23,7 +28,9 @@ export type BaseColumnAnnotate = ColumnAnnotateFont & {
 
 export interface ColumnAnnotateProps
   extends BaseAnnotateProps,
-    BaseColumnAnnotate {}
+    BaseColumnAnnotate {
+  lock: ColumnAnnotateLock;
+}
 
 function ColumnAnnotate({
   fontName,

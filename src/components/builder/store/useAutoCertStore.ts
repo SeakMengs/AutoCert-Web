@@ -7,7 +7,7 @@ import {
   AutoCertChangeSlice,
   createAutoCertChangeSlice,
 } from "./autocertChangeSlice";
-import { AutocertSlice, createAutoCertSlice } from "./autocertSlice";
+import { AutoCertSlice, createAutoCertSlice } from "./autocertSlice";
 import { immer } from "zustand/middleware/immer";
 import {
   AutocertSettingSlice,
@@ -26,7 +26,7 @@ import { setAutoFreeze } from "immer";
 
 setAutoFreeze(false);
 
-export type AutoCertStore = AutocertSlice &
+export type AutoCertStore = AutoCertSlice &
   AutoCertChangeSlice &
   AutoCertTableSlice &
   AutocertSettingSlice &
