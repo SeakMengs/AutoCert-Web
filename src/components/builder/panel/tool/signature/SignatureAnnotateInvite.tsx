@@ -15,10 +15,13 @@ export interface SignatureAnnotateInviteProps
   extends Pick<
     SignatureAnnotateCardProps,
     "onSignatureAnnotateInvite" | "signatureAnnotate"
-  > {}
+  > {
+    canInvite: boolean;
+  }
 
 export default function SignatureAnnotateInvite({
   signatureAnnotate,
+  canInvite,
   onSignatureAnnotateInvite,
 }: SignatureAnnotateInviteProps) {
   const [inviting, setInviting] = useState<boolean>(false);
@@ -29,6 +32,12 @@ export default function SignatureAnnotateInvite({
       signatureAnnotate.email,
       signatureAnnotate.id,
     );
+
+    if (!canInvite) {
+      logger.warn("AutoCert invite signatory is not allowed");
+      return;
+    }
+
     setInviting(true);
 
     try {
@@ -50,7 +59,7 @@ export default function SignatureAnnotateInvite({
         size="small"
         onClick={handleInviteSignatory}
         loading={inviting}
-        disabled={inviting}
+        disabled={!canInvite || inviting}
       >
         Invite
       </Button>

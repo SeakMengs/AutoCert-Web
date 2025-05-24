@@ -44,8 +44,9 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     currentPdfPage,
     columnAnnotates,
     signatureAnnotates,
-
+    roles,
     settings,
+    getAnnotateLockState,
     onQrCodeEnabledChange,
     onAnnotateSelect,
     onColumnAnnotateAdd,
@@ -76,6 +77,8 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         columnAnnotates: state.columnAnnotates,
         signatureAnnotates: state.signatureAnnotates,
         settings: state.settings,
+        roles: state.roles,
+        getAnnotateLockState: state.getAnnotateLockState,
         onQrCodeEnabledChange: state.onQrCodeEnabledChange,
         onAnnotateSelect: state.setSelectedAnnotateId,
         onColumnAnnotateAdd: state.addColumnAnnotate,
@@ -172,14 +175,14 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         </Text>
       ),
       children: (
-        <Layout>
+        <TabItemLayout>
           <Collapse
             defaultActiveKey={["1", "2", "3"]}
             items={collapseItems}
             bordered={false}
             expandIconPosition="end"
           />
-        </Layout>
+        </TabItemLayout>
       ),
     },
     {
@@ -190,7 +193,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         </Text>
       ),
       children: (
-        <Layout>
+        <TabItemLayout>
           <AutoCertTable
             columns={columns}
             rows={rows}
@@ -204,27 +207,31 @@ function AutoCertPanel({}: AutoCertPanelProps) {
             onImportFromCSV={onImportFromCSV}
             onExportToCSV={onExportToCSV}
           />
-        </Layout>
+        </TabItemLayout>
       ),
     },
   ] satisfies TabsProps["items"];
 
   return (
-    <>
+    <Layout>
       <style>
-        {/* to enforce nav list to be the same height as Bar size */}
+        to enforce nav list to be the same height as Bar size
         {`
-          .ant-tabs-nav-list {
-            height: ${BarSize}px;
-          }
-
           /*  When adding headerStyle to tabBarStyle, seems like the width is not 100%, this is to fix that temporarily :) */
           .ant-tabs-nav {
             position: sticky;
             top: 0;
             z-index: 1;
-            }
-            `}
+          }
+
+          .ant-tabs-nav-list {
+            margin: 0!important;
+          }
+
+          .ant-tabs-nav-wrap {
+            justify-content: center;
+          }
+        `}
       </style>
       <Tabs
         centered
@@ -232,13 +239,13 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         items={tabs}
         destroyInactiveTabPane
         tabBarStyle={{
-          // ...headerStyle,
           height: BarSize,
           background: colorBgContainer,
           margin: 0,
+          // position: "sticky",
         }}
       />
-    </>
+    </Layout>
   );
 }
 
@@ -321,12 +328,10 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       vertical
       justify="space-between"
       style={{
-        height: `calc(100vh - ${BarSize}px)`,
+        height: "100%",
       }}
     >
-      <div className="overflow-auto">
-        <div className="m-2">{children}</div>
-      </div>
+      <div className="overflow-auto">{children}</div>
       <div style={{ borderTop: `1px solid ${colorSplit}` }}>
         <Flex className="m-2" justify="center">
           <Button
@@ -341,4 +346,8 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       </div>
     </Flex>
   );
+});
+
+const TabItemLayout = memo(({ children }: PropsWithChildren) => {
+  return <div className="m-2">{children}</div>;
 });

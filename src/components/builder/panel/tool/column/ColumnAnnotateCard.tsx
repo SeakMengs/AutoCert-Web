@@ -12,6 +12,7 @@ import ColumnAnnotateEdit from "./ColumnAnnotateEdit";
 import ColumnAnnotateRemove from "./ColumnAnnotateRemove";
 import { FontSizeOutlined } from "@ant-design/icons";
 import { ColumnAnnotateState } from "@/components/builder/store/autocertAnnotate";
+import { ColumnAnnotateLock } from "@/components/builder/annotate/ColumnAnnotate";
 
 export interface ColumnAnnotateCardProps
   extends Pick<
@@ -24,6 +25,7 @@ export interface ColumnAnnotateCardProps
   > {
   columnAnnotate: ColumnAnnotateState;
   pageNumber: number;
+  lock: ColumnAnnotateLock
 }
 
 const { Text } = Typography;
@@ -33,6 +35,7 @@ export default function ColumnAnnotateCard({
   columnAnnotate,
   selectedAnnotateId,
   columns,
+  lock,
   onAnnotateSelect,
   onColumnAnnotateUpdate,
   onColumnAnnotateRemove,
@@ -74,10 +77,12 @@ export default function ColumnAnnotateCard({
           <ColumnAnnotateEdit
             columnAnnotate={columnAnnotate}
             columns={columns}
+            canEdit={!lock.disable &&lock.update}
             onColumnAnnotateUpdate={onColumnAnnotateUpdate}
           />
           <ColumnAnnotateRemove
             columnAnnotate={columnAnnotate}
+            canRemove={!lock.disable && lock.remove}
             onColumnAnnotateRemove={onColumnAnnotateRemove}
           />
         </Space>

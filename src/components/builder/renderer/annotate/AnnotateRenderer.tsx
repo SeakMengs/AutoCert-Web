@@ -1,10 +1,6 @@
 import { BaseAnnotateProps } from "@/components/builder/annotate/BaseAnnotate";
-import SignatureAnnotate, {
-  SignatureAnnotateLock,
-} from "@/components/builder/annotate/SignatureAnnotate";
-import ColumnAnnotate, {
-  ColumnAnnotateLock,
-} from "@/components/builder/annotate/ColumnAnnotate";
+import SignatureAnnotate from "@/components/builder/annotate/SignatureAnnotate";
+import ColumnAnnotate from "@/components/builder/annotate/ColumnAnnotate";
 import { JSX, MouseEvent, memo } from "react";
 import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 import { AnnotateState, AnnotateType } from "../../store/autocertAnnotate";
@@ -77,7 +73,7 @@ function AnnotateRenderer({
               onDragStop={onDragStop}
               onResizeStop={onResizeStop}
               roles={roles}
-              lock={getAnnotateLockState(annotate) as ColumnAnnotateLock}
+              lock={getAnnotateLockState(annotate)}
             />
           );
         case AnnotateType.Signature:
@@ -94,7 +90,7 @@ function AnnotateRenderer({
               onDragStop={onDragStop}
               onResizeStop={onResizeStop}
               roles={roles}
-              lock={getAnnotateLockState(annotate) as SignatureAnnotateLock}
+              lock={getAnnotateLockState(annotate)}
             />
           );
         default:

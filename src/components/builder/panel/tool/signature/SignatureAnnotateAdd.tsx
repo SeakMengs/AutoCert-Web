@@ -20,10 +20,13 @@ interface SignatureAnnotateAddProps
   extends Pick<
     SignatureToolProps,
     "onSignatureAnnotateAdd" | "currentPdfPage"
-  > {}
+  > {
+    canAdd: boolean;
+  }
 
 export default function SignatureAnnotateAdd({
   currentPdfPage,
+  canAdd,
   onSignatureAnnotateAdd,
 }: SignatureAnnotateAddProps) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);

@@ -14,16 +14,19 @@ export interface SignatureAnnotateSignProps
   extends Pick<
     SignatureAnnotateCardProps,
     "onSignatureAnnotateSign" | "signatureAnnotate"
-  > {}
+  > {
+  canSign: boolean;
+}
 
 export default function SignatureAnnotateSign({
   signatureAnnotate,
+  canSign,
   onSignatureAnnotateSign,
 }: SignatureAnnotateSignProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending } = useMutation({
+  const { mutateAsync, isPending: approving } = useMutation({
     mutationFn: async () => {
       logger.debug("AutoCert sign signature annotate confirmed");
       return await onSignatureAnnotateSign(signatureAnnotate.id);
@@ -72,8 +75,8 @@ export default function SignatureAnnotateSign({
             type="primary"
             size="small"
             color="green"
-            loading={isPending}
-            disabled={isPending}
+            loading={approving}
+            disabled={!canSign || approving}
           >
             Approve
           </Button>

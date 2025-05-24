@@ -1,5 +1,8 @@
 import { Flex, Space, Switch, Tooltip, Typography } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
+import { useShallow } from "zustand/react/shallow";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
 
 export interface SettingsToolProps {
   qrCodeEnabled: boolean;
@@ -12,6 +15,16 @@ export default function SettingsTool({
   qrCodeEnabled,
   onQrCodeEnabledChange,
 }: SettingsToolProps) {
+  const { roles } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        roles: state.roles,
+      };
+    }),
+  );
+
+  const canEdit = hasPermission(roles, [ProjectPermission.SettingsUpdate]);
+
   return (
     <Space direction="vertical" className="w-full">
       <Flex justify="space-between" align="center">
@@ -21,7 +34,11 @@ export default function SettingsTool({
             <QuestionCircleOutlined className="ml-1" />
           </Tooltip>
         </Text>
-        <Switch checked={qrCodeEnabled} onChange={onQrCodeEnabledChange} />
+        <Switch
+          disabled={!canEdit}
+          checked={qrCodeEnabled}
+          onChange={onQrCodeEnabledChange}
+        />
       </Flex>
     </Space>
   );

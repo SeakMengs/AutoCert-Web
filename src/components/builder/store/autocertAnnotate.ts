@@ -31,6 +31,8 @@ import { AutoCertChangeType } from "./autocertChangeSlice";
 import { responseFailed } from "@/utils/response";
 import { generateAndFormatZodError } from "@/utils/error";
 
+// TODO: Check annotate lock state in each mutation
+
 const logger = createScopedLogger(
   "components:builder:store:autocertAnnotateSlice",
 );
@@ -128,6 +130,14 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
   };
 };
 
+// Return based on annot type, if not match, return BaseAnnotateLock
+type GetAnnotateLockReturn<T extends AnnotateState> =
+  T extends ColumnAnnotateState
+    ? ColumnAnnotateLock
+    : T extends SignatureAnnotateState
+      ? SignatureAnnotateLock
+      : BaseAnnotateLock;
+
 export type AutocertAnnotateSliceState = {
   annotates: AnnotateStates;
   columnAnnotates: ColumnAnnotateStates; // Derived from annotates
@@ -166,7 +176,10 @@ export interface AutocertAnnotateSliceActions {
   findAnnotateById: (
     id: string,
   ) => { annotate: AnnotateState; page: number } | undefined;
-  getAnnotateLockState: (annot: AnnotateState) => AnnotateLock;
+
+  getAnnotateLockState: <T extends AnnotateState>(
+    annot: T,
+  ) => GetAnnotateLockReturn<T>;
 }
 
 export type AutocertAnnotateSlice = AutocertAnnotateSliceState &
@@ -713,7 +726,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
             colLock.disable = true;
           }
 
-          return colLock as ColumnAnnotateLock;
+          return colLock as GetAnnotateLockReturn<typeof annot>;
         case AnnotateType.Signature:
           let sigLock: SignatureAnnotateLock = {
             ...DefaultSignatureLock,
@@ -779,7 +792,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
             sigLock.disable = true;
           }
 
-          return sigLock as SignatureAnnotateLock;
+          return sigLock as GetAnnotateLockReturn<typeof annot>;
         default:
           logger.warn(
             `Annotate lock: unknown annotate type: ${String((annot as any).type)}`,
@@ -788,7 +801,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
             ...DefaultBaseAnnotateLock,
             // Disable all actions for unknown annotate types
             disable: true,
-          };
+          } as GetAnnotateLockReturn<typeof annot>;
       }
     },
 

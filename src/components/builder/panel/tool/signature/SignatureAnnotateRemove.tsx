@@ -16,16 +16,25 @@ export interface SignatureAnnotateRemoveProps
   extends Pick<
     SignatureAnnotateCardProps,
     "onSignatureAnnotateRemove" | "signatureAnnotate"
-  > {}
+  > {
+    canRemove: boolean;
+  }
 
 export default function SignatureAnnotateRemove({
   signatureAnnotate,
+  canRemove,
   onSignatureAnnotateRemove,
 }: SignatureAnnotateRemoveProps) {
-  const [delting, setDeleting] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   const handleRemoveAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert remove signature annotate confirmed");
+    
+    if (!canRemove) {
+      logger.warn("AutoCert remove signature annotate is not allowed");
+      return;
+    }
+
     setDeleting(true);
 
     try {
@@ -64,8 +73,8 @@ export default function SignatureAnnotateRemove({
           size="small"
           danger
           icon={<DeleteOutlined />}
-          loading={delting}
-          disabled={delting}
+          loading={deleting}
+          disabled={!canRemove || deleting}
         />
       </Tooltip>
     </Popconfirm>

@@ -31,7 +31,9 @@ interface ColumnAnnotateAddProps
   extends Pick<
     ColumnToolProps,
     "onColumnAnnotateAdd" | "columns" | "currentPdfPage"
-  > {}
+  > {
+  canAdd: boolean;
+}
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -39,6 +41,7 @@ const { Text } = Typography;
 export default function ColumnAnnotateAdd({
   currentPdfPage,
   columns,
+  canAdd,
   onColumnAnnotateAdd,
 }: ColumnAnnotateAddProps) {
   const [adding, setAdding] = useState<boolean>(false);
@@ -66,6 +69,12 @@ export default function ColumnAnnotateAdd({
 
   const handleAddAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert add column annotate field confirmed");
+
+    if (!canAdd) {
+      logger.warn("AutoCert add column annotate field is not allowed");
+      return;
+    }
+
     setAdding(true);
 
     try {
@@ -89,6 +98,7 @@ export default function ColumnAnnotateAdd({
         type="dashed"
         icon={<PlusOutlined />}
         onClick={toggleModal}
+        disabled={!canAdd}
       >
         Column Field
       </Button>

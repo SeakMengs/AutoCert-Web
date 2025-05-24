@@ -8,6 +8,11 @@ import ColumnAnnotateAdd from "./ColumnAnnotateAdd";
 import ColumnAnnotateCard from "./ColumnAnnotateCard";
 import fontMetadata from "../../../../../../public/font_metadata.json";
 import { ColumnAnnotateStates } from "@/components/builder/store/autocertAnnotate";
+import { ProjectRole } from "@/types/project";
+import { ColumnAnnotateLock } from "@/components/builder/annotate/ColumnAnnotate";
+import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
+import { useShallow } from "zustand/react/shallow";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
 
 // const logger = createScopedLogger(
 //   "components:builder:panel:tool:column:ColumnTool",
@@ -59,12 +64,22 @@ export default function ColumnTool({
   onColumnAnnotateRemove,
   onAnnotateSelect,
 }: ColumnToolProps) {
+  const { roles, getAnnotateLockState } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        roles: state.roles,
+        getAnnotateLockState: state.getAnnotateLockState,
+      };
+    }),
+  );
+
   return (
     <Space direction="vertical" className="w-full">
       <ColumnAnnotateAdd
         currentPdfPage={currentPdfPage}
         onColumnAnnotateAdd={onColumnAnnotateAdd}
         columns={columns}
+        canAdd={hasPermission(roles, [ProjectPermission.AnnotateColumnAdd])}
       />
       <Space direction="vertical" className="w-full">
         {Object.keys(columnAnnotates).map((page) =>
@@ -75,6 +90,7 @@ export default function ColumnTool({
               selectedAnnotateId={selectedAnnotateId}
               columns={columns}
               pageNumber={Number(page)}
+              lock={getAnnotateLockState(ca)}
               onColumnAnnotateUpdate={onColumnAnnotateUpdate}
               onColumnAnnotateRemove={onColumnAnnotateRemove}
               onAnnotateSelect={onAnnotateSelect}

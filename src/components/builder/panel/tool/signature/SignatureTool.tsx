@@ -3,7 +3,13 @@ import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import SignatureAnnotateAdd from "./SignatureAnnotateAdd";
 import SignatureAnnotateCard from "./SignatureAnnotateCard";
-import { AutocertAnnotateSliceActions, SignatureAnnotateStates } from "@/components/builder/store/autocertAnnotate";
+import {
+  AutocertAnnotateSliceActions,
+  SignatureAnnotateStates,
+} from "@/components/builder/store/autocertAnnotate";
+import { useShallow } from "zustand/react/shallow";
+import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({
@@ -46,11 +52,21 @@ export default function SignatureTool({
   onSignatureAnnotateRemove,
   onSignatureAnnotateSign,
 }: SignatureToolProps) {
+  const { roles, getAnnotateLockState } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        roles: state.roles,
+        getAnnotateLockState: state.getAnnotateLockState,
+      };
+    }),
+  );
+
   return (
     <Space direction="vertical" className="w-full">
       <SignatureAnnotateAdd
         currentPdfPage={currentPdfPage}
         onSignatureAnnotateAdd={onSignatureAnnotateAdd}
+        canAdd={hasPermission(roles, [ProjectPermission.AnnotateSignatureAdd])}
       />
       <Space direction="vertical" className="w-full">
         {Object.keys(signatureAnnotates).map((page) =>
@@ -60,6 +76,7 @@ export default function SignatureTool({
               pageNumber={Number(page)}
               signatureAnnotate={sa}
               selectedAnnotateId={selectedAnnotateId}
+              lock={getAnnotateLockState(sa)}
               onAnnotateSelect={onAnnotateSelect}
               onSignatureAnnotateInvite={onSignatureAnnotateInvite}
               onSignatureAnnotateRemove={onSignatureAnnotateRemove}

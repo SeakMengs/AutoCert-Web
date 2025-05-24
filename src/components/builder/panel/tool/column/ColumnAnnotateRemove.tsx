@@ -14,16 +14,25 @@ export interface ColumnAnnotateRemoveProps
   extends Pick<
     ColumnAnnotateCardProps,
     "onColumnAnnotateRemove" | "columnAnnotate"
-  > {}
+  > {
+  canRemove: boolean;
+}
 
 export default function ColumnAnnotateRemove({
   columnAnnotate,
+  canRemove,
   onColumnAnnotateRemove,
 }: ColumnAnnotateRemoveProps) {
   const [deleting, setDeleting] = useState<boolean>(false);
 
   const handleRemoveAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert remove column annotate field confirmed");
+
+    if (!canRemove) {
+      logger.warn("AutoCert remove column annotate field is not allowed");
+      return;
+    }
+
     setDeleting(true);
 
     try {
@@ -49,7 +58,7 @@ export default function ColumnAnnotateRemove({
           icon={<DeleteOutlined />}
           danger
           loading={deleting}
-          disabled={deleting}
+          disabled={!canRemove || deleting}
         />
       </Tooltip>
     </Popconfirm>

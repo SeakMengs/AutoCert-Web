@@ -27,7 +27,9 @@ export interface ColumnAnnotateEditProps
   extends Pick<
     ColumnAnnotateCardProps,
     "columns" | "onColumnAnnotateUpdate" | "columnAnnotate"
-  > {}
+  > {
+    canEdit: boolean;
+  }
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -35,6 +37,7 @@ const { Text } = Typography;
 export default function ColumnAnnotateEdit({
   columnAnnotate,
   columns,
+  canEdit,
   onColumnAnnotateUpdate,
 }: ColumnAnnotateEditProps) {
   const [editing, setEditing] = useState<boolean>(false);
@@ -62,6 +65,12 @@ export default function ColumnAnnotateEdit({
 
   const handleEditField = async (): Promise<void> => {
     logger.debug("AutoCert edit annotate column field confirmed");
+
+    if (!canEdit) {
+      logger.warn("AutoCert edit annotate column field not allowed");
+      return;
+    }
+
     setEditing(true);
 
     try {
@@ -86,6 +95,7 @@ export default function ColumnAnnotateEdit({
           type="text"
           onClick={toggleEditModal}
           icon={<EditOutlined />}
+          disabled={!canEdit}
         />
       </Tooltip>
       <Modal

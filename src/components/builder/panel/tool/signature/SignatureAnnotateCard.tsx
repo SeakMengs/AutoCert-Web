@@ -7,6 +7,7 @@ import { SignatoryStatus } from "@/types/project";
 import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
 import SignatureAnnotateSign from "./SignatureAnnotateSign";
 import { SignatureAnnotateState } from "@/components/builder/store/autocertAnnotate";
+import { SignatureAnnotateLock } from "@/components/builder/annotate/SignatureAnnotate";
 
 export interface SignatureAnnotateCardProps
   extends Pick<
@@ -19,6 +20,7 @@ export interface SignatureAnnotateCardProps
   > {
   signatureAnnotate: SignatureAnnotateState;
   pageNumber: number;
+  lock: SignatureAnnotateLock;
 }
 
 const { Text } = Typography;
@@ -27,6 +29,7 @@ export default function SignatureAnnotateCard({
   pageNumber,
   signatureAnnotate,
   selectedAnnotateId,
+  lock,
   onAnnotateSelect,
   onSignatureAnnotateInvite,
   onSignatureAnnotateSign,
@@ -45,6 +48,7 @@ export default function SignatureAnnotateCard({
       case SignatoryStatus.NotInvited:
         return (
           <SignatureAnnotateInvite
+          canInvite={!lock.disable && lock.invite}
             signatureAnnotate={signatureAnnotate}
             onSignatureAnnotateInvite={onSignatureAnnotateInvite}
           />
@@ -52,6 +56,7 @@ export default function SignatureAnnotateCard({
       case SignatoryStatus.Invited:
         return (
           <SignatureAnnotateSign
+            canSign={!lock.disable && lock.sign}
             signatureAnnotate={signatureAnnotate}
             onSignatureAnnotateSign={onSignatureAnnotateSign}
           />
@@ -98,6 +103,7 @@ export default function SignatureAnnotateCard({
         <Space size={8}>
           {getActionButton()}
           <SignatureAnnotateRemove
+            canRemove={!lock.disable && lock.remove}
             signatureAnnotate={signatureAnnotate}
             onSignatureAnnotateRemove={onSignatureAnnotateRemove}
           />

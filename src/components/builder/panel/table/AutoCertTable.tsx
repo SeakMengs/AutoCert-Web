@@ -29,6 +29,9 @@ import {
 import { parseCSVFile } from "../../utils";
 import { wait } from "@/utils";
 import { FAKE_LOADING_TIME } from "../../store/autocertChangeSlice";
+import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
+import { useShallow } from "zustand/react/shallow";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
 
 const logger = createScopedLogger(
   "components:builder:panel:table:AutoCertTable",
@@ -89,6 +92,16 @@ function AutoCertTable({
   onImportFromCSV,
   onExportToCSV,
 }: AutoCertTableProps) {
+  const { roles } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        roles: state.roles,
+      };
+    }),
+  );
+
+  const canEdit = hasPermission(roles, [ProjectPermission.TableUpdate]);
+
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const tblRef: Parameters<typeof Table>[0]["ref"] = React.useRef(null);
   const { modal, message } = App.useApp();
@@ -101,6 +114,11 @@ function AutoCertTable({
 
   const handleAddRow = (): void => {
     logger.debug("Add new row");
+
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
 
     const inputs = columns.map((col) => (
       <Form.Item key={col.dataIndex} label={col.title} name={col.dataIndex}>
@@ -143,6 +161,11 @@ function AutoCertTable({
 
   const handleAddColumn = (): void => {
     logger.debug("Add new column");
+
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
 
     modal.confirm({
       title: "Add New Column",
@@ -196,6 +219,11 @@ function AutoCertTable({
   const handleDeleteSelectedRows = (): void => {
     logger.debug("Delete selected rows", selectedRowKeys);
 
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
+
     onRowsDelete(selectedRowKeys);
     setSelectedRowKeys([]);
   };
@@ -203,17 +231,32 @@ function AutoCertTable({
   const handleSaveBodyRow = (row: AutoCertTableRow): void => {
     logger.debug("Save body row", row);
 
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
+
     onRowUpdate(row);
   };
 
   const handleDeleteHeaderColumn = (columnTitle: string): void => {
     logger.debug("Delete column", columnTitle);
 
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
+
     onColumnDelete(columnTitle);
   };
 
   const handleSaveHeaderRow = (columnTitle: string, newTitle: any): void => {
     logger.debug("Save header row", columnTitle, newTitle);
+
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
 
     if (columnTitle === newTitle) {
       return;
@@ -231,6 +274,11 @@ function AutoCertTable({
     e: React.ChangeEvent<HTMLInputElement>,
   ): Promise<void> => {
     logger.debug("User upload a csv file", e.target.files);
+
+    if (!canEdit) {
+      message.warning("You do not have permission to update the table.");
+      return;
+    }
 
     setParsingCSV(true);
     const file = e.target.files?.[0];
@@ -271,12 +319,14 @@ function AutoCertTable({
       // Add extra props to each column for custom cell rendering
       onCell: (record: AutoCertTableRow): EditableBodyCellProps => ({
         ...col,
+        editable: canEdit && col.editable,
         record,
         onSaveBodyRow: handleSaveBodyRow,
       }),
       // Add extra props to each column for custom header rendering
       onHeaderCell: (): EditableHeaderCellProps => ({
         ...col,
+        editable: canEdit && col.editable,
         onDeleteHeaderColumn: handleDeleteHeaderColumn,
         onSaveHeaderRow: handleSaveHeaderRow,
       }),
@@ -320,7 +370,7 @@ function AutoCertTable({
               danger
               icon={<DeleteOutlined />}
               size="small"
-              disabled={!hasSelected}
+              disabled={canEdit && !hasSelected}
             >
               Delete
             </Button>
@@ -334,7 +384,7 @@ function AutoCertTable({
         <>
           <Button
             onClick={handleAddRow}
-            disabled={!hasColumns}
+            disabled={!canEdit || !hasColumns}
             size="small"
             icon={<PlusOutlined />}
           >
@@ -356,7 +406,7 @@ function AutoCertTable({
         type="file"
         id="csvInput"
         onChange={handleCSVFileUpload}
-        disabled={parsingCSV}
+        disabled={!canEdit || parsingCSV}
       />
       <Button
         type="primary"
@@ -369,7 +419,7 @@ function AutoCertTable({
         size="small"
         icon={<ImportOutlined />}
         loading={parsingCSV}
-        disabled={parsingCSV}
+        disabled={!canEdit || parsingCSV}
       >
         Import from CSV
       </Button>
