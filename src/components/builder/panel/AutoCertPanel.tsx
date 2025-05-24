@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
+import { hasPermission, ProjectPermission } from "@/auth/rbac";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -254,14 +255,18 @@ export default memo(AutoCertPanel);
 interface LayoutProps {}
 
 const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
-  const { onGenerateCertificates, project } = useAutoCertStore(
+  const { project, roles, onGenerateCertificates } = useAutoCertStore(
     useShallow((state) => {
       return {
-        onGenerateCertificates: state.onGenerateCertificates,
         project: state.project,
+        roles: state.roles,
+        onGenerateCertificates: state.onGenerateCertificates,
       };
     }),
   );
+
+  // TODO: add permission check for generating certificates
+  // const canGenerate = hasPermission(roles, [ProjectPermission]);
 
   const router = useRouter();
   const { message, modal } = App.useApp();
@@ -269,7 +274,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
     token: { colorSplit },
   } = theme.useToken();
 
-  const { mutateAsync: onGenerateCertificatesMutation, isPending } =
+  const { mutateAsync: onGenerateCertificatesMutation, isPending: generating } =
     useMutation({
       mutationFn: onGenerateCertificates,
       onSuccess: (data, variables) => {
@@ -337,8 +342,8 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
           <Button
             type="primary"
             onClick={handleGenerateCertificates}
-            loading={isPending}
-            disabled={isPending}
+            loading={generating}
+            disabled={generating}
           >
             Generate certificates
           </Button>

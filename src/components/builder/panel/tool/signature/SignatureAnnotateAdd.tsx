@@ -52,6 +52,12 @@ export default function SignatureAnnotateAdd({
 
   const handleAddAnnotate = async (): Promise<void> => {
     logger.debug("AutoCert add signature annotate confirmed");
+    
+    if (!canAdd) {
+      logger.warn("AutoCert add signature annotate is not allowed");
+      return;
+    }
+
     setAdding(true);
     try {
       const values = await form.validateFields();
@@ -74,6 +80,7 @@ export default function SignatureAnnotateAdd({
         type="dashed"
         icon={<PlusOutlined />}
         onClick={toggleModal}
+        disabled={!canAdd}
       >
         Signature Placement
       </Button>

@@ -3,6 +3,7 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { ProjectStatus } from "@/types/project";
 
 export interface SettingsToolProps {
   qrCodeEnabled: boolean;
@@ -15,15 +16,18 @@ export default function SettingsTool({
   qrCodeEnabled,
   onQrCodeEnabledChange,
 }: SettingsToolProps) {
-  const { roles } = useAutoCertStore(
+  const { project, roles } = useAutoCertStore(
     useShallow((state) => {
       return {
+        project: state.project,
         roles: state.roles,
       };
     }),
   );
 
-  const canEdit = hasPermission(roles, [ProjectPermission.SettingsUpdate]);
+  const canEdit =
+    project.status === ProjectStatus.Draft &&
+    hasPermission(roles, [ProjectPermission.SettingsUpdate]);
 
   return (
     <Space direction="vertical" className="w-full">

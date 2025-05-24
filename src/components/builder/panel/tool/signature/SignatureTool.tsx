@@ -10,6 +10,7 @@ import {
 import { useShallow } from "zustand/react/shallow";
 import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { ProjectStatus } from "@/types/project";
 
 export const signatureAnnotateFormSchema = z.object({
   email: z.string().trim().email({
@@ -52,9 +53,10 @@ export default function SignatureTool({
   onSignatureAnnotateRemove,
   onSignatureAnnotateSign,
 }: SignatureToolProps) {
-  const { roles, getAnnotateLockState } = useAutoCertStore(
+  const { project, roles, getAnnotateLockState } = useAutoCertStore(
     useShallow((state) => {
       return {
+        project: state.project,
         roles: state.roles,
         getAnnotateLockState: state.getAnnotateLockState,
       };
@@ -66,7 +68,10 @@ export default function SignatureTool({
       <SignatureAnnotateAdd
         currentPdfPage={currentPdfPage}
         onSignatureAnnotateAdd={onSignatureAnnotateAdd}
-        canAdd={hasPermission(roles, [ProjectPermission.AnnotateSignatureAdd])}
+        canAdd={
+          project.status === ProjectStatus.Draft &&
+          hasPermission(roles, [ProjectPermission.AnnotateSignatureAdd])
+        }
       />
       <Space direction="vertical" className="w-full">
         {Object.keys(signatureAnnotates).map((page) =>

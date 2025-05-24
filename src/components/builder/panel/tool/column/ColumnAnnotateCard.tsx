@@ -1,12 +1,4 @@
-import {
-  Card,
-  Flex,
-  Space,
-  Tag,
-  theme,
-  Tooltip,
-  Typography,
-} from "antd";
+import { Card, Flex, Space, Tag, theme, Tooltip, Typography } from "antd";
 import { ColumnToolProps } from "./ColumnTool";
 import ColumnAnnotateEdit from "./ColumnAnnotateEdit";
 import ColumnAnnotateRemove from "./ColumnAnnotateRemove";
@@ -25,7 +17,7 @@ export interface ColumnAnnotateCardProps
   > {
   columnAnnotate: ColumnAnnotateState;
   pageNumber: number;
-  lock: ColumnAnnotateLock
+  lock: ColumnAnnotateLock;
 }
 
 const { Text } = Typography;
@@ -46,7 +38,13 @@ export default function ColumnAnnotateCard({
 
   return (
     <Card
-      onClick={() => onAnnotateSelect(columnAnnotate.id)}
+      onClick={() => {
+        if (lock.disable || !lock.drag) {
+          return;
+        }
+
+        onAnnotateSelect(columnAnnotate.id);
+      }}
       size="small"
       className="w-full"
       style={{
@@ -77,7 +75,7 @@ export default function ColumnAnnotateCard({
           <ColumnAnnotateEdit
             columnAnnotate={columnAnnotate}
             columns={columns}
-            canEdit={!lock.disable &&lock.update}
+            canEdit={!lock.disable && lock.update}
             onColumnAnnotateUpdate={onColumnAnnotateUpdate}
           />
           <ColumnAnnotateRemove

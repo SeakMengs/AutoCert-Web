@@ -72,7 +72,13 @@ export default function SignatureAnnotateCard({
     <Card
       className="w-full"
       size="small"
-      onClick={() => onAnnotateSelect(signatureAnnotate.id)}
+      onClick={() => {
+        if (lock.disable && !lock.drag) {
+          return;
+        }
+
+        onAnnotateSelect(signatureAnnotate.id)
+      }}
       style={{
         border: "1px solid transparent",
         borderColor:

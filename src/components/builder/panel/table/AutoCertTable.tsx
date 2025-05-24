@@ -32,6 +32,7 @@ import { FAKE_LOADING_TIME } from "../../store/autocertChangeSlice";
 import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { ProjectStatus } from "@/types/project";
 
 const logger = createScopedLogger(
   "components:builder:panel:table:AutoCertTable",
@@ -76,7 +77,7 @@ export interface AutoCertTableProps {
     newRows: AutoCertTableRow[],
     newColumns: AutoCertTableColumn[],
   ) => void;
-  onExportToCSV: (filename: string) => void;
+  onExportToCSV: (filename: string) => File;
 }
 
 function AutoCertTable({
@@ -92,15 +93,18 @@ function AutoCertTable({
   onImportFromCSV,
   onExportToCSV,
 }: AutoCertTableProps) {
-  const { roles } = useAutoCertStore(
+  const { roles, project } = useAutoCertStore(
     useShallow((state) => {
       return {
         roles: state.roles,
+        project: state.project,
       };
     }),
   );
 
-  const canEdit = hasPermission(roles, [ProjectPermission.TableUpdate]);
+  const canEdit =
+    project.status === ProjectStatus.Draft &&
+    hasPermission(roles, [ProjectPermission.TableUpdate]);
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const tblRef: Parameters<typeof Table>[0]["ref"] = React.useRef(null);
@@ -338,6 +342,27 @@ function AutoCertTable({
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
+  const exportAndDownloadCSV = (): void => {
+    logger.debug("Export and download CSV");
+
+    if (rows.length === 0 || columns.length === 0) {
+      message.warning("Table is empty. Cannot export to CSV.");
+      return;
+    }
+
+    const csvFile = onExportToCSV(new Date().toISOString() + ".csv");
+    if (!csvFile) {
+      message.error("Failed to export CSV file.");
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(csvFile);
+    link.download = new Date().toISOString() + ".csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const rowSelection = {
     selectedRowKeys,
     onChange: onRowSelectChange,
@@ -370,14 +395,19 @@ function AutoCertTable({
               danger
               icon={<DeleteOutlined />}
               size="small"
-              disabled={canEdit && !hasSelected}
+              disabled={!canEdit}
             >
               Delete
             </Button>
           </Popconfirm>
         </Space>
       )}
-      <Button onClick={handleAddColumn} size="small" icon={<PlusOutlined />}>
+      <Button
+        onClick={handleAddColumn}
+        size="small"
+        icon={<PlusOutlined />}
+        disabled={!canEdit || parsingCSV}
+      >
         Column
       </Button>
       {hasColumns && (
@@ -391,7 +421,7 @@ function AutoCertTable({
             Row
           </Button>
           <Button
-            onClick={() => onExportToCSV(new Date().toISOString() + ".csv")}
+            onClick={exportAndDownloadCSV}
             size="small"
             icon={<UploadOutlined />}
           >
