@@ -16,8 +16,8 @@ export interface SignatureAnnotateInviteProps
     SignatureAnnotateCardProps,
     "onSignatureAnnotateInvite" | "signatureAnnotate"
   > {
-    canInvite: boolean;
-  }
+  canInvite: boolean;
+}
 
 export default function SignatureAnnotateInvite({
   signatureAnnotate,

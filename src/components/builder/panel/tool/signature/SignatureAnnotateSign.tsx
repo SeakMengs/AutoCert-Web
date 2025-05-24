@@ -5,6 +5,8 @@ import { createScopedLogger } from "@/utils/logger";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { QueryKey } from "@/app/dashboard/projects/[projectId]/builder/query";
 import { getTranslatedErrorMessage } from "@/utils/error";
+import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
+import { useShallow } from "zustand/react/shallow";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateSign",
@@ -25,6 +27,16 @@ export default function SignatureAnnotateSign({
 }: SignatureAnnotateSignProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
+
+  const { project } = useAutoCertStore(
+    useShallow((state) => {
+      return {
+        project: state.project,
+        roles: state.roles,
+        getAnnotateLockState: state.getAnnotateLockState,
+      };
+    }),
+  );
 
   const { mutateAsync, isPending: approving } = useMutation({
     mutationFn: async () => {
@@ -55,8 +67,7 @@ export default function SignatureAnnotateSign({
         return;
       }
 
-      // TODO: use project id from context
-      queryClient.invalidateQueries({ queryKey: [QueryKey] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey, project.id] });
     },
     onError: (error) => {
       logger.error("Failed to approve signature", error);
@@ -65,31 +76,21 @@ export default function SignatureAnnotateSign({
   });
 
   return (
-    <>
-      <Popconfirm
-        title="Are you sure you want to approve signature to this project?"
-        onConfirm={async () => mutateAsync()}
-      >
-        <Tooltip title="Approve signature">
-          <Button
-            type="primary"
-            size="small"
-            color="green"
-            loading={approving}
-            disabled={!canSign || approving}
-          >
-            Approve
-          </Button>
-        </Tooltip>
-      </Popconfirm>
-      {/* TODO: remove this */}
-    </>
+    <Popconfirm
+      title="Are you sure you want to approve signature to this project?"
+      onConfirm={async () => mutateAsync()}
+    >
+      <Tooltip title="Approve signature">
+        <Button
+          type="primary"
+          size="small"
+          color="green"
+          loading={approving}
+          disabled={!canSign || approving}
+        >
+          Approve
+        </Button>
+      </Tooltip>
+    </Popconfirm>
   );
 }
-// <Button
-//   onClick={() => {
-//     queryClient.invalidateQueries({ queryKey: [QueryKey] });
-//   }}
-// >
-//   Temp refresh
-// </Button>

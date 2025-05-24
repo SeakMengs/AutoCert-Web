@@ -11,6 +11,7 @@ import { z } from "zod";
 import { ProjectByIdSchema } from "@/schemas/autocert_api/project";
 import { App } from "antd";
 
+// TODO: watch for project, roles change
 const logger = createScopedLogger("components:builder:store:autocertSlice");
 
 export type AutoCertState = {

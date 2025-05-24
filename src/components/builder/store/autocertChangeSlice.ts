@@ -9,6 +9,8 @@ import {
 } from "./autocertAnnotate";
 import { AutoCertSettings } from "./autocertSettingSlice";
 import { App } from "antd";
+import { queryClient } from "@/app/react_query";
+import { QueryKey } from "@/app/dashboard/projects/[projectId]/builder/query";
 
 const logger = createScopedLogger(
   "components:builder:store:autocertChangeSlice",
@@ -225,6 +227,10 @@ export const createAutoCertChangeSlice: StateCreator<
         }
 
         get().clearChanges();
+
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey, get().project.id],
+        });
 
         message.success({
           content: "Changes saved successfully",

@@ -749,7 +749,12 @@ export const createAutoCertAnnotateSlice: StateCreator<
             sigLock.drag = true;
             sigLock.update = true;
 
-            if (annot.status === SignatoryStatus.NotInvited) {
+            if (
+              annot.status === SignatoryStatus.NotInvited &&
+              hasPermission(get().roles, [
+                ProjectPermission.AnnotateSignatureInvite,
+              ])
+            ) {
               sigLock.invite = true;
             }
           }
@@ -763,6 +768,8 @@ export const createAutoCertAnnotateSlice: StateCreator<
           }
 
           if (
+            annot.status === SignatoryStatus.Invited &&
+            get().user.email.toLowerCase() === annot.email.toLowerCase() &&
             hasPermission(get().roles, [
               ProjectPermission.AnnotateSignatureApprove,
             ])
