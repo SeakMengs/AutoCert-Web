@@ -40,7 +40,12 @@ function SignatureAnnotate({
   ...restProps
 }: SignatureAnnotateProps) {
   return (
-    <BaseAnnotate {...restProps}>
+    <BaseAnnotate
+      style={{
+        borderStyle: restProps.lock.sign ? "dashed" : "solid",
+      }}
+      {...restProps}
+    >
       {signatureData ? (
         // eslint-disable-next-line
         <img

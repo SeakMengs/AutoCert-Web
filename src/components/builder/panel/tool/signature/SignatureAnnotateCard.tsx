@@ -1,4 +1,4 @@
-import {  Card, Avatar, Space, Typography, Flex, theme } from "antd";
+import { Card, Avatar, Space, Typography, Flex, theme } from "antd";
 import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
@@ -48,7 +48,7 @@ export default function SignatureAnnotateCard({
       case SignatoryStatus.NotInvited:
         return (
           <SignatureAnnotateInvite
-          canInvite={!lock.disable && lock.invite}
+            canInvite={!lock.disable && lock.invite}
             signatureAnnotate={signatureAnnotate}
             onSignatureAnnotateInvite={onSignatureAnnotateInvite}
           />
@@ -73,11 +73,7 @@ export default function SignatureAnnotateCard({
       className="w-full"
       size="small"
       onClick={() => {
-        if (lock.disable && !lock.drag) {
-          return;
-        }
-
-        onAnnotateSelect(signatureAnnotate.id)
+        onAnnotateSelect(signatureAnnotate.id);
       }}
       style={{
         border: "1px solid transparent",

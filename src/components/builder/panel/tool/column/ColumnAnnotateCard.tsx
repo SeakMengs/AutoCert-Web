@@ -39,10 +39,6 @@ export default function ColumnAnnotateCard({
   return (
     <Card
       onClick={() => {
-        if (lock.disable || !lock.drag) {
-          return;
-        }
-
         onAnnotateSelect(columnAnnotate.id);
       }}
       size="small"

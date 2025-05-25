@@ -1,5 +1,5 @@
 // import { createScopedLogger } from "@/utils/logger";
-import { memo, PropsWithChildren } from "react";
+import { CSSProperties, memo, PropsWithChildren } from "react";
 import { isHexColor } from "@/utils/color";
 import Rnd, {
   RectPxAndPercent,
@@ -39,6 +39,7 @@ export interface BaseAnnotateProps
   // pdf page size which will be used to convert percentage of resized page to actual page size
   pageOriginalSize: WHSize;
   roles: ProjectRole[];
+  style?: CSSProperties;
   onAnnotateSelect: (id: string | undefined) => void;
   onDragStop: (
     id: string,
@@ -73,6 +74,7 @@ function BaseAnnotate({
   pageOriginalSize,
   // zoomScale,
   pageNumber,
+  style,
   onDragStop,
   onResizeStop,
   onAnnotateSelect,
@@ -97,10 +99,6 @@ function BaseAnnotate({
       // Prevent the event from propagating to the parent element
       e.preventDefault();
       e.stopPropagation();
-    }
-
-    if (!enableDragging) {
-      return;
     }
 
     onAnnotateSelect(annotateId);
@@ -161,7 +159,10 @@ function BaseAnnotate({
           "cursor-auto": lock.disable || !canUpdate,
         })}
         style={{
-          border: selected ? `1px solid ${bgColor}` : `1px solid transparent`,
+          borderWidth: "1px",
+          borderStyle: "solid",
+          borderColor: selected ? bgColor : "transparent",
+          ...style,
         }}
       >
         <div

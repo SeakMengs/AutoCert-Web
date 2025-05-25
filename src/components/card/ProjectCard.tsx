@@ -75,7 +75,7 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
       case ProjectRole.Signatory:
         actions.push(
           <Tooltip title="Approve signature request">
-            <Link href={`/dashboard/projects/${project.id}/sign`}>
+            <Link href={`/dashboard/projects/${project.id}/builder`}>
               <SignatureOutlined />
             </Link>
           </Tooltip>,

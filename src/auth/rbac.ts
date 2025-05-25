@@ -30,3 +30,7 @@ export function hasPermission(roles: ProjectRole[], permissions: Permission[]) {
     roles.some((r) => ROLES[r].includes(permission)),
   );
 }
+
+export function hasRole(roles: ProjectRole[], role: ProjectRole) {
+  return roles.includes(role);
+}

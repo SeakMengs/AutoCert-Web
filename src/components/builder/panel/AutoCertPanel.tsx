@@ -28,7 +28,8 @@ import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
-import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { hasPermission, hasRole, ProjectPermission } from "@/auth/rbac";
+import { ProjectRole, ProjectStatus } from "@/types/project";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -45,9 +46,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     currentPdfPage,
     columnAnnotates,
     signatureAnnotates,
-    roles,
     settings,
-    getAnnotateLockState,
     onQrCodeEnabledChange,
     onAnnotateSelect,
     onColumnAnnotateAdd,
@@ -343,7 +342,11 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
             type="primary"
             onClick={handleGenerateCertificates}
             loading={generating}
-            disabled={generating}
+            disabled={
+              project.status !== ProjectStatus.Draft ||
+              !hasRole(roles, ProjectRole.Requestor) ||
+              generating
+            }
           >
             Generate certificates
           </Button>

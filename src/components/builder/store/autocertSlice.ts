@@ -91,6 +91,7 @@ export const createAutoCertSlice: StateCreator<
 
     onGenerateCertificates: async () => {
       logger.info("Generate certificates");
+
       return await generateCertificatesByIdAction({
         projectId: get().project.id,
       });
