@@ -215,13 +215,15 @@ function AutoCertPanel({}: AutoCertPanelProps) {
   return (
     <Layout>
       <style>
-        to enforce nav list to be the same height as Bar size
         {`
-          /*  When adding headerStyle to tabBarStyle, seems like the width is not 100%, this is to fix that temporarily :) */
+          /*  
+          to enforce nav list to be the same height as Bar size
+          When adding headerStyle to tabBarStyle, seems like the width is not 100%, this is to fix that temporarily :) 
+          */
           .ant-tabs-nav {
-            position: sticky;
-            top: 0;
-            z-index: 1;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1 !important;
           }
 
           .ant-tabs-nav-list {
