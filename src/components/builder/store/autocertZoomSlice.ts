@@ -36,7 +36,7 @@ export const createAutoCertZoomSlice: StateCreator<
 
     onZoomChange: (newZoom) => {
       if (get().zoom === newZoom) {
-        logger.debug(`Zoom scale not changed: ${newZoom} skip state update`);
+        // logger.debug(`Zoom scale not changed: ${newZoom} skip state update`);
         return;
       }
 

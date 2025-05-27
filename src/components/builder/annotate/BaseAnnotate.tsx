@@ -21,6 +21,7 @@ export type BaseAnnotateLock = {
   update: boolean;
   remove: boolean;
   disable: boolean;
+  showBg: boolean;
 };
 
 export interface BaseAnnotateProps
@@ -155,20 +156,23 @@ function BaseAnnotate({
     >
       <div
         onClick={handleClick}
-        className={cn("relative rounded w-full h-full cursor-move", {
+        className={cn("relative rounded w-full h-full", {
           "cursor-auto": lock.disable || !canUpdate,
+          "cursor-move": enableDragging,
         })}
         style={{
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: selected ? bgColor : "transparent",
+          borderColor:
+            selected && lock.showBg && !lock.disable ? bgColor : "transparent",
           ...style,
         }}
       >
         <div
           className="absolute inset-0 rounded z-0 opacity-[0.4]"
           style={{
-            backgroundColor: lock.disable ? "transparent" : bgColor,
+            backgroundColor:
+              lock.showBg && !lock.disable ? bgColor : "transparent",
           }}
         ></div>
         <div className="relative flex items-center justify-center w-full h-full">

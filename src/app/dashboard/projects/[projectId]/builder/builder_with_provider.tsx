@@ -148,7 +148,7 @@ export default function ProjectBuilderWithProvider({
 
   return (
     <AutoCertStoreProvider value={contextValue}>
-      <Builder project={project} roles={roles} />
+      <Builder project={project} roles={roles} contextValue={contextValue}/>
     </AutoCertStoreProvider>
   );
 }

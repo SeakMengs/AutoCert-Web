@@ -22,13 +22,13 @@ export interface PdfRendererProps
   extends Omit<PageRendererProps, "pageNumber" | "annotatesByPage"> {}
 
 function PdfRenderer({}: PdfRendererProps) {
-  const { annotates, pdfFile, onDocumentLoadSuccess } = useAutoCertStore(
-    (state) => ({
+  const { annotates, pdfFile, onDocumentLoadSuccess, setCurrentPdfPage } =
+    useAutoCertStore((state) => ({
       annotates: state.annotates,
       pdfFile: state.pdfFileUrl,
       onDocumentLoadSuccess: state.onDocumentLoadSuccess,
-    }),
-  );
+      setCurrentPdfPage: state.setCurrentPdfPage,
+    }));
 
   const [pdfUrl, setPdfUrl] = useState<string>();
   const [pdfPages, setPdfPages] = useState<number>(0);
@@ -37,7 +37,7 @@ function PdfRenderer({}: PdfRendererProps) {
     if (!pdfUrl) {
       setPdfUrl(pdfFile);
     }
-  }, []);
+  }, [pdfFile]);
 
   // Prevent page render before loading the pdf
   // Ref: https://github.com/wojtekmaj/react-pdf/issues/974
@@ -54,6 +54,7 @@ function PdfRenderer({}: PdfRendererProps) {
       key={pdfUrl}
       file={pdfUrl}
       onLoadSuccess={(pdf) => {
+        setCurrentPdfPage(1);
         setPdfPages(pdf.numPages);
 
         onDocumentLoadSuccess(pdf);

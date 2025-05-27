@@ -34,19 +34,21 @@ function AnnotateRenderer({
   const {
     selectedAnnotateId,
     zoom,
+    roles,
+    isSignatoryToAnnotate,
     onAnnotateSelect,
     onDragStop,
     onResizeStop,
-    roles,
     getAnnotateLockState,
   } = useAutoCertStore(
     useShallow((state) => ({
       selectedAnnotateId: state.selectedAnnotateId,
-      onAnnotateSelect: state.setSelectedAnnotateId,
       zoom: state.zoom,
+      roles: state.roles,
+      isSignatoryToAnnotate: state.isSignatoryToAnnotate,
       onDragStop: state.onAnnotateDragStop,
       onResizeStop: state.onAnnotateResizeStop,
-      roles: state.roles,
+      onAnnotateSelect: state.setSelectedAnnotateId,
       getAnnotateLockState: state.getAnnotateLockState,
     })),
   );
@@ -81,6 +83,7 @@ function AnnotateRenderer({
             <SignatureAnnotate
               {...annotate}
               key={annotate.id}
+              isCurrentSignatory={isSignatoryToAnnotate(annotate)}
               pageNumber={pageNumber}
               pageOriginalSize={pageOriginalSize}
               containerRef={containerRef}

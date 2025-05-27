@@ -31,18 +31,20 @@ export interface SignatureAnnotateProps
   extends BaseAnnotateProps,
     BaseSignatureAnnotate {
   lock: SignatureAnnotateLock;
+  isCurrentSignatory: boolean;
 }
 
 function SignatureAnnotate({
   signatureData,
   email,
   status,
+  isCurrentSignatory,
   ...restProps
 }: SignatureAnnotateProps) {
   return (
     <BaseAnnotate
       style={{
-        borderStyle: restProps.lock.sign ? "dashed" : "solid",
+        borderStyle: isCurrentSignatory ? "dashed" : "solid",
       }}
       {...restProps}
     >

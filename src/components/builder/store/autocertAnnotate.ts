@@ -30,6 +30,7 @@ import { App } from "antd";
 import { AutoCertChangeType } from "./autocertChangeSlice";
 import { responseFailed } from "@/utils/response";
 import { generateAndFormatZodError } from "@/utils/error";
+import { Love_Light } from "next/font/google";
 
 // TODO: Check annotate lock state in each mutation
 
@@ -43,6 +44,7 @@ const DefaultBaseAnnotateLock: BaseAnnotateLock = {
   update: false,
   remove: false,
   disable: false,
+  showBg: true,
 };
 
 const DefaultColumnLock: ColumnAnnotateLock = {
@@ -176,7 +178,7 @@ export interface AutocertAnnotateSliceActions {
   findAnnotateById: (
     id: string,
   ) => { annotate: AnnotateState; page: number } | undefined;
-
+  isSignatoryToAnnotate: (annot: SignatureAnnotateState) => boolean;
   getAnnotateLockState: <T extends AnnotateState>(
     annot: T,
   ) => GetAnnotateLockReturn<T>;
@@ -202,9 +204,9 @@ export const createAutoCertAnnotateSlice: StateCreator<
     initAnnotates: (annotates) => {
       logger.debug("Initializing annotates");
       get().setAnnotates(annotates);
-      set((state) => {
-        state.selectedAnnotateId = undefined;
-      });
+      // set((state) => {
+      //   state.selectedAnnotateId = undefined;
+      // });
     },
 
     setAnnotates: (newAnnotates) => {
@@ -279,18 +281,22 @@ export const createAutoCertAnnotateSlice: StateCreator<
       switch (existingAnnotate.annotate.type) {
         case AnnotateType.Column:
           const colLock = get().getAnnotateLockState(existingAnnotate.annotate);
-          if (colLock.disable || !colLock.drag) {
+          if (colLock.disable) {
             logger.warn(
-              `Select annotation event: ${id}, dismiss (disable: ${colLock.disable}, drag: ${colLock.drag})`,
+              `Select annotation event: ${id}, dismiss (disable: ${colLock.disable})`,
             );
             return;
           }
           break;
         case AnnotateType.Signature:
+          const isSignatory = get().isSignatoryToAnnotate(
+            existingAnnotate.annotate,
+          );
+          const isRequestor = hasRole(get().roles, ProjectRole.Requestor);
           const sigLock = get().getAnnotateLockState(existingAnnotate.annotate);
-          if (!sigLock.sign && (sigLock.disable || !sigLock.drag)) {
+          if (!isRequestor && !isSignatory || sigLock.disable) {
             logger.warn(
-              `Select annotation event: ${id}, dismiss (disable: ${sigLock.disable}, drag: ${sigLock.drag})`,
+              `Select annotation event: ${id}, dismiss (disable: ${sigLock.disable}, isRequestor: ${isRequestor}, isSignatory: ${isSignatory})`,
             );
             return;
           }
@@ -728,22 +734,36 @@ export const createAutoCertAnnotateSlice: StateCreator<
       }
     },
 
+    isSignatoryToAnnotate: (annot: SignatureAnnotateState) => {
+      const { user } = get();
+      return user.email.toLowerCase() === annot.email.toLowerCase();
+    },
+
     getAnnotateLockState: (annot) => {
       const { roles = [], project, user } = get();
 
       const noRoles = !Array.isArray(roles) || roles.length === 0;
+      const isRequestor = hasRole(roles, ProjectRole.Requestor);
+      const isSignatory =
+        annot.type === AnnotateType.Signature &&
+        get().isSignatoryToAnnotate(annot);
       const isDraft = project.status === ProjectStatus.Draft;
 
-      const disableAll = <T>(lock: T): T => {
-        logger.debug(`Disabling all annotate actions`);
-        return { ...lock, disable: true };
+      const disableAll = <T = BaseAnnotateLock>(lock: T): T => {
+        // logger.debug(`Disabling all annotate actions`);
+
+        return {
+          ...lock,
+          showBg: false,
+          disable: true,
+        };
       };
 
       switch (annot.type) {
         case AnnotateType.Column: {
           let colLock: ColumnAnnotateLock = { ...DefaultColumnLock };
 
-          if (noRoles || !isDraft || !hasRole(roles, ProjectRole.Requestor)) {
+          if (noRoles || !isDraft || !isRequestor) {
             return disableAll(colLock) as GetAnnotateLockReturn<typeof annot>;
           }
 
@@ -753,11 +773,18 @@ export const createAutoCertAnnotateSlice: StateCreator<
               resize: true,
               drag: true,
               update: true,
+              showBg: true,
+              disable: false,
             };
           }
 
           if (hasPermission(roles, [ProjectPermission.AnnotateColumnRemove])) {
-            colLock.remove = true;
+            colLock = {
+              ...colLock,
+              remove: true,
+              showBg: true,
+              disable: false,
+            };
           }
 
           return colLock as GetAnnotateLockReturn<typeof annot>;
@@ -777,41 +804,62 @@ export const createAutoCertAnnotateSlice: StateCreator<
               resize: true,
               drag: true,
               update: true,
+              showBg: true,
+              disable: false,
             };
 
             if (
               annot.status === SignatoryStatus.NotInvited &&
               hasPermission(roles, [ProjectPermission.AnnotateSignatureInvite])
             ) {
-              sigLock.invite = true;
+              sigLock = {
+                ...sigLock,
+                invite: true,
+                showBg: true,
+                disable: false,
+              };
             }
           }
 
           if (
             hasPermission(roles, [ProjectPermission.AnnotateSignatureRemove])
           ) {
-            sigLock.remove = true;
+            sigLock = {
+              ...sigLock,
+              remove: true,
+              showBg: true,
+              disable: false,
+            };
           }
 
           if (
             annot.status === SignatoryStatus.Invited &&
-            user.email.toLowerCase() === annot.email.toLowerCase() &&
+            isSignatory &&
             hasPermission(roles, [ProjectPermission.AnnotateSignatureApprove])
           ) {
-            sigLock.sign = true;
+            sigLock = {
+              ...sigLock,
+              sign: true,
+              showBg: true,
+              disable: false,
+            };
           } else {
             // If the user is not the requestor, disable the annot which hide annot bg and border
-            if (!hasRole(roles, ProjectRole.Requestor)) {
-              sigLock.disable = true;
+            if (!isRequestor) {
+              disableAll(sigLock);
             }
           }
 
           if (annot.status === SignatoryStatus.Signed) {
             sigLock = {
               ...DefaultSignatureLock,
+              drag: false,
+              resize: false,
+              update: false,
               // intentionally leave remove because we allow removing signed signatures
               remove: sigLock.remove,
-              disable: true,
+              showBg: isRequestor || isSignatory,
+              disable: false,
             };
           }
 

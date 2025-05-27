@@ -7,32 +7,43 @@ import ZoomPanel from "@/components/builder/panel/zoom/ZoomPanel";
 import Header from "./header";
 import { z } from "zod";
 import { getProjectByIdSuccessResponseSchema } from "./schema";
-import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
+import {
+  AutoCertStoreProviderProps,
+  useAutoCertStore,
+} from "@/components/builder/providers/AutoCertStoreProvider";
 import { useEffect } from "react";
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("src:app:components:builder:builder.tsx");
 export interface ProjectBuilderProps
-  extends z.infer<typeof getProjectByIdSuccessResponseSchema> {}
+  extends z.infer<typeof getProjectByIdSuccessResponseSchema> {
+  contextValue: AutoCertStoreProviderProps["value"];
+}
 
-export default function Builder({ project, roles }: ProjectBuilderProps) {
+export default function Builder({
+  project,
+  roles,
+  contextValue,
+}: ProjectBuilderProps) {
   const {
     token: { colorSplit },
   } = theme.useToken();
   const {
     initialCSVParsed,
-    removeUnnecessaryAnnotates,
     columns,
     zoom,
     transformWrapperRef,
+    removeUnnecessaryAnnotates,
+    init,
   } = useAutoCertStore(
     useShallow((state) => {
       return {
         initialCSVParsed: state.initialCSVParsed,
-        removeUnnecessaryAnnotates: state.removeUnnecessaryAnnotates,
         columns: state.columns,
         zoom: state.zoom,
         transformWrapperRef: state.transformWrapperRef,
+        init: state.init,
+        removeUnnecessaryAnnotates: state.removeUnnecessaryAnnotates,
       };
     }),
   );
@@ -45,6 +56,10 @@ export default function Builder({ project, roles }: ProjectBuilderProps) {
 
     removeUnnecessaryAnnotates(columns);
   }, [columns, initialCSVParsed]);
+
+  useEffect(() => {
+    init(contextValue);
+  }, [contextValue]);
 
   return (
     <Splitter

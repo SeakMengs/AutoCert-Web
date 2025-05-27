@@ -77,8 +77,13 @@ export const createAutoCertSlice: StateCreator<
       });
       get().initAnnotates(annotates);
       get().initSettings(settings);
-      get().initPdf(pdfUrl);
       get().initChange(saveChanges);
+
+      // Only initialize pdf once since we only need to load it once
+      if (!get().pdfFileUrl) {
+        get().initPdf(pdfUrl);
+      }
+
       await get().initTable(csvUrl);
     },
 

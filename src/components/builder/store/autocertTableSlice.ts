@@ -30,7 +30,7 @@ export interface AutoCertTableActions {
   setColumns: (columns: AutoCertTableColumn[]) => void;
   setTableLoading: (loading: boolean) => void;
   setInitialCSVParsed: (parsed: boolean) => void;
-  parseCSV: (csvFileUrl: string) => Promise<void>;
+  parseCSV: (csvFileUrl: string, silent?: boolean) => Promise<void>;
   onTableChange: () => void;
   onRowAdd: (newRow: AutoCertTableRow) => void;
   onRowUpdate: (updatedRow: AutoCertTableRow) => void;
@@ -61,19 +61,21 @@ export const createAutoCertTableSlice: StateCreator<
     rows: [],
     columns: [],
     tableLoading: false,
+    // For checking if the csv has been parsed such that we can remove unnecessary annotates
     initialCSVParsed: false,
     csvFileUrl: undefined,
 
     initTable: async (csvUrl) => {
       logger.debug("Initializing table with rows and columns");
+      const parsedBefore = get().initialCSVParsed;
       set((state) => {
         state.csvFileUrl = csvUrl;
-        state.rows = [];
-        state.columns = [];
-        state.tableLoading = true;
-        state.initialCSVParsed = false;
+        // Reset initialCSVParsed to false on init such that until csv update, the system can remove unnecessary annotates
+        state.initialCSVParsed = false; 
       });
-      await get().parseCSV(csvUrl);
+
+      // If already parsed before, silently parse the CSV
+      await get().parseCSV(csvUrl, parsedBefore);
     },
 
     setRows: (rows) =>
@@ -93,9 +95,12 @@ export const createAutoCertTableSlice: StateCreator<
         state.initialCSVParsed = parsed;
       }),
 
-    parseCSV: async (csvFileUrl: string) => {
+    // When silent, no loading state is set
+    parseCSV: async (csvFileUrl: string, silent: boolean = false) => {
       try {
-        get().setTableLoading(true);
+        if (!silent) {
+          get().setTableLoading(true);
+        }
         if (!csvFileUrl) {
           logger.warn("No CSV file URL provided");
           return;
@@ -107,7 +112,9 @@ export const createAutoCertTableSlice: StateCreator<
       } catch (error) {
         logger.error("Failed to parse CSV", error);
       } finally {
-        get().setTableLoading(false);
+        if (!silent) {
+          get().setTableLoading(false);
+        }
         get().setInitialCSVParsed(true);
       }
     },
