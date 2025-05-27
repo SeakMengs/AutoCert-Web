@@ -14,7 +14,7 @@ import {
 import { AutoCertChangeType } from "@/components/builder/store/autocertChangeSlice";
 import { AutoCertSettings } from "@/components/builder/store/autocertSettingSlice";
 
-interface ProjectBuilderWithProviderProps extends ProjectBuilderProps {
+interface ProjectBuilderWithProviderProps extends Omit<ProjectBuilderProps, "contextValue"> {
   user: AuthUser;
 }
 

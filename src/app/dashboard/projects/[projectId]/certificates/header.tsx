@@ -22,8 +22,7 @@ import {
   TeamOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
-import { SignatoryList } from "./signatory_list";
-import { ActivityLogDialog } from "./activity_log_dialog";
+import { SignatoryListDialog } from "./signatory_list_dialog";
 import { createScopedLogger } from "@/utils/logger";
 import usePrint from "@/hooks/usePrint";
 import { z } from "zod";
@@ -33,6 +32,7 @@ import {
   getMergedCertificateObjectUrl,
 } from "./utils";
 import { useMutation } from "@tanstack/react-query";
+import { ProjectLogsDialog } from "./project_logs_dialog";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:header.ts",
@@ -168,18 +168,16 @@ export default function Header({
           </Tooltip>
         </Flex>
       </Flex>
-      <ActivityLogDialog
+      <ProjectLogsDialog
+        projectLogs={logs}
         open={isActivityLogOpen}
         onClose={() => setIsActivityLogOpen(false)}
       />
-      <Modal
-        title="Signatories"
+      <SignatoryListDialog
+        signatories={signatories}
         open={isSignatoryOpen}
-        onCancel={() => setIsSignatoryOpen(false)}
-        footer={null}
-      >
-        <SignatoryList signatories={signatories} />
-      </Modal>
+        onClose={() => setIsSignatoryOpen(false)}
+      />
     </header>
   );
 }

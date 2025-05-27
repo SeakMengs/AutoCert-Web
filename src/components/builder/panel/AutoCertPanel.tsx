@@ -22,7 +22,7 @@ import {
 import { BarSize } from "@/app/dashboard/layout_client";
 import { memo, PropsWithChildren } from "react";
 import SettingsTool from "./tool/settings/settings";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLogger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
@@ -30,6 +30,7 @@ import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
 import { hasPermission, hasRole, ProjectPermission } from "@/auth/rbac";
 import { ProjectRole, ProjectStatus } from "@/types/project";
+import { QueryKey } from "@/app/dashboard/projects/[projectId]/builder/query";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -265,6 +266,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       };
     }),
   );
+  const queryClient = useQueryClient();
 
   // TODO: add permission check for generating certificates
   // const canGenerate = hasPermission(roles, [ProjectPermission]);
@@ -297,6 +299,10 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
           message.error("Failed to generate certificates");
           return;
         }
+
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey, project.id],
+        });
 
         modal.success({
           title: "Certificates generated successfully",
