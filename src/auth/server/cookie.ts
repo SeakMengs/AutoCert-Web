@@ -2,6 +2,7 @@
 import { IS_PRODUCTION } from "@/utils/env";
 import { cookies } from "next/headers";
 import { JWT_COOKIE_TYPE, JWT_COOKIE_NAME, getJwtCookieName } from "../cookie";
+import moment from "moment";
 /*
  * httpOnly: Cookies are only accessible server-side
  * SameSite=Lax: Use Strict for critical websites
@@ -41,4 +42,22 @@ export async function deleteJwtTokenCookie(
     maxAge: 0,
     path: "/",
   });
+}
+
+
+export async function setRefreshAndAccessTokenToCookie(
+  refreshToken: string,
+  accessToken: string,
+): Promise<void> {
+  await setJwtTokenCookie(
+    accessToken,
+    moment().add(15, "minutes").toDate(),
+    JWT_COOKIE_TYPE.ACCESS,
+  );
+
+  await setJwtTokenCookie(
+    refreshToken,
+    moment().add(1, "week").toDate(),
+    JWT_COOKIE_TYPE.REFRESH,
+  );
 }

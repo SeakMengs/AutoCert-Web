@@ -26,24 +26,6 @@ export const RefreshTokenCookie = getJwtCookieName(
   JWT_COOKIE_TYPE.REFRESH,
 );
 
-// HERE: change expire of access and refresh token here
-export async function setRefreshAndAccessTokenToCookie(
-  refreshToken: string,
-  accessToken: string,
-): Promise<void> {
-  await setJwtTokenCookie(
-    accessToken,
-    moment().add(15, "minutes").toDate(),
-    JWT_COOKIE_TYPE.ACCESS,
-  );
-
-  await setJwtTokenCookie(
-    refreshToken,
-    moment().add(1, "week").toDate(),
-    JWT_COOKIE_TYPE.REFRESH,
-  );
-}
-
 export async function clearRefreshAndAccessTokenCookie(): Promise<void> {
   await deleteJwtTokenCookie(JWT_COOKIE_TYPE.ACCESS);
   await deleteJwtTokenCookie(JWT_COOKIE_TYPE.REFRESH);

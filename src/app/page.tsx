@@ -1,9 +1,12 @@
+// "use client";
 import { validateAccessToken } from "@/auth/server/action";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "antd";
 import Link from "next/link";
 
 export default async function Home() {
-  const result = await validateAccessToken();
+  // const {loading, user}= useAuth();
+  const { user } = await validateAccessToken();
 
   return (
     <div>
@@ -18,16 +21,29 @@ export default async function Home() {
       <Link href="/api/oauth/google">
         <Button variant="filled">Login with google</Button>
       </Link>
-      {result && (
+      {user ? (
         <div>
           <p>
-            <strong>User ID:</strong> {result.user?.id}
+            <strong>User ID:</strong> {user?.id}
           </p>
           <p>
-            <strong>User Name:</strong> {result.user?.email}
+            <strong>User Name:</strong> {user?.email}
           </p>
         </div>
+      ) : (
+        <p>You are not logged in.</p>
       )}
+      {/* {
+        loading ? (
+          <p>Loading...</p>
+        ) : (
+          <p>
+            {user
+              ? `Welcome, ${user.email}`
+              : "You are not logged in. Please log in to access your dashboard."}
+          </p>
+        )
+      } */}
     </div>
   );
 }

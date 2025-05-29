@@ -1,5 +1,4 @@
 "use server";
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { IS_PRODUCTION } from "../env";
 
@@ -35,8 +34,4 @@ export async function getOrigin(): Promise<string> {
 export async function getFullUrlPathname(): Promise<string> {
   const h = await headers();
   return h.get("x-full-url-pathname") || "";
-}
-
-export async function clientRevalidatePath(path: string): Promise<void> {
-  return revalidatePath(path);
 }

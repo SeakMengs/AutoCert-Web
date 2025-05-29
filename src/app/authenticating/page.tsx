@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { fetchGoogleOAuthCallBack, GoogleOAuthCallBackData } from "./action";
 import { useAuth } from "@/hooks/useAuth";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
-import { setRefreshAndAccessTokenToCookie } from "@/auth/cookie";
+import { validateAccessToken } from "@/auth/server/action";
+import { setRefreshAndAccessTokenToCookie } from "@/auth/server/cookie";
 
 // https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
 export default function Authenticating() {
@@ -39,14 +40,17 @@ function AuthenticationStatus() {
           token.accessToken,
         );
 
-        // Update user state in the user auth context
-        await revalidate();
+        const payload = await validateAccessToken();
+        if (!payload.isAuthenticated) {
+          setError("Failed to authenticate. Please try again.");
+          setLoading(false);
+          return;
+        }
 
         router.push("/dashboard");
         return;
       }
 
-      // await clearRefreshAndAccessTokenCookie();
       setError("Failed to authenticate.");
       setLoading(false);
     };

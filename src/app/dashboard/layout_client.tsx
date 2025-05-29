@@ -26,6 +26,7 @@ import { APP_NAME } from "@/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
 import { AuthUser } from "@/auth";
+import { logout } from "@/auth/server/action";
 
 const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
@@ -211,43 +212,42 @@ function UserNameAndAvatar({
   user: AuthUser;
   collapsed: boolean;
 }) {
+  const router = useRouter();
   const {
     token: { colorSplit },
   } = theme.useToken();
 
+  const logoutKey = "logout";
+
   const menuItems = [
+    // {
+    //   key: "1",
+    //   icon: <SettingOutlined />,
+    //   label: "Settings",
+    // },
     {
-      key: "1",
-      icon: <SettingOutlined />,
-      label: "Settings",
-    },
-    {
-      key: "2",
+      key: logoutKey,
       icon: <LogoutOutlined />,
       label: "Logout",
       danger: true,
     },
   ] satisfies Required<MenuProps["items"]>;
 
-  const onMenuSettingsClick = () => {
-    // TODO: implement settings
+  const onMenuLogoutClick = async () => {
+    await logout();
+    logger.debug("User logged out");
+
+    router.push("/");
   };
 
-  const onMenuLogoutClick = () => {
-    // TODO: implement logout
-  };
-
-  const handleMenuClick: MenuProps["onClick"] = (e) => {
+  const handleMenuClick: MenuProps["onClick"] = async (e) => {
     const label =
       menuItems.find((item) => item.key === e.key)?.label ??
       "Unkonwn menu item";
     logger.debug(`User avatar dropdown menu: ${label} clicked`);
     switch (e.key) {
-      case menuItems[0].key:
-        onMenuSettingsClick();
-        break;
-      case menuItems[1].key:
-        onMenuLogoutClick();
+      case logoutKey:
+        await onMenuLogoutClick();
         break;
       default:
         break;
