@@ -7,6 +7,7 @@ import { getCookie } from "@/utils/server/cookie";
 import {
   invalidJwtToken,
   JwtTokenValidationResult,
+  RefreshType,
   verifyJwtAccessToken,
 } from "../jwt";
 import {
@@ -19,7 +20,6 @@ import {
 import { ResponseJson } from "@/utils/response";
 import { cache } from "react";
 import moment from "moment";
-import { setRefreshAndAccessTokenToCookie } from "./cookie";
 
 const logger = createScopedLogger("auth:server:action");
 
@@ -41,20 +41,11 @@ export const validateAccessToken = cache(
 
       let accessToken = cookieStore.get(accessTokenCookieName);
       if (!accessToken || !accessToken.value) {
-        // Try to refresh if access token is missing or invalid
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          logger.debug("Access token missing/invalid and failed to refresh");
-          return invalidJwtToken;
-        }
-
-        // Try to get the token again after refresh
-        const newAccessToken = cookieStore.get(accessTokenCookieName);
-        if (!newAccessToken || !newAccessToken.value) {
-          return invalidJwtToken;
-        }
-
-        accessToken = newAccessToken;
+        return {
+          ...invalidJwtToken,
+          error: "Access token is missing from the cookie",
+          needRefresh: RefreshType.MISSING_ACCESS_TOKEN,
+        };
       }
 
       const payload = await verifyJwtAccessToken(accessToken.value);
@@ -70,12 +61,11 @@ export const validateAccessToken = cache(
       if (expireAt.isBefore(now)) {
         logger.debug("Access token is expired");
 
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          logger.debug("Failed to refresh access token, clearing cookies");
-          // await clearRefreshAndAccessTokenCookie();
-          return invalidJwtToken;
-        }
+        return {
+          ...invalidJwtToken,
+          error: "Access token is expired",
+          needRefresh: RefreshType.EXPIRED_ACCESS_TOKEN,
+        };
       }
 
       // if the access token is about to expire in less than the threshold (in minutes), refresh it
@@ -86,12 +76,10 @@ export const validateAccessToken = cache(
             "YYYY-MM-DD HH:mm:ss",
           )}, now: ${now.format("YYYY-MM-DD HH:mm:ss")}, timeUntilExpire: ${minutesUntilExpire} minutes`,
         );
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          logger.debug("Failed to refresh access token, clearing cookies");
-          // await clearRefreshAndAccessTokenCookie();
-          return invalidJwtToken;
-        }
+        return {
+          ...payload,
+          needRefresh: RefreshType.THRESHOLD_REACHED,
+        };
       }
 
       return payload;
@@ -104,7 +92,10 @@ export const validateAccessToken = cache(
   },
 );
 
-export async function refreshAccessToken(): Promise<boolean> {
+export async function refreshAccessToken(): Promise<{
+  accessToken: string | null;
+  refreshToken: string | null;
+}> {
   logger.debug("Refreshing access token");
   const refreshToken = await getCookie(RefreshTokenCookie);
   if (refreshToken) {
@@ -131,26 +122,39 @@ export async function refreshAccessToken(): Promise<boolean> {
           logger.debug(
             "Refresh token or access token is missing in the api response. Most likely api fault",
           );
-          return false;
+          return {
+            accessToken: null,
+            refreshToken: null,
+          };
         }
 
-        // FIXME: fix set cookie fail in server component
-        await setRefreshAndAccessTokenToCookie(refreshToken, accessToken);
-        return true;
+        // await setRefreshAndAccessTokenToCookie(refreshToken, accessToken);
+        return {
+          accessToken,
+          refreshToken,
+        };
       }
 
-      return false;
+      return {
+        accessToken: null,
+        refreshToken: null,
+      };
     } catch (error: any) {
       // Intentionally not clearing the cookies here because the refresh token might be valid however the server might be down or change the route which is causing the error
       logger.error("Error refreshing access token.", error);
       logger.debug("Response", error.response?.data);
-      return false;
+      return {
+        accessToken: null,
+        refreshToken: null,
+      };
     }
   }
 
   logger.debug("Refresh token is missing from the cookie");
-  // await clearRefreshAndAccessTokenCookie();
-  return false;
+  return {
+    accessToken: null,
+    refreshToken: null,
+  };
 }
 
 // TODO: invalidate refresh token in backend

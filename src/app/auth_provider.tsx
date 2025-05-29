@@ -2,9 +2,10 @@
 import { createScopedLogger } from "@/utils/logger";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { validateAccessToken } from "@/auth/server/action";
+import { refreshAccessToken, validateAccessToken } from "@/auth/server/action";
 import { JwtTokenValidationResult } from "@/auth/jwt";
 import { App } from "antd";
+import { setRefreshAndAccessTokenToCookie } from "@/auth/server/cookie";
 
 const logger = createScopedLogger("app:auth_provider");
 
@@ -20,6 +21,7 @@ const DEFAULT_AUTH_STATE = {
   error: null,
   exp: null,
   iat: null,
+  needRefresh: null,
 } satisfies AuthState;
 
 export type AuthContextValue = AuthState & {
@@ -38,9 +40,7 @@ type AuthProviderProps = {
 // const EXCLUDE_ROUTES = ["/authenticating"];
 const PROTECTED_ROUTES = ["/dashboard"];
 
-export const AuthProvider = ({
-  children,
-}: AuthProviderProps) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { message } = App.useApp();
   const [authState, setAuthState] = useState<AuthState>({
     ...DEFAULT_AUTH_STATE,
@@ -48,10 +48,38 @@ export const AuthProvider = ({
   const pathname = usePathname();
   const router = useRouter();
 
-  const fetchAuthState = async (): Promise<JwtTokenValidationResult> => {
-    setAuthState((prev) => ({ ...prev, loading: true }));
+  const fetchAuthState = async (
+    retry: number = 1,
+  ): Promise<JwtTokenValidationResult> => {
     try {
+      logger.info("Fetching auth state on try count:", retry);
+      
+      if (retry >= 3) {
+        logger.error("Max retry count reached, clearing auth state");
+        setAuthState({
+          ...DEFAULT_AUTH_STATE,
+          loading: false,
+          error: "Max retry count reached",
+        } satisfies AuthState);
+        return DEFAULT_AUTH_STATE;
+      }
+  
+      setAuthState((prev) => ({ ...prev, loading: true }));
+
       const payload = await validateAccessToken();
+
+      if (payload && payload.needRefresh) {
+        logger.info("Access token needs to be refreshed due to: ", payload.needRefresh);
+
+        const { accessToken, refreshToken } = await refreshAccessToken();
+
+        if (accessToken && refreshToken) {
+          setRefreshAndAccessTokenToCookie(refreshToken, accessToken);
+        }
+
+        return fetchAuthState(retry + 1);
+      }
+
       setAuthState({ ...payload, loading: false });
       return payload;
     } catch (error) {
@@ -65,6 +93,11 @@ export const AuthProvider = ({
       setAuthState(state);
 
       return state;
+    } finally {
+      // TODO: handle error instead of showing error frrom auth state
+      if (authState.error) {
+        message.error(authState.error);
+      }
     }
   };
 

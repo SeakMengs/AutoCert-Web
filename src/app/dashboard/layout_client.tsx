@@ -195,9 +195,8 @@ function Logo({ collapsed }: { collapsed: boolean }) {
         level={3}
         style={{
           display: collapsed ? "none" : "block",
-          color: "#0D0E21",
         }}
-        className="motion-preset-blur-right m-0"
+        className="motion-preset-blur-right m-0 text-blue-600"
       >
         {APP_NAME}
       </Title>

@@ -19,6 +19,7 @@ export type ValidJwtToken = z.infer<typeof validJwtTokenSchema> & {
   isAuthenticated: true;
   accessToken: string;
   error: null;
+  needRefresh: RefreshType | null;
 };
 
 export type InvalidJwtToken = {
@@ -28,7 +29,15 @@ export type InvalidJwtToken = {
   iat: null;
   exp: null;
   error: string | null;
+  needRefresh: RefreshType | null;
 };
+
+export const RefreshType = {
+  MISSING_ACCESS_TOKEN: "MISSING_ACCESS_TOKEN",
+  EXPIRED_ACCESS_TOKEN: "EXPIRED_ACCESS_TOKEN",
+  THRESHOLD_REACHED: "THRESHOLD_REACHED",
+};
+export type RefreshType = (typeof RefreshType)[keyof typeof RefreshType];
 
 export const invalidJwtToken = {
   isAuthenticated: false,
@@ -37,6 +46,7 @@ export const invalidJwtToken = {
   exp: null,
   iat: null,
   error: null,
+  needRefresh: null,
 } satisfies InvalidJwtToken;
 
 export async function verifyJwtAccessToken(

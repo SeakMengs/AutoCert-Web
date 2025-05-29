@@ -14,6 +14,7 @@ import {
   T_AutocertError,
   T_ZodErrorFormatted,
 } from "./error";
+import { setRefreshAndAccessTokenToCookie } from "@/auth/server/cookie";
 
 const apiBaseUrl = getApiBaseUrl();
 
@@ -89,8 +90,9 @@ apiWithAuth.interceptors.response.use(
       isClientSide
     ) {
       originalRequest._retry = true;
-      const isRefreshed = await refreshAccessToken();
-      if (isRefreshed) {
+      const {accessToken, refreshToken} = await refreshAccessToken();
+      if (accessToken && refreshToken) {
+        setRefreshAndAccessTokenToCookie(refreshToken, accessToken);
         return apiWithAuth(originalRequest);
       }
 
