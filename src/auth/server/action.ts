@@ -25,7 +25,7 @@ const logger = createScopedLogger("auth:server:action");
 
 // minutes before access token expires to refresh it (in minutes)
 // Be careful not to set it above expire date (from backend), it would cause validate access token to always fail
-const ACESS_TOKEN_REFRESH_THRESHOLD_MINUTE = 5;
+const ACESS_TOKEN_REFRESH_THRESHOLD_MINUTE = 180; // 3 hours
 
 // If use in client side, use the useAuth hook instead as it handle loading state
 export const validateAccessToken = cache(
@@ -82,7 +82,16 @@ export const validateAccessToken = cache(
         };
       }
 
-      return payload;
+      // Calculate the time (in minutes) before the token reaches the refresh threshold
+      const timeBeforeRefresh =
+        expireAt.diff(now, "minutes", true) -
+        ACESS_TOKEN_REFRESH_THRESHOLD_MINUTE;
+
+      return {
+        ...payload,
+        // If timeBeforeRefresh is positive, return it (in minutes), otherwise null (already in threshold)
+        timeBeforeRefresh: timeBeforeRefresh > 0 ? timeBeforeRefresh : null,
+      };
     } catch (error: any) {
       return {
         ...invalidJwtToken,

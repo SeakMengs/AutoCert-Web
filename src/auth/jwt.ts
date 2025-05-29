@@ -20,6 +20,8 @@ export type ValidJwtToken = z.infer<typeof validJwtTokenSchema> & {
   accessToken: string;
   error: null;
   needRefresh: RefreshType | null;
+  // Time in minutes before the token should be refreshed
+  timeBeforeRefresh: number | null; 
 };
 
 export type InvalidJwtToken = {

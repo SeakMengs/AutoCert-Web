@@ -56,7 +56,7 @@ export default function AutoCertLanding() {
       icon: <DatabaseOutlined className="text-4xl text-blue-600" />,
       title: "Certificate Repository",
       description:
-        "Centralized storage and management of all your certificates. Search, share, download, and print capabilities.",
+        "Centralized storage and management of all your certificates with search, share, download, and print capabilities.",
     },
   ];
 
@@ -82,14 +82,14 @@ export default function AutoCertLanding() {
             </Col>
             <Col xs={24} lg={12} className="text-center">
               <Image
-              src="/landing-illustration.svg"
-              alt="AutoCert Illustration"
-              width={0}
-              height={0}
-              sizes="100vw"
-              style={{ width: "100%", height: "auto" }}
-              className="max-w-full h-auto"
-              priority
+                src="/landing-illustration.svg"
+                alt="AutoCert Illustration"
+                width={0}
+                height={0}
+                sizes="100vw"
+                style={{ width: "100%", height: "auto" }}
+                className="max-w-full h-auto"
+                priority
               />
             </Col>
           </Row>
@@ -143,7 +143,7 @@ export default function AutoCertLanding() {
               icon={<GoogleOutlined />}
               className="h-12 px-8 text-lg font-medium"
             >
-              Get Started with Google
+              Get started with Google
             </Button>
           </Link>
         </div>
@@ -243,17 +243,17 @@ export default function AutoCertLanding() {
           <Paragraph className="text-gray-600 mb-2">
             © 2025 {APP_NAME}. All rights reserved.
           </Paragraph>
-          {/* <Space split={<Divider type="vertical" />}>
+          <Space split={<Divider type="vertical" />}>
             <Button type="link" className="text-gray-500">
-              Privacy Policy
+              Bulk Certificate Creation
             </Button>
             <Button type="link" className="text-gray-500">
-              Terms of Service
+              E-Signing
             </Button>
             <Button type="link" className="text-gray-500">
-              Support
+              Certificate Repository
             </Button>
-          </Space> */}
+          </Space>
         </div>
       </Footer>
     </Layout>
