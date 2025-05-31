@@ -126,7 +126,7 @@ export default function ProjectBuilderWithProvider({
 
       console.log("saveChanges to backend", changes);
       try {
-        const res = await apiWithAuth.putForm(
+        const res = await apiWithAuth.patchForm(
           `/api/v1/projects/${project.id}/builder`,
           formData,
         );

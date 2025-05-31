@@ -11,17 +11,17 @@ const { Text, Paragraph } = Typography;
 
 type ProjectLog = z.infer<typeof ProjectLogSchema>;
 
-interface ProjectLogsDialogProps {
+interface ActivityLogsDialogProps {
   projectLogs: ProjectLog[];
   open: boolean;
   onClose: () => void;
 }
 
-export function ProjectLogsDialog({
+export function ActivityLogsDialog({
   projectLogs,
   open,
   onClose,
-}: ProjectLogsDialogProps) {
+}: ActivityLogsDialogProps) {
   const [filteredLog, setFilteredLog] = useState<ProjectLog[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
 

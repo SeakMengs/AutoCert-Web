@@ -30,7 +30,6 @@ import { App } from "antd";
 import { AutoCertChangeType } from "./autocertChangeSlice";
 import { responseFailed } from "@/utils/response";
 import { generateAndFormatZodError } from "@/utils/error";
-import { Love_Light } from "next/font/google";
 
 // TODO: Check annotate lock state in each mutation
 

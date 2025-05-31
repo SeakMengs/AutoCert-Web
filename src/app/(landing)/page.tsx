@@ -1,46 +1,17 @@
-"use client";
-
-import { useState } from "react";
-import {
-  Layout,
-  Button,
-  Typography,
-  Row,
-  Col,
-  Card,
-  Space,
-  Statistic,
-  List,
-  Avatar,
-  Divider,
-  Menu,
-  Drawer,
-} from "antd";
+import { Button, Row, Col, Card, Space } from "antd";
 import {
   GoogleOutlined,
   SafetyCertificateOutlined as CertificateOutlined,
   EditOutlined,
   DatabaseOutlined,
-  PlusOutlined,
-  FileTextOutlined,
-  UserOutlined,
-  MenuOutlined,
-  LogoutOutlined,
-  DashboardOutlined,
-  SettingOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 import { APP_NAME } from "@/utils";
-
-const { Header, Content, Footer } = Layout;
-const { Title, Paragraph, Text } = Typography;
+import Title from "antd/es/typography/Title";
+import Paragraph from "antd/es/typography/Paragraph";
 
 export default function AutoCertLanding() {
-  const { isAuthenticated, user } = useAuth();
-  const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
-
   const features = [
     {
       icon: <CertificateOutlined className="text-4xl text-blue-600" />,
@@ -60,7 +31,7 @@ export default function AutoCertLanding() {
     },
   ];
 
-  const LandingPageContent = () => (
+  return (
     <>
       <div className="bg-gradient-to-br from-blue-50 to-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-4">
@@ -149,113 +120,5 @@ export default function AutoCertLanding() {
         </div>
       </div>
     </>
-  );
-
-  return (
-    <Layout className="min-h-screen">
-      <Header className="bg-white shadow-sm px-4 md:px-6 flex items-center justify-between">
-        <div className="flex items-center">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/logo.svg"
-              alt="AutoCert Logo"
-              width={48}
-              height={48}
-              priority
-            />
-          </Link>
-          <Title level={3} className="text-blue-600 mb-0 font-bold">
-            AutoCert
-          </Title>
-        </div>
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          {isAuthenticated ? (
-            <Space>
-              <Link href="/dashboard">
-                <Button type="text" icon={<DashboardOutlined />}>
-                  Dashboard
-                </Button>
-              </Link>
-            </Space>
-          ) : (
-            <Space>
-              <Link href={"/api/oauth/google"}>
-                <Button type="primary" icon={<GoogleOutlined />}>
-                  Login
-                </Button>
-              </Link>
-            </Space>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <Button
-          type="text"
-          icon={<MenuOutlined />}
-          className="md:hidden"
-          onClick={() => setMobileMenuVisible(true)}
-        />
-
-        {/* Mobile Drawer */}
-        <Drawer
-          title="Menu"
-          placement="right"
-          onClose={() => setMobileMenuVisible(false)}
-          open={mobileMenuVisible}
-          width={280}
-        >
-          <Menu
-            mode="vertical"
-            className="border-0"
-            items={
-              isAuthenticated
-                ? [
-                    {
-                      key: "dashboard",
-                      icon: <DashboardOutlined />,
-                      label: <Link href="/dashboard">Dashboard</Link>,
-                    },
-                  ]
-                : [
-                    {
-                      key: "login",
-                      icon: <GoogleOutlined />,
-                      label: (
-                        <Link href="/api/oauth/google">Login with Google</Link>
-                      ),
-                    },
-                  ]
-            }
-          />
-        </Drawer>
-      </Header>
-
-      {/* Main Content */}
-      <Content className="flex-1">
-        <LandingPageContent />
-      </Content>
-
-      {/* Footer */}
-      <Footer className="bg-gray-50 text-center border-t">
-        <div className="max-w-6xl mx-auto px-4">
-          <Paragraph className="text-gray-600 mb-2">
-            © 2025 {APP_NAME}. All rights reserved.
-          </Paragraph>
-          <Space split={<Divider type="vertical" />}>
-            <Button type="link" className="text-gray-500">
-              Bulk Certificate Creation
-            </Button>
-            <Button type="link" className="text-gray-500">
-              E-Signing
-            </Button>
-            <Button type="link" className="text-gray-500">
-              Certificate Repository
-            </Button>
-          </Space>
-        </div>
-      </Footer>
-    </Layout>
   );
 }

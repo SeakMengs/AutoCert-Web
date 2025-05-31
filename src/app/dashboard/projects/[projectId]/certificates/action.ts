@@ -27,7 +27,7 @@ export async function getCertificatesByProjectIdAction(
   data: GetCertificatesByProjectIdParams,
 ): Promise<ResponseJson<GetCertificatesByProjectIdSuccessResponse, {}>> {
   try {
-    logger.info("get certificates by project by id action", data);
+    logger.info("get certificates by project id action", data);
 
     const url = `/api/v1/projects/${data.projectId}/certificates`;
 
@@ -55,10 +55,43 @@ export async function getCertificatesByProjectIdAction(
       data: parseData.data,
     };
   } catch (error) {
-    logger.error("Failed to get certificates by project by id", error);
+    logger.error("Failed to get certificates by project id", error);
 
     return responseSomethingWentWrong(
-      "Failed to get certificates by project by id",
+      "Failed to get certificates by project id",
     );
+  }
+}
+
+export type UpdateProjectVisibilityParams = {
+  projectId: string;
+  isPublic: boolean;
+};
+
+export type UpdateProjectVisibilitySuccessResponse = {};
+
+export async function updateProjectVisibilityAction(
+  data: UpdateProjectVisibilityParams,
+): Promise<ResponseJson<UpdateProjectVisibilitySuccessResponse, {}>> {
+  try {
+    logger.info("update project visibility action", data);
+
+    const url = `/api/v1/projects/${data.projectId}/visibility`;
+    const formData = new FormData();
+    formData.append("isPublic", String(data.isPublic));
+
+    const res = await apiWithAuth.patchForm<
+      ResponseJson<UpdateProjectVisibilitySuccessResponse, {}>
+    >(url, formData);
+
+    if (!res.data.success) {
+      return res.data;
+    }
+
+    return res.data;
+  } catch (error) {
+    logger.error("Failed to update project visibility", error);
+
+    return responseSomethingWentWrong("Failed to update project visibility");
   }
 }

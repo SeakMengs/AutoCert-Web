@@ -3,6 +3,8 @@ import { twMerge } from "tailwind-merge";
 
 export const APP_NAME = "AutoCert";
 
+export const DOMAIN = process.env.DOMAIN ?? "http://localhost:3000";
+
 export const SIGNATURE_COOKIE_NAME = `${APP_NAME.toLowerCase()}-sig`;
 
 export function getApiBaseUrl(): string {

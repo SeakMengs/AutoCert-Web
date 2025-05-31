@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Button, Space, Flex, Typography, Spin, App, Skeleton } from "antd";
+import { Button, Space, Flex, Typography, Skeleton } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { Certificate } from "./certificate_list";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -19,12 +18,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const { Text } = Typography;
 
-interface CertificateViewerProps {
-  certificate: Certificate;
+interface PdfViwerProps {
+  pdfUrl: string;
 }
 
-// TODO: Implement the actual PDF viewer logic
-export function CertificateViewer({ certificate }: CertificateViewerProps) {
+export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [zoomScale, setZoomScale] = useState<number>(1);
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
@@ -54,11 +52,11 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
   // Prevent page render before loading the pdf
   // Ref: https://github.com/wojtekmaj/react-pdf/issues/974
   useEffect(() => {
-    if (certificate.certificateUrl) {
+    if (pdfUrl) {
       setPdfPages(0);
       setIsLoading(true);
     }
-  }, [certificate.certificateUrl]);
+  }, [pdfUrl]);
 
   return (
     <Space direction="vertical" className="h-auto w-full">
@@ -73,7 +71,7 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
           {isLoading ? (
             <Skeleton.Input active />
           ) : (
-            <Text>{`Page ${pageNumber} of ${pdfPages}`}</Text>
+            <Text className="text-gray-500">{`Page ${pageNumber} of ${pdfPages}`}</Text>
           )}
 
           <Button
@@ -100,8 +98,8 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
           {/* Key must change every refresh, since we use presigned url, using certificateUrl is ok
             Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216 */}
           <Document
-            key={certificate.certificateUrl}
-            file={certificate.certificateUrl}
+            key={pdfUrl}
+            file={pdfUrl}
             onLoadSuccess={(pdf) => {
               setPdfPages(pdf.numPages);
               setIsLoading(false);

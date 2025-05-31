@@ -71,7 +71,7 @@ export async function approveSignatureAction(data: ApproveSignature): Promise<
   try {
     logger.info("approve signature action", data);
 
-    const url = `/api/v1/projects/${data.projectId}/builder/signature/approve`;
+    const url = `/api/v1/projects/${data.projectId}/builder/signature/${data.signatureAnnotateId}/approve`;
 
     const signatureId = await getCookie(SIGNATURE_COOKIE_NAME);
 
@@ -126,10 +126,9 @@ export async function approveSignatureAction(data: ApproveSignature): Promise<
     });
 
     const form = new FormData();
-    form.append("signatureAnnotateId", data.signatureAnnotateId);
     form.append("signatureFile", file);
 
-    const res2 = await apiWithAuth.putForm<
+    const res2 = await apiWithAuth.patchForm<
       ResponseJson<ApproveSignatureSuccessResponse, {}>
     >(url, form);
 

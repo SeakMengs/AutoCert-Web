@@ -10,6 +10,7 @@ import {
   App,
   UploadProps,
   UploadFile,
+  Tooltip,
 } from "antd";
 import { useState } from "react";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
@@ -176,7 +177,11 @@ export default function CreateProjectDialog({
 
   return (
     <>
-      <Button className="" icon={<PlusOutlined />} onClick={toggleModal} />
+      <Tooltip title="Create project">
+        <Button type="primary" icon={<PlusOutlined />} onClick={toggleModal}>
+          Create Project
+        </Button>
+      </Tooltip>
       <Modal
         title="Create New Project"
         open={modalOpen}

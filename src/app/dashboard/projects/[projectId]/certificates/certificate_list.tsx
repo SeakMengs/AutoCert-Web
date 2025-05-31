@@ -22,8 +22,6 @@ import {
   CalendarOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
-import { CertificateViewer } from "./certificate_viewer";
-import { generateShareableLink } from "./temp";
 import usePrint from "@/hooks/usePrint";
 import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
@@ -32,7 +30,8 @@ import { createScopedLogger } from "@/utils/logger";
 import { downloadCertificate, toCertificateTitle } from "./utils";
 import { useMutation } from "@tanstack/react-query";
 import { useImageSrc } from "@/hooks/useImageSrc";
-import { cn } from "@/utils";
+import { cn, DOMAIN } from "@/utils";
+import PdfViwer from "@/components/pdf/PdfViewer";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:certificate_list",
@@ -47,10 +46,12 @@ export type Certificate = z.infer<
 export interface CertificateListProps {
   certificates: Certificate[];
   projectId: string;
+  isPublic: boolean;
 }
 
 export default function CertificateList({
   projectId,
+  isPublic,
   certificates,
 }: CertificateListProps) {
   const [selectedCertificate, setSelectedCertificate] =
@@ -67,6 +68,7 @@ export default function CertificateList({
       {certificates.map((certificate) => (
         <GridView
           key={certificate.id}
+          isPublic={isPublic}
           projectId={projectId}
           certificate={certificate}
           onCertificateView={onCertificateView}
@@ -111,7 +113,7 @@ export default function CertificateList({
           width={1000}
           style={{ top: 20 }}
         >
-          <CertificateViewer certificate={selectedCertificate} />
+          <PdfViwer pdfUrl={selectedCertificate.certificateUrl} />
         </Modal>
       )}
     </div>
@@ -120,12 +122,14 @@ export default function CertificateList({
 
 interface GridViewProps {
   certificate: Certificate;
+  isPublic: boolean;
   projectId: string;
   onCertificateView: (certificate: Certificate) => void;
 }
 
 function GridView({
   projectId,
+  isPublic,
   certificate,
   onCertificateView,
 }: GridViewProps) {
@@ -135,16 +139,22 @@ function GridView({
   const { message } = App.useApp();
   const { onPrint, printLoading, setPrintLoading } = usePrint();
 
-  // TODO: add actual link
-  const onGetShareableLink = async (id: string) => {
-    logger.info("Generating shareable link for certificate", id);
+  const onGetShareableLink = (id: string): void => {
+    logger.info("Get shareable link for certificate", certificate.id);
+    const link = `${DOMAIN}/share/certificates/${id}`;
 
-    const link = await generateShareableLink(id);
-    navigator.clipboard.writeText(link);
-    message.success("Link copied to clipboard");
+    try {
+      navigator.clipboard.writeText(link);
+      message.success("Link copied to clipboard");
+    } catch (error) {
+      logger.error("Failed to copy link to clipboard", error);
+      message.warning(
+        `Failed to copy link to clipboard. Please copy manually: ${link}`,
+      );
+    }
   };
 
-  const onPrintPdf = async (pdfUrl: string) => {
+  const onPrintPdf = async (pdfUrl: string): Promise<void> => {
     try {
       setPrintLoading(true);
       logger.info("Printing certificate", pdfUrl);
@@ -172,7 +182,8 @@ function GridView({
     mutateAsync: onDownloadCertificateMutation,
     isPending: isDownloading,
   } = useMutation({
-    mutationFn: async () => await downloadCertificate(certificate, message),
+    mutationFn: async (): Promise<void> =>
+      await downloadCertificate(certificate, message),
     onError: (error) => {
       logger.error("Failed to download certificate", error);
       message.error(
@@ -236,12 +247,14 @@ function GridView({
 
         <Flex justify="space-between">
           <Space>
-            <Tooltip title="Copy Shareable Link">
-              <Button
-                icon={<LinkOutlined />}
-                onClick={async () => await onGetShareableLink(certificate.id)}
-              />
-            </Tooltip>
+            {isPublic && (
+              <Tooltip title="Copy Shareable Link">
+                <Button
+                  icon={<LinkOutlined />}
+                  onClick={async () => onGetShareableLink(certificate.id)}
+                />
+              </Tooltip>
+            )}
 
             <Tooltip title="View Certificate">
               <Button
@@ -267,6 +280,7 @@ function GridView({
                   await onPrintPdf(certificate.certificateUrl)
                 }
                 loading={printLoading}
+                disabled={!certificate.certificateUrl || printLoading}
               />
             </Tooltip>
           </Space>

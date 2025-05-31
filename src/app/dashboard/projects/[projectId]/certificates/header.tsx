@@ -12,8 +12,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { useState } from "react";
-import { toggleProjectVisibility } from "./temp";
+import { useEffect, useState } from "react";
 import {
   EyeInvisibleOutlined,
   EyeOutlined,
@@ -31,8 +30,10 @@ import {
   downloadAllCertificates,
   getMergedCertificateObjectUrl,
 } from "./utils";
-import { useMutation } from "@tanstack/react-query";
-import { ProjectLogsDialog } from "./project_logs_dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ActivityLogsDialog } from "./activity_logs_dialog";
+import { QueryKey } from "./query";
+import { updateProjectVisibilityAction } from "./action";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:header.ts",
@@ -47,7 +48,7 @@ interface HeaderProps
   > {}
 
 export default function Header({
-  id,
+  id: projectId,
   isPublic,
   title,
   logs,
@@ -57,20 +58,38 @@ export default function Header({
     token: { colorSplit, colorBgContainer },
   } = theme.useToken();
 
+  const queryClient = useQueryClient();
   const [isActivityLogOpen, setIsActivityLogOpen] = useState<boolean>(false);
   const [isSignatoryOpen, setIsSignatoryOpen] = useState<boolean>(false);
 
   const { onPrint, printLoading, setPrintLoading } = usePrint();
   const { message } = App.useApp();
 
-  const handleVisibilityToggle = async (checked: boolean) => {
-    await toggleProjectVisibility(checked);
-  };
+  const { mutateAsync: updateProjectVisibilityMutation, isPending } =
+    useMutation({
+      mutationFn: updateProjectVisibilityAction,
+      onSuccess: (data, variables) => {
+        if (!data.success) {
+          message.error("Failed to update project visibility");
+          return;
+        }
+
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey, projectId],
+        });
+
+        message.success("Project visibility updated successfully");
+      },
+      onError: (error) => {
+        logger.error("Failed to update project visibility", error);
+        message.error("Failed to update project visibility");
+      },
+    });
 
   const onPrintAllPdf = async () => {
     try {
       setPrintLoading(true);
-      const url = await getMergedCertificateObjectUrl(id);
+      const url = await getMergedCertificateObjectUrl(projectId);
       logger.info("Printing certificates", url);
 
       await onPrint({
@@ -129,7 +148,17 @@ export default function Header({
         </Title>
         <Flex wrap={"nowrap"} align="center" gap={8}>
           <Space wrap={false} align="center">
-            <Switch checked={isPublic} onChange={handleVisibilityToggle} />
+            <Switch
+              disabled={isPending}
+              loading={isPending}
+              checked={isPublic}
+              onChange={async (checked) => {
+                await updateProjectVisibilityMutation({
+                  projectId,
+                  isPublic: checked,
+                });
+              }}
+            />
             <Text className="whitespace-nowrap text-ellipsis">
               {isPublic ? <EyeOutlined /> : <EyeInvisibleOutlined />}{" "}
               {isPublic ? "Public" : "Private"}
@@ -153,7 +182,7 @@ export default function Header({
             <Button
               icon={<DownloadOutlined />}
               onClick={async () => {
-                await onDownloadAllCertificatesMutation(id);
+                await onDownloadAllCertificatesMutation(projectId);
               }}
               loading={isDownloading}
               disabled={isDownloading}
@@ -168,7 +197,7 @@ export default function Header({
           </Tooltip>
         </Flex>
       </Flex>
-      <ProjectLogsDialog
+      <ActivityLogsDialog
         projectLogs={logs}
         open={isActivityLogOpen}
         onClose={() => setIsActivityLogOpen(false)}
