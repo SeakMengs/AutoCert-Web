@@ -7,18 +7,17 @@ import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import { notFound } from "next/navigation";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
 import CertificateContent from "./certificate_content";
+import { QueryKey } from "@/utils/react_query";
 
 interface PublicCertificateByIdProps {
   certificateId: string;
 }
 
-const QueryKey = "public_certificate_by_id";
-
 export default function PublicCertificateById({
   certificateId,
 }: PublicCertificateByIdProps) {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QueryKey, certificateId],
+    queryKey: [QueryKey.PublicCertificateById, certificateId],
     queryFn: async () => {
       return await getCertificateByProjectIdAction({ certificateId });
     },

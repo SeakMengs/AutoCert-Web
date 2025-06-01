@@ -35,13 +35,12 @@ import moment from "moment";
 import SignatureUpload from "./signature_upload";
 import SignatureDrawer from "./signature_drawer";
 import { responseFailed } from "@/utils/response";
+import { QueryKey } from "@/utils/react_query";
 
 const { Title } = Typography;
 const logger = createScopedLogger(
   "app:dashboard:signature-request:signature_section",
 );
-
-const QueryKey = "signature_by_id";
 
 export interface SharedSignatureModalProps {
   onSignatureSave: (base64Signature: string | File) => Promise<boolean>;
@@ -62,7 +61,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
   const queryClient = useQueryClient();
 
   const signature = useQuery({
-    queryKey: [QueryKey],
+    queryKey: [QueryKey.SignatureById],
     queryFn: async () => {
       const signatureId = await getCookie(SIGNATURE_COOKIE_NAME);
 
@@ -100,7 +99,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
       );
 
       // Invalidate the query to refresh the signature
-      queryClient.invalidateQueries({ queryKey: [QueryKey] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     },
     onError: (error) => {
       logger.error("Failed to save signature", error);
@@ -121,7 +120,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
         message.success("Signature removed successfully");
       }
 
-      queryClient.invalidateQueries({ queryKey: [QueryKey] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     },
     onError: (error) => {
       logger.error("Failed to remove signature", error);

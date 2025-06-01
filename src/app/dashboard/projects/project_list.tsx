@@ -6,7 +6,7 @@ import ProjectCard from "@/components/card/ProjectCard";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import FetchLoading from "@/components/loading/FetchLoading";
 import { Flex, Empty, Row, Col, Pagination, Space } from "antd";
-import { QueryKey } from "./certificate_project_section";
+import { QueryKey } from "@/utils/react_query";
 
 interface CertificateProjectListProps {
   queryParams: GetOwnProjectsParams;
@@ -19,7 +19,7 @@ export default function CertificateProjectList({
 }: CertificateProjectListProps) {
   const { page, search } = queryParams;
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QueryKey, queryParams],
+    queryKey: [QueryKey.OwnProjects, queryParams],
     queryFn: () => getOwnProjectsAction(queryParams),
   });
 

@@ -9,7 +9,7 @@ import {
   getSignatoryProjectsAction,
   GetSignatoryProjectsParams,
 } from "./action";
-import { QueryKey } from "./signature_request_section";
+import { QueryKey } from "@/utils/react_query";
 
 interface SignatoryProjectListProps {
   queryParams: GetSignatoryProjectsParams;
@@ -23,7 +23,7 @@ export default function SignatoryProjectList({
   const { page, search } = queryParams;
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QueryKey, queryParams],
+    queryKey: [QueryKey.SignatoryProjects, queryParams],
     queryFn: () => getSignatoryProjectsAction(queryParams),
   });
 

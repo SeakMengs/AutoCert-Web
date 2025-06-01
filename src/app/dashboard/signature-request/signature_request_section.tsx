@@ -13,7 +13,6 @@ const { Title } = Typography;
 
 // 0.5 seconds
 const DEBOUNCE_MS = 500;
-export const QueryKey = "signatory_projects";
 
 const statusOptions = Object.values(ProjectStatus).map((status) => ({
   value: status,

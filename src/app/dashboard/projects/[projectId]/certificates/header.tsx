@@ -32,8 +32,8 @@ import {
 } from "./utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityLogsDialog } from "./activity_logs_dialog";
-import { QueryKey } from "./query";
 import { updateProjectVisibilityAction } from "./action";
+import { QueryKey } from "@/utils/react_query";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:header.ts",
@@ -75,7 +75,7 @@ export default function Header({
         }
 
         queryClient.invalidateQueries({
-          queryKey: [QueryKey, projectId],
+          queryKey: [QueryKey.ProjectCertificatesById, projectId],
         });
 
         message.success("Project visibility updated successfully");

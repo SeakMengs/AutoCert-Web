@@ -3,10 +3,10 @@ import { App, Button, Popconfirm, Tooltip } from "antd";
 import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
 import { createScopedLogger } from "@/utils/logger";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { QueryKey } from "@/app/dashboard/projects/[projectId]/builder/query";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
+import { QueryKey } from "@/utils/react_query";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateSign",
@@ -67,7 +67,7 @@ export default function SignatureAnnotateSign({
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: [QueryKey, project.id] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ProjectBuilderById, project.id] });
     },
     onError: (error) => {
       logger.error("Failed to approve signature", error);

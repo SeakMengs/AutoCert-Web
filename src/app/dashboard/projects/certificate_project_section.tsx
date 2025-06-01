@@ -11,11 +11,11 @@ import { ProjectStatus, ProjectStatusLabels } from "@/types/project";
 import { useQueryClient } from "@tanstack/react-query";
 import debounce from "lodash.debounce";
 import CertificateProjectList from "./project_list";
+import { QueryKey } from "@/utils/react_query";
 
 const { Search } = Input;
 const { Title } = Typography;
 const DEBOUNCE_MS = 500; // 0.5 seconds
-export const QueryKey = "own_projects";
 
 const statusOptions = Object.values(ProjectStatus).map((status) => ({
   value: status,
@@ -98,7 +98,7 @@ export default function CertificateProjectSection() {
     data: CreateProjectFormValue,
   ): Promise<void> => {
     // Invalidate the query to refetch data
-    queryClient.invalidateQueries({ queryKey: [QueryKey] });
+    queryClient.invalidateQueries({ queryKey: [QueryKey.OwnProjects] });
   };
 
   return (

@@ -8,18 +8,17 @@ import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
 import { notFound } from "next/navigation";
 import ProjectNotFound from "@/components/not_found/ProjectNotFound";
+import { QueryKey } from "@/utils/react_query";
 
 interface ProjectCertificatesByIdProps {
   projectId: string;
 }
 
-export const QueryKey = "project_certificates_by_id";
-
 export default function ProjectCertificatesById({
   projectId,
 }: ProjectCertificatesByIdProps) {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QueryKey, projectId],
+    queryKey: [QueryKey.ProjectCertificatesById, projectId],
     queryFn: async () => {
       return await getCertificatesByProjectIdAction({ projectId });
     },

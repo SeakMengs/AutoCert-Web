@@ -8,20 +8,19 @@ import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import ProjectNotFound from "./not-found";
 import ProjectBuilderWithProvider from "./builder_with_provider";
 import { AuthUser } from "@/auth";
+import { QueryKey } from "@/utils/react_query";
 
 interface ProjectBuilderQueryProps {
   projectId: string;
   user: AuthUser;
 }
 
-export const QueryKey = "project_builder_by_id";
-
 export default function ProjectBuilderQuery({
   projectId,
   user,
 }: ProjectBuilderQueryProps) {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QueryKey, projectId],
+    queryKey: [QueryKey.ProjectBuilderById, projectId],
     queryFn: async () => {
       return await getProjectByIdAction({ projectId });
     },

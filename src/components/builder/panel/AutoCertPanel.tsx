@@ -28,9 +28,9 @@ import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
-import { hasPermission, hasRole, ProjectPermission } from "@/auth/rbac";
+import { hasRole } from "@/auth/rbac";
 import { ProjectRole, ProjectStatus } from "@/types/project";
-import { QueryKey } from "@/app/dashboard/projects/[projectId]/builder/query";
+import { QueryKey } from "@/utils/react_query";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -301,7 +301,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
         }
 
         queryClient.invalidateQueries({
-          queryKey: [QueryKey, project.id],
+          queryKey: [QueryKey.ProjectBuilderById, project.id],
         });
 
         modal.success({
