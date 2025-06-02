@@ -1,4 +1,4 @@
-import { Card, Avatar, Space, Typography, Flex, theme } from "antd";
+import { Card, Avatar, Space, Typography, Flex, theme, Tooltip } from "antd";
 import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
@@ -8,6 +8,7 @@ import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
 import SignatureAnnotateSign from "./SignatureAnnotateSign";
 import { SignatureAnnotateState } from "@/components/builder/store/autocertAnnotate";
 import { SignatureAnnotateLock } from "@/components/builder/annotate/SignatureAnnotate";
+import SignatureAnnotateReject from "./SignatureAnnotateReject";
 
 export interface SignatureAnnotateCardProps
   extends Pick<
@@ -16,6 +17,7 @@ export interface SignatureAnnotateCardProps
     | "onAnnotateSelect"
     | "onSignatureAnnotateRemove"
     | "onSignatureAnnotateInvite"
+    | "onSignatureAnnotateReject"
     | "onSignatureAnnotateSign"
   > {
   signatureAnnotate: SignatureAnnotateState;
@@ -33,6 +35,7 @@ export default function SignatureAnnotateCard({
   onAnnotateSelect,
   onSignatureAnnotateInvite,
   onSignatureAnnotateSign,
+  onSignatureAnnotateReject,
   onSignatureAnnotateRemove,
 }: SignatureAnnotateCardProps) {
   const {
@@ -55,11 +58,18 @@ export default function SignatureAnnotateCard({
         );
       case SignatoryStatus.Invited:
         return (
-          <SignatureAnnotateSign
-            canSign={!lock.disable && lock.sign}
-            signatureAnnotate={signatureAnnotate}
-            onSignatureAnnotateSign={onSignatureAnnotateSign}
-          />
+          <Space>
+            <SignatureAnnotateSign
+              canSign={!lock.disable && lock.sign}
+              signatureAnnotate={signatureAnnotate}
+              onSignatureAnnotateSign={onSignatureAnnotateSign}
+            />
+            <SignatureAnnotateReject
+              canReject={!lock.disable && lock.sign}
+              signatureAnnotate={signatureAnnotate}
+              onSignatureAnnotateReject={onSignatureAnnotateReject}
+            />
+          </Space>
         );
       case SignatoryStatus.Signed:
         return null;
@@ -95,7 +105,21 @@ export default function SignatureAnnotateCard({
               flex: 0,
             }}
           >
-            <SignatoryStatusTag status={signatureAnnotate.status} />
+            {signatureAnnotate.status === SignatoryStatus.Rejected ? (
+              <Tooltip
+                title={
+                  signatureAnnotate.reason
+                    ? signatureAnnotate.reason
+                    : "Signatory does not provide reason for rejection"
+                }
+              >
+                <span style={{ display: "inline-block" }}>
+                  <SignatoryStatusTag status={signatureAnnotate.status} />
+                </span>
+              </Tooltip>
+            ) : (
+              <SignatoryStatusTag status={signatureAnnotate.status} />
+            )}
             <Text type="secondary" className="text-xs">
               Page: {pageNumber}
             </Text>

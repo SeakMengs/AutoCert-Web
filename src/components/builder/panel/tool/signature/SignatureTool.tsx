@@ -39,6 +39,7 @@ export interface SignatureToolProps {
   ) => void;
   onSignatureAnnotateRemove: (id: string) => void;
   onSignatureAnnotateInvite: (id: string) => void;
+  onSignatureAnnotateReject: (id: string, reason?: string) => void;
   onSignatureAnnotateSign: AutocertAnnotateSliceActions["signSignatureAnnotate"];
   onAnnotateSelect: (id: string) => void;
 }
@@ -51,6 +52,7 @@ export default function SignatureTool({
   onSignatureAnnotateAdd,
   onSignatureAnnotateInvite,
   onSignatureAnnotateRemove,
+  onSignatureAnnotateReject,
   onSignatureAnnotateSign,
 }: SignatureToolProps) {
   const { project, roles, getAnnotateLockState } = useAutoCertStore(
@@ -83,6 +85,7 @@ export default function SignatureTool({
               selectedAnnotateId={selectedAnnotateId}
               lock={getAnnotateLockState(sa)}
               onAnnotateSelect={onAnnotateSelect}
+              onSignatureAnnotateReject={onSignatureAnnotateReject}
               onSignatureAnnotateInvite={onSignatureAnnotateInvite}
               onSignatureAnnotateRemove={onSignatureAnnotateRemove}
               onSignatureAnnotateSign={onSignatureAnnotateSign}

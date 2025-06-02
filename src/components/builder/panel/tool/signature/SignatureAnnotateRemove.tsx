@@ -69,8 +69,9 @@ export default function SignatureAnnotateRemove({
     >
       <Tooltip title="Delete">
         <Button
-          type="text"
+          variant="text"
           size="small"
+          color="red"
           danger
           icon={<DeleteOutlined />}
           loading={deleting}

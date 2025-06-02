@@ -2,7 +2,6 @@
 import { Button, Tooltip } from "antd";
 import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
 import { createScopedLogger } from "@/utils/logger";
-import { boolean } from "zod";
 import { useState } from "react";
 import { wait } from "@/utils";
 import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
@@ -55,8 +54,9 @@ export default function SignatureAnnotateInvite({
   return (
     <Tooltip title="Invite signatory">
       <Button
-        type="primary"
+        variant="solid"
         size="small"
+        color="blue"
         onClick={handleInviteSignatory}
         loading={inviting}
         disabled={!canInvite || inviting}

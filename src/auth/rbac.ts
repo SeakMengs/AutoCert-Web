@@ -21,7 +21,10 @@ const ROLES: Record<ProjectRole, ProjectPermission[]> = {
     ProjectPermission.SettingsUpdate,
     ProjectPermission.TableUpdate,
   ],
-  [ProjectRole.Signatory]: [ProjectPermission.AnnotateSignatureApprove],
+  [ProjectRole.Signatory]: [
+    ProjectPermission.AnnotateSignatureApprove,
+    ProjectPermission.AnnotateSignatureReject,
+  ],
   [ProjectRole.None]: [],
 };
 

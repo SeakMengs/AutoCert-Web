@@ -85,7 +85,7 @@ export default function SignatureAnnotateSign({
     >
       <Tooltip title="Approve signature">
         <Button
-          type="primary"
+          variant="solid"
           size="small"
           color="green"
           loading={approving}

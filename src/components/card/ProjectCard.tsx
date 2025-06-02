@@ -45,6 +45,40 @@ export const StatusColorMap = {
 
 const { Meta } = Card;
 
+const GetBadgeIcon = ({ status }: { status: SignatoryStatus }) => {
+  switch (status) {
+    case SignatoryStatus.Signed:
+      return (
+        <CheckCircleFilled
+          style={{
+            color: "#52c41a",
+            fontSize: "16px",
+          }}
+        />
+      );
+    case SignatoryStatus.Rejected:
+      return (
+        <CloseCircleFilled
+          style={{
+            color: "#ff4d4f",
+            fontSize: "16px",
+          }}
+        />
+      );
+    case SignatoryStatus.Invited:
+      return (
+        <CloseCircleFilled
+          style={{
+            color: "#1677FF",
+            fontSize: "16px",
+          }}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
   const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
     `/api/proxy/projects/${project.id}/thumbnail`,
@@ -99,7 +133,7 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
             alt="Certificate Template"
             src={src}
             fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
             onError={onError}
             onLoadStart={onLoadStart}
@@ -152,23 +186,7 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
               key={`${s.email}-${i}`}
             >
               <Badge
-                count={
-                  s.status === SignatoryStatus.Signed ? (
-                    <CheckCircleFilled
-                      style={{
-                        color: "#52c41a",
-                        fontSize: "16px",
-                      }}
-                    />
-                  ) : (
-                    <CloseCircleFilled
-                      style={{
-                        color: "#1677FF",
-                        fontSize: "16px",
-                      }}
-                    />
-                  )
-                }
+                count={GetBadgeIcon({ status: s.status })}
                 offset={[-5, 5]}
               >
                 <Avatar src={s.profileUrl} alt={s.email}>

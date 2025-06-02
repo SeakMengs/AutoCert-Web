@@ -28,4 +28,5 @@ export const SignatureAnnotateSchema = z.object({
   id: z.string(),
   status: z.nativeEnum(SignatoryStatus).default(SignatoryStatus.NotInvited),
   email: z.string(),
+  reason: z.string().optional(),
 });

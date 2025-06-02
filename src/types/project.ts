@@ -18,6 +18,7 @@ export const SignatoryStatus = {
   NotInvited: 0,
   Invited: 1,
   Signed: 2,
+  Rejected: 3,
 } as const;
 
 export type SignatoryStatus =
@@ -27,6 +28,7 @@ export const SignatoryStatusLabels: Record<SignatoryStatus, string> = {
   [SignatoryStatus.NotInvited]: "Not Invited",
   [SignatoryStatus.Invited]: "Invited",
   [SignatoryStatus.Signed]: "Signed",
+  [SignatoryStatus.Rejected]: "Rejected",
 };
 
 export const ProjectRole = {

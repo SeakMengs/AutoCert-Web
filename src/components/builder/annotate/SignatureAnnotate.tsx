@@ -14,6 +14,7 @@ export const SignatureStatusColors: Record<
   [SignatoryStatus.NotInvited]: undefined,
   [SignatoryStatus.Invited]: "#1677FF",
   [SignatoryStatus.Signed]: "#90EE90",
+  [SignatoryStatus.Rejected]: "#FF4D4F",
 };
 
 export type SignatureAnnotateLock = BaseAnnotateLock & {
@@ -22,9 +23,10 @@ export type SignatureAnnotateLock = BaseAnnotateLock & {
 };
 
 export type BaseSignatureAnnotate = {
-  signatureData: string | null;
+  signatureData?: string;
   email: string;
   status: SignatoryStatus;
+  reason?: string;
 };
 
 export interface SignatureAnnotateProps

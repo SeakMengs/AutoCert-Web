@@ -58,6 +58,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     onSignatureAnnotateAdd,
     onSignatureAnnotateRemove,
     onSignatureAnnotateInvite,
+    onSignatureAnnotateReject,
     onSignatureAnnotateSign,
 
     // Table,
@@ -89,6 +90,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         onColumnAnnotateRemove: state.removeColumnAnnotate,
         onSignatureAnnotateAdd: state.addSignatureAnnotate,
         onSignatureAnnotateRemove: state.removeSignatureAnnotate,
+        onSignatureAnnotateReject: state.rejectSignatureAnnotate,
         onSignatureAnnotateInvite: state.inviteSignatureAnnotate,
         onSignatureAnnotateSign: state.signSignatureAnnotate,
 
@@ -148,6 +150,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
           onSignatureAnnotateAdd={onSignatureAnnotateAdd}
           onSignatureAnnotateRemove={onSignatureAnnotateRemove}
           onSignatureAnnotateInvite={onSignatureAnnotateInvite}
+          onSignatureAnnotateReject={onSignatureAnnotateReject}
           onSignatureAnnotateSign={onSignatureAnnotateSign}
           selectedAnnotateId={selectedAnnotateId}
         />
@@ -242,7 +245,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         centered
         defaultActiveKey="1"
         items={tabs}
-        destroyInactiveTabPane
+        destroyOnHidden
         tabBarStyle={{
           height: BarSize,
           background: colorBgContainer,

@@ -198,7 +198,7 @@ export default function CreateProjectDialog({}: CreateProjectDialogProps) {
         }}
         confirmLoading={form.formState.isSubmitting || isPending}
         maskClosable={!form.formState.isSubmitting && !isPending}
-        destroyOnClose={true}
+        destroyOnHidden
       >
         <Form
           onFinish={form.handleSubmit(handleCreateProject)}

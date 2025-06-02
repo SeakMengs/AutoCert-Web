@@ -6,6 +6,7 @@ const StatusColors: Record<SignatoryStatus, string | undefined> = {
   [SignatoryStatus.NotInvited]: undefined,
   [SignatoryStatus.Invited]: "blue",
   [SignatoryStatus.Signed]: "green",
+  [SignatoryStatus.Rejected]: "red",
 };
 
 const getSignatoryStatusTag = (status: SignatoryStatus): JSX.Element | null => {

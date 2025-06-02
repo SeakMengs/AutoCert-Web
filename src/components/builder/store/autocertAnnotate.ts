@@ -165,6 +165,7 @@ export interface AutocertAnnotateSliceActions {
   ) => void;
   removeSignatureAnnotate: (id: string) => void;
   inviteSignatureAnnotate: (id: string) => void;
+  rejectSignatureAnnotate: (id: string, reason?: string) => void;
   signSignatureAnnotate: (
     id: string,
   ) => ReturnType<typeof approveSignatureAction>;
@@ -236,7 +237,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
       const columns: ColumnAnnotateStates = {};
       const signatures: SignatureAnnotateStates = {};
       const pages = Object.keys(get().annotates);
-      let signaturesSigned = 0
+      let signaturesSigned = 0;
       let signatureCount = 0;
 
       pages.forEach((p) => {
@@ -530,7 +531,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
         !hasPermission(get().roles, [ProjectPermission.AnnotateSignatureInvite])
       ) {
         logger.warn("Permission denied to invite signature annotate");
-        message.error("You do not have permission to invite signatory");
+        message.error("You do not have permission to invite signature");
         return;
       }
 
@@ -559,6 +560,56 @@ export const createAutoCertAnnotateSlice: StateCreator<
         type: AutoCertChangeType.AnnotateSignatureInvite,
         data: {
           id: id,
+        },
+      });
+    },
+
+    rejectSignatureAnnotate: (id, reason) => {
+      logger.debug(
+        `Reject signature annotate with id: ${id} with reason: ${reason}`,
+      );
+      
+      if (
+        !hasPermission(get().roles, [ProjectPermission.AnnotateSignatureReject])
+      ) {
+        logger.warn("Permission denied to reject signature annotate");
+        message.error("You do not have permission to reject signature");
+        return;
+      }
+
+      const existingAnnotate = get().findAnnotateById(id);
+      if (!existingAnnotate) {
+        logger.warn(`Signature annotate with id ${id} not found`);
+        return;
+      }
+      
+      const { annotate, page } = existingAnnotate;
+      if (annotate.type !== AnnotateType.Signature) {
+        logger.warn(
+          `Signature annotate with id ${id} found, but not a signature`,
+        );
+        return;
+      }
+
+      if (annotate.status !== SignatoryStatus.Invited) {
+        logger.warn(`Signature annotate with id ${id} found, but not invited`);
+        return;
+      }
+
+      get().setAnnotates({
+        ...get().annotates,
+        [page]: get().annotates[page].map((a) =>
+          a.id === id
+            ? { ...a, status: SignatoryStatus.Rejected, reason: reason }
+            : a,
+        ),
+      });
+
+      get().enqueueChange({
+        type: AutoCertChangeType.AnnotateSignatureReject,
+        data: {
+          id: id,
+          reason: reason,
         },
       });
     },

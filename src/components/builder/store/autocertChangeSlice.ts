@@ -25,6 +25,7 @@ export const AutoCertChangeType = {
   AnnotateSignatureRemove: "annotate:signature:remove",
   AnnotateSignatureInvite: "annotate:signature:invite",
   AnnotateSignatureApprove: "annotate:signature:approve",
+  AnnotateSignatureReject: "annotate:signature:reject",
   SettingsUpdate: "settings:update",
   TableUpdate: "table:update",
 } as const;
@@ -67,6 +68,11 @@ export type AnnotateSignatureInvite = {
   data: { id: string };
 };
 
+export type AnnotateSignatureReject = {
+  type: typeof AutoCertChangeType.AnnotateSignatureReject;
+  data: { id: string; reason: string | undefined };
+};
+
 export type AnnotateSignatureApprove = {
   type: typeof AutoCertChangeType.AnnotateSignatureApprove;
   data: { id: string };
@@ -92,6 +98,7 @@ export type AutoCertChangeEvent =
   | AnnotateSignatureUpdate
   | AnnotateSignatureRemove
   | AnnotateSignatureInvite
+  | AnnotateSignatureReject
   | AnnotateSignatureApprove
   | SettingsUpdate
   | TableUpdate;
