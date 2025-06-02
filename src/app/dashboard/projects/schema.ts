@@ -59,3 +59,7 @@ export const createProjectSchema = z.object({
     invalid_type_error: "Page number must be a valid number.",
   }),
 });
+
+export const createProjectSuccessResponseSchema = z.object({
+  projectId: z.string(),
+})

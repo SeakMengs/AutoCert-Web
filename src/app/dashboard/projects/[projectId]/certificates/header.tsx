@@ -12,7 +12,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   EyeInvisibleOutlined,
   EyeOutlined,
@@ -32,7 +32,10 @@ import {
 } from "./utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityLogsDialog } from "./activity_logs_dialog";
-import { updateProjectVisibilityAction } from "./action";
+import {
+  ProjectCertificatesById,
+  updateProjectVisibilityAction,
+} from "./action";
 import { QueryKey } from "@/utils/react_query";
 
 const logger = createScopedLogger(
@@ -68,21 +71,65 @@ export default function Header({
   const { mutateAsync: updateProjectVisibilityMutation, isPending } =
     useMutation({
       mutationFn: updateProjectVisibilityAction,
-      onSuccess: (data, variables) => {
+      onSuccess: (data, variables, context) => {
         if (!data.success) {
           message.error("Failed to update project visibility");
           return;
         }
 
-        queryClient.invalidateQueries({
-          queryKey: [QueryKey.ProjectCertificatesById, projectId],
-        });
+        // optimistically update the project visibility
+        queryClient.setQueryData<ProjectCertificatesById>(
+          [QueryKey.ProjectCertificatesById, projectId],
+          (oldData: ProjectCertificatesById | undefined) => {
+            if (!oldData || !oldData.success) {
+              return oldData;
+            }
+
+            const updatedProject = {
+              ...oldData.data.project,
+              isPublic: variables.isPublic,
+            };
+
+            return {
+              ...oldData,
+              data: {
+                ...oldData.data,
+                project: updatedProject,
+              },
+            };
+          },
+        );
 
         message.success("Project visibility updated successfully");
       },
-      onError: (error) => {
+      onMutate: async (variables) => {
+        // Cancel any outgoing refetches
+        // (so they don't overwrite our optimistic update)
+        await queryClient.cancelQueries({
+          queryKey: [QueryKey.ProjectCertificatesById, projectId],
+        });
+        const previousData = queryClient.getQueryData<ProjectCertificatesById>([
+          QueryKey.ProjectCertificatesById,
+          projectId,
+        ]);
+
+        return { previousData };
+      },
+      onError: (error, variables, context: any) => {
         logger.error("Failed to update project visibility", error);
         message.error("Failed to update project visibility");
+
+        if (context?.previousData) {
+          queryClient.setQueryData<ProjectCertificatesById>(
+            [QueryKey.ProjectCertificatesById, projectId],
+            context.previousData,
+          );
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey.ProjectCertificatesById, projectId],
+        });
       },
     });
 

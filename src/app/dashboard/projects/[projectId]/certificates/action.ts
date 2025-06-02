@@ -23,6 +23,10 @@ export type GetCertificatesByProjectIdSuccessResponse = z.infer<
   typeof getCertificatesByProjectIdSuccessResponseSchema
 >;
 
+export type ProjectCertificatesById = Awaited<
+  ReturnType<typeof getCertificatesByProjectIdAction>
+>;
+
 export async function getCertificatesByProjectIdAction(
   data: GetCertificatesByProjectIdParams,
 ): Promise<ResponseJson<GetCertificatesByProjectIdSuccessResponse, {}>> {

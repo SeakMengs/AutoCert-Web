@@ -24,7 +24,9 @@ import { createProjectAction } from "./action";
 import { UploadChangeParam } from "antd/es/upload";
 import FormErrorMessages from "@/components/error/FormErrorMessages";
 import { pdfjs } from "react-pdf";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { QueryKey } from "@/utils/react_query";
+import { useRouter } from "next/navigation";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -37,16 +39,14 @@ const logger = createScopedLogger(
 
 export type CreateProjectFormValue = z.infer<typeof createProjectSchema>;
 
-interface CreateProjectDialogProps {
-  onCreated: (data: CreateProjectFormValue) => void;
-}
+interface CreateProjectDialogProps {}
 
-export default function CreateProjectDialog({
-  onCreated,
-}: CreateProjectDialogProps) {
+export default function CreateProjectDialog({}: CreateProjectDialogProps) {
   const { message } = App.useApp();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [pdfPageCount, setPdfPageCount] = useState<number>(0);
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   const {
     data,
@@ -62,12 +62,18 @@ export default function CreateProjectDialog({
       }
 
       message.success("Project created successfully");
-      onCreated(variables);
       toggleModal();
+
+      router.push(`/dashboard/projects/${data.data.projectId}/builder`);
     },
     onError: (error) => {
       logger.error("Failed to create project", error);
       message.error("Failed to create project.");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.OwnProjects],
+      });
     },
   });
 

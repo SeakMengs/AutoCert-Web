@@ -5,13 +5,10 @@ import { Flex, Input, Select, SelectProps, Space, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SelectStatusTag } from "@/components/tag/SelectStatusTag";
 import CreateProjectDialog, {
-  CreateProjectFormValue,
 } from "./create_project_dioalog";
 import { ProjectStatus, ProjectStatusLabels } from "@/types/project";
-import { useQueryClient } from "@tanstack/react-query";
 import debounce from "lodash.debounce";
 import CertificateProjectList from "./project_list";
-import { QueryKey } from "@/utils/react_query";
 
 const { Search } = Input;
 const { Title } = Typography;
@@ -25,7 +22,6 @@ const statusOptions = Object.values(ProjectStatus).map((status) => ({
 export default function CertificateProjectSection() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const queryPage = searchParams.get("page") || 1;
   const querySearch = searchParams.get("search") || "";
@@ -94,13 +90,6 @@ export default function CertificateProjectSection() {
     setPage(p);
   };
 
-  const onProjectCreated = async (
-    data: CreateProjectFormValue,
-  ): Promise<void> => {
-    // Invalidate the query to refetch data
-    queryClient.invalidateQueries({ queryKey: [QueryKey.OwnProjects] });
-  };
-
   return (
     <>
       <Space direction="vertical" size={"middle"} className="w-full">
@@ -108,7 +97,7 @@ export default function CertificateProjectSection() {
           <Title level={4} className="m-0">
             Certificate Project
           </Title>
-          <CreateProjectDialog onCreated={onProjectCreated} />
+          <CreateProjectDialog />
         </div>
         <Flex vertical gap={16}>
           <Search

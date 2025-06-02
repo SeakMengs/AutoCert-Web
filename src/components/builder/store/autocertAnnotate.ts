@@ -143,6 +143,8 @@ export type AutocertAnnotateSliceState = {
   annotates: AnnotateStates;
   columnAnnotates: ColumnAnnotateStates; // Derived from annotates
   signatureAnnotates: SignatureAnnotateStates; // Derived from annotates
+  signaturesSigned: number;
+  signatureCount: number;
   selectedAnnotateId?: string;
 };
 
@@ -199,13 +201,12 @@ export const createAutoCertAnnotateSlice: StateCreator<
     columnAnnotates: {},
     signatureAnnotates: {},
     selectedAnnotateId: undefined,
+    signaturesSigned: 0,
+    signatureCount: 0,
 
     initAnnotates: (annotates) => {
       logger.debug("Initializing annotates");
       get().setAnnotates(annotates);
-      // set((state) => {
-      //   state.selectedAnnotateId = undefined;
-      // });
     },
 
     setAnnotates: (newAnnotates) => {
@@ -235,6 +236,8 @@ export const createAutoCertAnnotateSlice: StateCreator<
       const columns: ColumnAnnotateStates = {};
       const signatures: SignatureAnnotateStates = {};
       const pages = Object.keys(get().annotates);
+      let signaturesSigned = 0
+      let signatureCount = 0;
 
       pages.forEach((p) => {
         get().annotates[Number(p)].forEach((a) => {
@@ -243,7 +246,12 @@ export const createAutoCertAnnotateSlice: StateCreator<
               columns[Number(p)] = [...(columns[Number(p)] || []), a];
               break;
             case AnnotateType.Signature:
+              if (a.status === SignatoryStatus.Signed) {
+                signaturesSigned += 1;
+              }
+
               signatures[Number(p)] = [...(signatures[Number(p)] || []), a];
+              signatureCount += 1;
               break;
           }
         });
@@ -252,6 +260,8 @@ export const createAutoCertAnnotateSlice: StateCreator<
       set((state) => {
         state.columnAnnotates = columns;
         state.signatureAnnotates = signatures;
+        state.signaturesSigned = signaturesSigned;
+        state.signatureCount = signatureCount;
       });
     },
 
@@ -293,7 +303,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
           );
           const isRequestor = hasRole(get().roles, ProjectRole.Requestor);
           const sigLock = get().getAnnotateLockState(existingAnnotate.annotate);
-          if (!isRequestor && !isSignatory || sigLock.disable) {
+          if ((!isRequestor && !isSignatory) || sigLock.disable) {
             logger.warn(
               `Select annotation event: ${id}, dismiss (disable: ${sigLock.disable}, isRequestor: ${isRequestor}, isSignatory: ${isSignatory})`,
             );

@@ -21,6 +21,8 @@ export type GetProjectByIdSuccessResponse = z.infer<
   typeof getProjectByIdSuccessResponseSchema
 >;
 
+export type ProjectById = Awaited<ReturnType<typeof getProjectByIdAction>>;
+
 export async function getProjectByIdAction(data: GetProjectByIdParams): Promise<
   ResponseJson<
     GetProjectByIdSuccessResponse,

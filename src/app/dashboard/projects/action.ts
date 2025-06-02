@@ -10,6 +10,7 @@ import {
 import { z } from "zod";
 import {
   createProjectSchema,
+  createProjectSuccessResponseSchema,
   getOwnProjectsParamsSchema,
   getOwnProjectsSuccessResponseSchema,
 } from "./schema";
@@ -78,7 +79,7 @@ export async function getOwnProjectsAction(
 }
 
 export type CreateProjectParams = z.infer<typeof createProjectSchema>;
-export type CreateProjectSuccessResponse = {};
+export type CreateProjectSuccessResponse = z.infer<typeof createProjectSuccessResponseSchema>;
 
 export async function createProjectAction(
   data: CreateProjectParams,
@@ -100,6 +101,16 @@ export async function createProjectAction(
 
     if (!res.data.success) {
       return res.data;
+    }
+
+    const parseData = createProjectSuccessResponseSchema.safeParse(
+      res.data.data,
+    );
+    if (!parseData.success) {
+      return responseFailed(
+        "Parse and get invalid expect response data",
+        formatZodError(parseData.error),
+      );
     }
 
     return {

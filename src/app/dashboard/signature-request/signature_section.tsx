@@ -97,14 +97,14 @@ export default function SignatureSection({}: SignatureSectionProps) {
         data.data.signature.id,
         moment().add(5, "year").toDate(),
       );
-
-      // Invalidate the query to refresh the signature
-      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     },
     onError: (error) => {
       logger.error("Failed to save signature", error);
       message.error("Failed to save signature.");
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
+    }
   });
 
   const removeSignature = useMutation({
@@ -119,12 +119,13 @@ export default function SignatureSection({}: SignatureSectionProps) {
       if (!varaible.silent) {
         message.success("Signature removed successfully");
       }
-
-      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     },
     onError: (error) => {
       logger.error("Failed to remove signature", error);
       message.error("Failed to remove signature.");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     },
   });
 

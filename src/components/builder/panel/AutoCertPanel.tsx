@@ -7,6 +7,7 @@ import {
   Tabs,
   TabsProps,
   theme,
+  Tooltip,
   Typography,
 } from "antd";
 import ColumnTool from "./tool/column/ColumnTool";
@@ -31,6 +32,7 @@ import { useShallow } from "zustand/react/shallow";
 import { hasRole } from "@/auth/rbac";
 import { ProjectRole, ProjectStatus } from "@/types/project";
 import { QueryKey } from "@/utils/react_query";
+import { ProjectById } from "@/app/dashboard/projects/[projectId]/builder/action";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -257,19 +259,24 @@ export default memo(AutoCertPanel);
 interface LayoutProps {}
 
 const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
-  const { project, roles, onGenerateCertificates } = useAutoCertStore(
+  const {
+    project,
+    roles,
+    signaturesSigned,
+    signatureCount,
+    onGenerateCertificates,
+  } = useAutoCertStore(
     useShallow((state) => {
       return {
         project: state.project,
         roles: state.roles,
+        signaturesSigned: state.signaturesSigned,
+        signatureCount: state.signatureCount,
         onGenerateCertificates: state.onGenerateCertificates,
       };
     }),
   );
   const queryClient = useQueryClient();
-
-  // TODO: add permission check for generating certificates
-  // const canGenerate = hasPermission(roles, [ProjectPermission]);
 
   const router = useRouter();
   const { message, modal } = App.useApp();
@@ -300,10 +307,6 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
           return;
         }
 
-        queryClient.invalidateQueries({
-          queryKey: [QueryKey.ProjectBuilderById, project.id],
-        });
-
         modal.success({
           title: "Certificates generated successfully",
           content: (
@@ -325,15 +328,68 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
           ),
         });
       },
-      onError: (error) => {
+      onMutate: async (variables) => {
+        // Cancel any outgoing refetches
+        // (so they don't overwrite our optimistic update)
+        await queryClient.cancelQueries({
+          queryKey: [QueryKey.ProjectBuilderById, project.id],
+        });
+
+        const previousData = queryClient.getQueryData<ProjectById>([
+          QueryKey.ProjectBuilderById,
+          project.id,
+        ]);
+
+        if (previousData && previousData.success) {
+          // Optimistically update the project status
+          const updatedProject = {
+            ...previousData.data.project,
+            status: ProjectStatus.Processing,
+          };
+
+          queryClient.setQueryData<ProjectById>(
+            [QueryKey.ProjectBuilderById, project.id],
+            {
+              ...previousData,
+              data: {
+                ...previousData.data,
+                project: updatedProject,
+              },
+            },
+          );
+        }
+
+        return {
+          previousData,
+        };
+      },
+      onError: (error, variables, context: any) => {
         logger.error("Failed to generate certificates", error);
         message.error("Failed to generate certificates");
+
+        if (context?.previousData) {
+          queryClient.setQueryData(
+            [QueryKey.ProjectBuilderById, project.id],
+            context.previousData,
+          );
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey.ProjectBuilderById, project.id],
+        });
       },
     });
 
   const handleGenerateCertificates = async () => {
     await onGenerateCertificatesMutation();
   };
+
+  const isRequestor = hasRole(roles, ProjectRole.Requestor);
+  const isDraft = project.status === ProjectStatus.Draft;
+  const allSignaturesSigned = signaturesSigned === signatureCount;
+  const canGenerate =
+    !generating && isDraft && isRequestor && allSignaturesSigned;
 
   return (
     <Flex
@@ -346,18 +402,39 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       <div className="overflow-auto">{children}</div>
       <div style={{ borderTop: `1px solid ${colorSplit}` }}>
         <Flex className="m-2" justify="center">
-          <Button
-            type="primary"
-            onClick={handleGenerateCertificates}
-            loading={generating}
-            disabled={
-              project.status !== ProjectStatus.Draft ||
-              !hasRole(roles, ProjectRole.Requestor) ||
-              generating
-            }
-          >
-            Generate certificates
-          </Button>
+          {!canGenerate ? (
+            <Tooltip
+              title={
+                generating
+                  ? "Generating certificates."
+                  : !isDraft
+                    ? "Certificates can only be generated when the project is in draft status."
+                    : !isRequestor
+                      ? "Only the requestor can generate certificates."
+                      : !allSignaturesSigned
+                        ? "All signatures must be signed before generating certificates."
+                        : // Most likely this never happen
+                          "Unable to generate certificates."
+              }
+            >
+              <Button
+                type="primary"
+                onClick={handleGenerateCertificates}
+                loading={generating}
+                disabled
+              >
+                Generate certificates
+              </Button>
+            </Tooltip>
+          ) : (
+            <Button
+              type="primary"
+              onClick={handleGenerateCertificates}
+              loading={generating}
+            >
+              Generate certificates
+            </Button>
+          )}
         </Flex>
       </div>
     </Flex>

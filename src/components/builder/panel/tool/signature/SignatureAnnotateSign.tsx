@@ -66,12 +66,15 @@ export default function SignatureAnnotateSign({
         message.error("Failed to approve signature");
         return;
       }
-
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ProjectBuilderById, project.id] });
     },
     onError: (error) => {
       logger.error("Failed to approve signature", error);
       message.error("Failed to approve signature");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.ProjectBuilderById, project.id],
+      });
     },
   });
 
