@@ -63,7 +63,7 @@ export default async function LandingLayout({ children }: PropsWithChildren) {
           <Paragraph className="text-gray-600 mb-2">
             © 2025 {APP_NAME}. All rights reserved.
           </Paragraph>
-          <Space split={<Divider type="vertical" />}>
+          <Space split={<Divider type="vertical" />} wrap>
             <Button type="link" className="text-gray-500">
               Bulk Certificate Creation
             </Button>

@@ -59,7 +59,7 @@ export default function AutoCertLanding() {
                 height={0}
                 sizes="100vw"
                 style={{ width: "100%", height: "auto" }}
-                className="max-w-full h-auto"
+                className="max-w-[380] h-auto"
                 priority
               />
             </Col>
