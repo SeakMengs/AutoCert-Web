@@ -102,8 +102,8 @@ export default function SignatureSection({}: SignatureSectionProps) {
       logger.error("Failed to save signature", error);
       message.error("Failed to save signature.");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     }
   });
 
@@ -124,8 +124,8 @@ export default function SignatureSection({}: SignatureSectionProps) {
       logger.error("Failed to remove signature", error);
       message.error("Failed to remove signature.");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
     },
   });
 

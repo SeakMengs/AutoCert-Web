@@ -170,8 +170,11 @@ export interface AutocertAnnotateSliceActions {
     id: string,
   ) => ReturnType<typeof approveSignatureAction>;
 
-  onAnnotateResizeStop: BaseAnnotateProps["onResizeStop"];
+  onAnnotateDragStart: BaseAnnotateProps["onDragStart"];
   onAnnotateDragStop: BaseAnnotateProps["onDragStop"];
+
+  onAnnotateResizeStart: BaseAnnotateProps["onResizeStart"];
+  onAnnotateResizeStop: BaseAnnotateProps["onResizeStop"];
 
   replaceAnnotatesColumnValue: (oldTitle: string, newTitle: string) => void;
   removeUnnecessaryAnnotates: (tableColumns: AutoCertTableColumn[]) => void;
@@ -267,7 +270,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
     },
 
     setSelectedAnnotateId: (id) => {
-      logger.debug(`Select annotation event: ${id}`);
+      // logger.debug(`Select annotation event: ${id}`);
 
       if (!id) {
         logger.debug("Select annotation event: undefined (clear selection)");
@@ -568,7 +571,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
       logger.debug(
         `Reject signature annotate with id: ${id} with reason: ${reason}`,
       );
-      
+
       if (
         !hasPermission(get().roles, [ProjectPermission.AnnotateSignatureReject])
       ) {
@@ -582,7 +585,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
         logger.warn(`Signature annotate with id ${id} not found`);
         return;
       }
-      
+
       const { annotate, page } = existingAnnotate;
       if (annotate.type !== AnnotateType.Signature) {
         logger.warn(
@@ -674,6 +677,10 @@ export const createAutoCertAnnotateSlice: StateCreator<
       return res;
     },
 
+    onAnnotateResizeStart: (id, e, rect, pageNumber) => {
+      get().setIsUserInteracting(true);
+    },
+
     onAnnotateResizeStop: (id, e, rect, pageNumber) => {
       logger.debug(
         `Resize annotation, w:${rect.width}, h:${rect.height},  Position: x:${rect.x}, y:${rect.y}, `,
@@ -733,6 +740,10 @@ export const createAutoCertAnnotateSlice: StateCreator<
           });
           break;
       }
+    },
+
+    onAnnotateDragStart: (id, e, position, pageNumber) => {
+      get().setIsUserInteracting(true);
     },
 
     onAnnotateDragStop: (id, e, position, pageNumber) => {

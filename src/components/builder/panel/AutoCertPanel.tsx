@@ -268,6 +268,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
     signaturesSigned,
     signatureCount,
     onGenerateCertificates,
+    invalidateBuilderQueries,
   } = useAutoCertStore(
     useShallow((state) => {
       return {
@@ -276,9 +277,11 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
         signaturesSigned: state.signaturesSigned,
         signatureCount: state.signatureCount,
         onGenerateCertificates: state.onGenerateCertificates,
+        invalidateBuilderQueries: state.invalidateQueries,
       };
     }),
   );
+  
   const queryClient = useQueryClient();
 
   const router = useRouter();
@@ -377,10 +380,8 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
           );
         }
       },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: [QueryKey.ProjectBuilderById, project.id],
-        });
+      onSettled: async () => {
+        await invalidateBuilderQueries();
       },
     });
 

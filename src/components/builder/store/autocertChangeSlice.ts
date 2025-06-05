@@ -103,7 +103,10 @@ export type AutoCertChangeEvent =
   | SettingsUpdate
   | TableUpdate;
 
-// const CHANGE_DEBOUNCE_TIME = 0.5 * SECOND;
+// When the user enqueues a change, we want to wait until the user stops interacting
+// before invalidate queries such that it never flickers the ui with the old state
+const INTERACTION_SETTLE_TIME = 2 * SECOND;
+
 const CHANGE_DEBOUNCE_TIME = 1 * SECOND;
 // to make change feel natural with loading state
 export const FAKE_LOADING_TIME = 0.5 * SECOND;
@@ -113,6 +116,8 @@ export type AutoCertChangeState = {
   changes: AutoCertChangeEvent[];
   isPushingChanges: boolean;
   changeMap: Map<string, AutoCertChangeEvent>;
+  isUserInteracting: boolean;
+  pendingInvalidation: boolean;
 };
 
 export type SaveChangesCallback = (
@@ -127,6 +132,10 @@ export interface AutoCertChangeActions {
   setIsPushingChanges: (isPushing: boolean) => void;
   saveChanges?: SaveChangesCallback;
   setSaveChanges: (fn: SaveChangesCallback) => void;
+  setIsUserInteracting: (isUserInteracting: boolean) => void;
+  checkAndInvalidateQueries: () => Promise<void>;
+  invalidateQueries: () => Promise<void>;
+  cancelInvalidateQueries: () => Promise<void>;
 }
 
 export type AutoCertChangeSlice = AutoCertChangeState & AutoCertChangeActions;
@@ -167,10 +176,20 @@ export const createAutoCertChangeSlice: StateCreator<
     await get().pushChanges();
   }, CHANGE_DEBOUNCE_TIME);
 
+  const debouncedSetUserInteractionEnd = debounce(() => {
+    get().setIsUserInteracting(false);
+  }, INTERACTION_SETTLE_TIME);
+
+  const debouncedCheckAndInvalidateQueries = debounce(async () => {
+    await get().checkAndInvalidateQueries();
+  }, INTERACTION_SETTLE_TIME);
+
   return {
     changes: [],
     isPushingChanges: false,
     changeMap: new Map<string, AutoCertChangeEvent>(),
+    isUserInteracting: false,
+    pendingInvalidation: false,
 
     initChange: (fn) => {
       get().setSaveChanges(fn);
@@ -178,6 +197,8 @@ export const createAutoCertChangeSlice: StateCreator<
         state.changes = [];
         state.changeMap = new Map<string, AutoCertChangeEvent>();
         state.isPushingChanges = false;
+        state.isUserInteracting = false;
+        state.pendingInvalidation = false;
       });
     },
 
@@ -187,6 +208,20 @@ export const createAutoCertChangeSlice: StateCreator<
       });
     },
 
+    setIsUserInteracting: (isUserInteracting) => {
+      set((state) => {
+        state.isUserInteracting = isUserInteracting;
+      });
+
+      if (isUserInteracting) {
+        get().cancelInvalidateQueries();
+      } else {
+        if (get().pendingInvalidation) {
+          debouncedCheckAndInvalidateQueries();
+        }
+      }
+    },
+
     enqueueChange: (change) => {
       const key = getChangeKey(change);
       get().changeMap.set(key, change);
@@ -194,16 +229,14 @@ export const createAutoCertChangeSlice: StateCreator<
         state.changes = Array.from(get().changeMap.values());
       });
 
+      get().setIsUserInteracting(true);
+      debouncedSetUserInteractionEnd();
+
       debouncedPushChanges();
     },
 
     clearChanges: () => {
-      // since immer freezes the state, we need to create a new Map
-      const newMap = new Map();
-      set((state) => {
-        state.changeMap = newMap;
-      });
-      // get().changeMap.clear();
+      get().changeMap.clear();
       set((state) => {
         state.changes = [];
       });
@@ -234,10 +267,7 @@ export const createAutoCertChangeSlice: StateCreator<
         }
 
         get().clearChanges();
-
-        queryClient.invalidateQueries({
-          queryKey: [QueryKey.ProjectBuilderById, get().project.id],
-        });
+        await get().checkAndInvalidateQueries();
 
         message.success({
           content: "Changes saved successfully",
@@ -260,6 +290,35 @@ export const createAutoCertChangeSlice: StateCreator<
     setIsPushingChanges: (isPushing) => {
       set((state) => {
         state.isPushingChanges = isPushing;
+      });
+    },
+
+    checkAndInvalidateQueries: async () => {
+      if (!get().isUserInteracting) {
+        await get().invalidateQueries();
+        set((state) => {
+          state.pendingInvalidation = false;
+        });
+        return;
+      }
+
+      logger.debug(
+        "User is interacting in the builder, deferring query invalidation",
+      );
+      set((state) => {
+        state.pendingInvalidation = true;
+      });
+    },
+
+    invalidateQueries: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [QueryKey.ProjectBuilderById, get().project.id],
+      });
+    },
+
+    cancelInvalidateQueries: async () => {
+      await queryClient.cancelQueries({
+        queryKey: [QueryKey.ProjectBuilderById, get().project.id],
       });
     },
   };

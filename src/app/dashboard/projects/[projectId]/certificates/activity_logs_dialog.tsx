@@ -47,7 +47,7 @@ export function ActivityLogsDialog({
 
   return (
     <Modal
-      title="Project Logs"
+      title="Activity Logs"
       open={open}
       onCancel={onClose}
       footer={null}

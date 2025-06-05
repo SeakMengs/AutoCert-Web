@@ -126,8 +126,8 @@ export default function Header({
           );
         }
       },
-      onSettled: () => {
-        queryClient.invalidateQueries({
+      onSettled: async () => {
+        await queryClient.invalidateQueries({
           queryKey: [QueryKey.ProjectCertificatesById, projectId],
         });
       },

@@ -37,7 +37,9 @@ function AnnotateRenderer({
     roles,
     isSignatoryToAnnotate,
     onAnnotateSelect,
+    onDragStart,
     onDragStop,
+    onResizeStart,
     onResizeStop,
     getAnnotateLockState,
   } = useAutoCertStore(
@@ -46,7 +48,9 @@ function AnnotateRenderer({
       zoom: state.zoom,
       roles: state.roles,
       isSignatoryToAnnotate: state.isSignatoryToAnnotate,
+      onDragStart: state.onAnnotateDragStart,
       onDragStop: state.onAnnotateDragStop,
+      onResizeStart: state.onAnnotateResizeStart,
       onResizeStop: state.onAnnotateResizeStop,
       onAnnotateSelect: state.setSelectedAnnotateId,
       getAnnotateLockState: state.getAnnotateLockState,
@@ -72,7 +76,9 @@ function AnnotateRenderer({
               selected={selected}
               onAnnotateSelect={onAnnotateSelect}
               zoomScale={zoom}
+              onDragStart={onDragStart}
               onDragStop={onDragStop}
+              onResizeStart={onResizeStart}
               onResizeStop={onResizeStop}
               roles={roles}
               lock={getAnnotateLockState(annotate)}
@@ -90,7 +96,9 @@ function AnnotateRenderer({
               selected={selected}
               onAnnotateSelect={onAnnotateSelect}
               zoomScale={zoom}
+              onDragStart={onDragStart}
               onDragStop={onDragStop}
+              onResizeStart={onResizeStart}
               onResizeStop={onResizeStop}
               roles={roles}
               lock={getAnnotateLockState(annotate)}

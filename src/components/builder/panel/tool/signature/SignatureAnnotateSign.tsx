@@ -28,12 +28,11 @@ export default function SignatureAnnotateSign({
   const { message } = App.useApp();
   const queryClient = useQueryClient();
 
-  const { project } = useAutoCertStore(
+  const { project, invalidateBuilderQueries } = useAutoCertStore(
     useShallow((state) => {
       return {
         project: state.project,
-        roles: state.roles,
-        getAnnotateLockState: state.getAnnotateLockState,
+        invalidateBuilderQueries: state.invalidateQueries,
       };
     }),
   );
@@ -71,10 +70,8 @@ export default function SignatureAnnotateSign({
       logger.error("Failed to approve signature", error);
       message.error("Failed to approve signature");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QueryKey.ProjectBuilderById, project.id],
-      });
+    onSettled: async () => {
+      await invalidateBuilderQueries();
     },
   });
 

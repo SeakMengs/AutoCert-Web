@@ -18,12 +18,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const { Text } = Typography;
 
-interface PdfViwerProps {
-  pdfUrl: string;
+interface PdfPreviewProps {
+  pdfUrl: string | File | null;
+  pageNumber: number;
 }
 
-export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
-  const [pageNumber, setPageNumber] = useState<number>(1);
+export default function PdfPreview({ pdfUrl, pageNumber }: PdfPreviewProps) {
   const [zoomScale, setZoomScale] = useState<number>(1);
   const transformWrapperRef = useRef<ReactZoomPanPinchContentRef | null>(null);
   const [pdfPages, setPdfPages] = useState<number>(0);
@@ -37,18 +37,6 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
     setZoomScale(newZoomScale);
   };
 
-  const handlePrevPage = () => {
-    if (pageNumber > 1) {
-      setPageNumber(pageNumber - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pageNumber < pdfPages) {
-      setPageNumber(pageNumber + 1);
-    }
-  };
-
   // Prevent page render before loading the pdf
   // Ref: https://github.com/wojtekmaj/react-pdf/issues/974
   useEffect(() => {
@@ -60,37 +48,11 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
 
   return (
     <Space direction="vertical" className="h-auto w-full">
-      <Flex
-        justify="space-between"
-        align="center"
-        className="flex-col gap-2 sm:flex-row sm:gap-0 w-full"
-        style={{ width: "100%" }}
-      >
-        <Space align="center" className="w-full justify-center sm:w-auto sm:justify-start">
-          <Button
-        icon={<LeftOutlined />}
-        onClick={handlePrevPage}
-        disabled={pageNumber === 1 || isLoading}
-          />
-
-          {isLoading ? (
-        <Skeleton.Input active />
-          ) : (
-        <Text className="text-gray-500">{`Page ${pageNumber} of ${pdfPages}`}</Text>
-          )}
-
-          <Button
-        icon={<RightOutlined />}
-        onClick={handleNextPage}
-        disabled={pageNumber === pdfPages || isLoading}
-          />
-        </Space>
-        <div className="w-full flex justify-center sm:w-auto sm:justify-end">
-          <ZoomPanel
-        transformWrapperRef={transformWrapperRef}
-        zoomScale={zoomScale}
-          />
-        </div>
+      <Flex justify="space-between" align="center">
+        <ZoomPanel
+          transformWrapperRef={transformWrapperRef}
+          zoomScale={zoomScale}
+        />
       </Flex>
 
       <Flex
@@ -105,7 +67,13 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
           {/* Key must change every refresh, since we use presigned url, using certificateUrl is ok
             Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216 */}
           <Document
-            key={pdfUrl}
+            key={
+              typeof pdfUrl === "string"
+                ? pdfUrl
+                : pdfUrl instanceof File
+                  ? pdfUrl.name + pdfUrl.size + pdfUrl.lastModified
+                  : "no-pdf"
+            }
             file={pdfUrl}
             onLoadSuccess={(pdf) => {
               setPdfPages(pdf.numPages);
@@ -120,6 +88,9 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
               className="pointer-events-none select-none"
               scale={2}
               loading={<DocumentLoading />}
+              error={
+                <PageError maxPageNumber={pdfPages} pageNumber={pageNumber} />
+              }
               pageNumber={pageNumber}
               canvasRef={(ref) => {
                 if (ref) {
@@ -136,6 +107,25 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
         </Zoom>
       </Flex>
     </Space>
+  );
+}
+
+type PageErrorProps = {
+  pageNumber: number;
+  maxPageNumber: number;
+};
+
+export function PageError({ pageNumber, maxPageNumber }: PageErrorProps) {
+  return (
+    <Flex
+      className="w-full h-full min-w-40 min-h-40"
+      justify="center"
+      align="center"
+    >
+      <Text type="danger">
+        Failed to load page {pageNumber} of {maxPageNumber}
+      </Text>
+    </Flex>
   );
 }
 

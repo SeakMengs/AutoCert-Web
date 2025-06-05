@@ -97,9 +97,9 @@ export default function CertificateProjectSection() {
           <Title level={4} className="m-0">
             Certificate Project
           </Title>
-          <CreateProjectDialog />
         </div>
         <Flex vertical gap={16}>
+          <div className="flex-nowrap"><CreateProjectDialog /></div>
           <Search
             placeholder="Search by project title"
             allowClear

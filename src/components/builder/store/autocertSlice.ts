@@ -70,6 +70,12 @@ export const createAutoCertSlice: StateCreator<
         csvUrl,
         pdfUrl,
       });
+
+      if (get().isUserInteracting) {
+        logger.warn("User is interacting, skip initialize AutoCert store");
+        return
+      }
+
       set((state) => {
         state.user = user;
         state.project = project;

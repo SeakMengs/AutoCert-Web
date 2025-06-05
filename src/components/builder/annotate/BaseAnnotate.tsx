@@ -42,10 +42,22 @@ export interface BaseAnnotateProps
   roles: ProjectRole[];
   style?: CSSProperties;
   onAnnotateSelect: (id: string | undefined) => void;
+  onDragStart: (
+    id: string,
+    e: MouseEvent,
+    position: XYPositionPxAndPercent,
+    pageNumber: number,
+  ) => void;
   onDragStop: (
     id: string,
     e: MouseEvent,
     position: XYPositionPxAndPercent,
+    pageNumber: number,
+  ) => void;
+  onResizeStart: (
+    id: string,
+    e: MouseEvent,
+    rect: RectPxAndPercent,
     pageNumber: number,
   ) => void;
   onResizeStop: (
@@ -76,7 +88,9 @@ function BaseAnnotate({
   // zoomScale,
   pageNumber,
   style,
+  onDragStart,
   onDragStop,
+  onResizeStart,
   onResizeStop,
   onAnnotateSelect,
 }: PropsWithChildren<BaseAnnotateProps>) {
@@ -105,10 +119,24 @@ function BaseAnnotate({
     onAnnotateSelect(annotateId);
   };
 
+  const handleDragStart: RndProps["onDragStart"] = (e, position) => {
+    onAnnotateSelectWithStopPropagation(id, e);
+    if (onDragStart) {
+      onDragStart(id, e as unknown as MouseEvent, position, pageNumber);
+    }
+  };
+
   const handleDragStop: RndProps["onDragStop"] = (e, position) => {
     onAnnotateSelectWithStopPropagation(id, e);
     if (onDragStop) {
       onDragStop(id, e, position, pageNumber);
+    }
+  };
+
+  const handleResizeStart: RndProps["onResizeStart"] = (e, rect) => {
+    onAnnotateSelectWithStopPropagation(id, e);
+    if (onResizeStart) {
+      onResizeStart(id, e as unknown as MouseEvent, rect, pageNumber);
     }
   };
 
@@ -136,12 +164,8 @@ function BaseAnnotate({
       }}
       scale={zoomScale}
       showResizeHandle={showResizeHandle}
-      onDragStart={(e) => {
-        onAnnotateSelectWithStopPropagation(id, e);
-      }}
-      onResizeStart={(e) => {
-        onAnnotateSelectWithStopPropagation(id, e);
-      }}
+      onDragStart={handleDragStart}
+      onResizeStart={handleResizeStart}
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
       enableDragging={enableDragging}

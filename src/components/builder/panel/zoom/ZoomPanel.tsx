@@ -51,12 +51,29 @@ export default function ZoomPanel({
   // </div>
 
   return (
-    <Space>
-      <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} />
-      <Text>{`${Math.round(zoomScale * 100)}%`}</Text>
-      <Button icon={<ZoomOutOutlined />} onClick={handleZoomOut} />
-      <Button icon={<UndoOutlined />} onClick={handleReset}>
-        Reset
+    <Space direction="horizontal" wrap>
+      <Button
+        icon={<ZoomInOutlined />}
+        onClick={handleZoomIn}
+        size="middle"
+        aria-label="Zoom in"
+      />
+      <Text style={{ minWidth: 48, textAlign: "center" }}>
+        {`${Math.round(zoomScale * 100)}%`}
+      </Text>
+      <Button
+        icon={<ZoomOutOutlined />}
+        onClick={handleZoomOut}
+        size="middle"
+        aria-label="Zoom out"
+      />
+      <Button
+        icon={<UndoOutlined />}
+        onClick={handleReset}
+        size="middle"
+        aria-label="Reset zoom"
+      >
+        <span className="hidden sm:inline">Reset</span>
       </Button>
     </Space>
   );

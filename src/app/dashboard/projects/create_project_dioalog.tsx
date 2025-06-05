@@ -27,6 +27,7 @@ import { pdfjs } from "react-pdf";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { QueryKey } from "@/utils/react_query";
 import { useRouter } from "next/navigation";
+import PdfPreview from "@/components/pdf/PdfPreview";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -70,8 +71,8 @@ export default function CreateProjectDialog({}: CreateProjectDialogProps) {
       logger.error("Failed to create project", error);
       message.error("Failed to create project.");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({
+    onSettled: async () => {
+      await queryClient.invalidateQueries({
         queryKey: [QueryKey.OwnProjects],
       });
     },
@@ -181,6 +182,9 @@ export default function CreateProjectDialog({}: CreateProjectDialogProps) {
     }
   };
 
+  const page = Number(form.watch("page"));
+  const validPdfPage = pdfPageCount > 0 && page >= 1 && page <= pdfPageCount;
+
   return (
     <>
       <Tooltip title="Create project">
@@ -245,27 +249,47 @@ export default function CreateProjectDialog({}: CreateProjectDialogProps) {
             )}
           </Form.Item>
           {pdfPageCount > 0 && (
-            <FormItem
-              control={form.control}
-              required
-              name="page"
-              label={
-                <>
-                  Page Number{" "}
-                  <Typography.Text type="secondary">
-                    {" "}
-                    (1 - {pdfPageCount})
-                  </Typography.Text>
-                </>
-              }
-            >
-              <Input
-                type="number"
-                min={1}
-                max={pdfPageCount}
-                placeholder={`Enter a page number between 1 and ${pdfPageCount}`}
-              />
-            </FormItem>
+            <>
+              <FormItem
+                control={form.control}
+                required
+                name="page"
+                label={
+                  <>
+                    Page Number{" "}
+                    <Typography.Text type="secondary">
+                      {" "}
+                      (1 - {pdfPageCount})
+                    </Typography.Text>
+                  </>
+                }
+              >
+                <Input
+                  type="number"
+                  min={1}
+                  max={pdfPageCount}
+                  placeholder={`Enter a page number between 1 and ${pdfPageCount}`}
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    if (value < 1 || value > pdfPageCount) {
+                      form.setError("page", {
+                        type: "max",
+                        message: `Page number must be between 1 and ${pdfPageCount}`,
+                      });
+                    } else {
+                      form.clearErrors("page");
+                    }
+                  }}
+                />
+              </FormItem>
+              {validPdfPage && (
+                <PdfPreview
+                  key={`pdf-preview-${page}`}
+                  pdfUrl={form.getValues("templateFile")}
+                  pageNumber={page}
+                />
+              )}
+            </>
           )}
         </Form>
         {data && !data.success && <FormErrorMessages errors={data.errors} />}
