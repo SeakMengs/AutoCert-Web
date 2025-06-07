@@ -391,9 +391,10 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
 
   const isRequestor = hasRole(roles, ProjectRole.Requestor);
   const isDraft = project.status === ProjectStatus.Draft;
+  const isProcessing = project.status === ProjectStatus.Processing;
   const allSignaturesSigned = signaturesSigned === signatureCount;
   const canGenerate =
-    !generating && isDraft && isRequestor && allSignaturesSigned;
+    !generating && !isProcessing && isDraft && isRequestor && allSignaturesSigned;
 
   return (
     <Flex
@@ -424,7 +425,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
               <Button
                 type="primary"
                 onClick={handleGenerateCertificates}
-                loading={generating}
+                loading={isProcessing || generating}
                 disabled
               >
                 Generate certificates
@@ -434,7 +435,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
             <Button
               type="primary"
               onClick={handleGenerateCertificates}
-              loading={generating}
+              loading={isProcessing || generating}
             >
               Generate certificates
             </Button>
