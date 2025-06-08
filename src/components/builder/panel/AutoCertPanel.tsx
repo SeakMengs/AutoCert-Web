@@ -21,7 +21,7 @@ import {
   ToolOutlined,
 } from "@ant-design/icons";
 import { BarSize } from "@/app/dashboard/layout_client";
-import { memo, PropsWithChildren } from "react";
+import { memo, PropsWithChildren, useEffect, useRef } from "react";
 import SettingsTool from "./tool/settings/settings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLogger } from "@/utils/logger";
@@ -30,9 +30,17 @@ import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
 import { hasRole } from "@/auth/rbac";
-import { ProjectRole, ProjectStatus } from "@/types/project";
+import {
+  ProjectRole,
+  ProjectStatus,
+  ProjectStatusLabels,
+} from "@/types/project";
 import { QueryKey } from "@/utils/react_query";
 import { ProjectById } from "@/app/dashboard/projects/[projectId]/builder/action";
+import { getApiBaseUrl } from "@/utils";
+import { apiWithAuth } from "@/utils/axios";
+import { getCookie } from "@/utils/server/cookie";
+import { AccessTokenCookie } from "@/auth/cookie";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -281,7 +289,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       };
     }),
   );
-  
+
   const queryClient = useQueryClient();
 
   const router = useRouter();
@@ -290,49 +298,190 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
     token: { colorSplit },
   } = theme.useToken();
 
+  type StatusMessageEvent = {
+    status: ProjectStatus;
+    error?: any;
+  };
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    // Don't start streaming if not in processing status
+    if (project.status !== ProjectStatus.Processing) {
+      abortControllerRef.current = null;
+      return;
+    }
+
+    abortControllerRef.current = new AbortController();
+    const currentController = abortControllerRef.current;
+
+    const streamStatusMessage = async () => {
+      try {
+        const accessToken = await getCookie(AccessTokenCookie);
+        const response = await fetch(
+          `${getApiBaseUrl()}/api/v1/projects/${project.id}/sse/status`,
+          {
+            signal: currentController.signal,
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: "text/event-stream",
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (!response.body) {
+          throw new Error("No response body for SSE fetch.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        try {
+          while (!currentController.signal.aborted) {
+            const { value, done } = await reader.read();
+
+            if (done) {
+              logger.info("Status sse stream completed");
+              break;
+            }
+
+            if (value) {
+              buffer += decoder.decode(value, { stream: true });
+              // Example line: event:status,data:{"status":1}
+              let lines = buffer.split("\n");
+              buffer = lines.pop() || "";
+
+              let eventType: string | null = null;
+
+              for (const line of lines) {
+                if (line.startsWith("event:")) {
+                  // event: length is 6
+                  eventType = line.slice(6).trim();
+                } else if (line.startsWith("data:")) {
+                  try {
+                    const data: StatusMessageEvent = JSON.parse(
+                      line.slice(5).trim(),
+                    );
+                    logger.info(
+                      `Received event: ${eventType ?? "unknown"}, status: ${ProjectStatusLabels[data.status] ?? "Unknown Status"}`,
+                    );
+
+                    if (
+                      data.status === ProjectStatus.Completed ||
+                      data.status === ProjectStatus.Draft
+                    ) {
+                      logger.info(
+                        `Status changed to: ${ProjectStatusLabels[data.status] ?? "Unknown Status"}`,
+                      );
+                      reader.cancel();
+                      abortControllerRef.current = null;
+
+                      switch (data.status) {
+                        case ProjectStatus.Completed:
+                          modal.success({
+                            title: "Certificates generated successfully",
+                            content: (
+                              <div className="motion-preset-confetti">
+                                <p>
+                                  Certificates have been generated successfully.
+                                </p>
+                                <p>
+                                  <Button
+                                    type="link"
+                                    onClick={() => {
+                                      router.push(
+                                        `/dashboard/projects/${project.id}/certificates`,
+                                      );
+                                    }}
+                                  >
+                                    Go to Generated Certificates Page
+                                  </Button>
+                                </p>
+                              </div>
+                            ),
+                          });
+                          break;
+                        case ProjectStatus.Draft:
+                          modal.warning({
+                            title: "Could not generate certificates",
+                            content: (
+                              <div>
+                                <p>
+                                  There was an issue generating the
+                                  certificates. The project has been reset to
+                                  draft status.
+                                </p>
+                              </div>
+                            ),
+                          });
+                          break;
+                      }
+
+                      queryClient.invalidateQueries({
+                        queryKey: [QueryKey.ProjectBuilderById, project.id],
+                      });
+
+                      return;
+                    }
+                  } catch (parseError) {
+                    logger.error(
+                      "Error parsing status event data:",
+                      parseError,
+                    );
+                  } finally {
+                    eventType = null;
+                  }
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      } catch (error: any) {
+        if (error.name === "AbortError") {
+          logger.warn("SSE stream was aborted");
+        } else {
+          logger.error("Error streaming SSE with fetch:", error);
+        }
+      }
+    };
+
+    streamStatusMessage();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, [project.id, project.status]);
+
   const { mutateAsync: onGenerateCertificatesMutation, isPending: generating } =
     useMutation({
       mutationFn: onGenerateCertificates,
-      onSuccess: (data, variables) => {
+      onSuccess: async (data, variables) => {
         if (!data.success) {
           const { errors } = data;
-
           // TODO: add more specific error handling
           const specificError = getTranslatedErrorMessage(errors, {
             status:
               "Certificates cannot be generated as the project is not in draft status!",
             noAnnotate:
-              "Certificates cannot be generated as because there are no annotations!",
+              "Certificates cannot be generated because there is no annotates!",
           });
           if (specificError) {
             message.error(specificError);
             return;
           }
-
           message.error("Failed to generate certificates");
           return;
         }
-
-        modal.success({
-          title: "Certificates generated successfully",
-          content: (
-            <div className="motion-preset-confetti">
-              <p>Certificates have been generated successfully.</p>
-              <p>
-                <Button
-                  type="link"
-                  onClick={() => {
-                    router.push(
-                      `/dashboard/projects/${project.id}/certificates`,
-                    );
-                  }}
-                >
-                  Go to Generated Certificates Page
-                </Button>
-              </p>
-            </div>
-          ),
-        });
       },
       onMutate: async (variables) => {
         // Cancel any outgoing refetches
@@ -394,7 +543,11 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
   const isProcessing = project.status === ProjectStatus.Processing;
   const allSignaturesSigned = signaturesSigned === signatureCount;
   const canGenerate =
-    !generating && !isProcessing && isDraft && isRequestor && allSignaturesSigned;
+    !generating &&
+    !isProcessing &&
+    isDraft &&
+    isRequestor &&
+    allSignaturesSigned;
 
   return (
     <Flex
