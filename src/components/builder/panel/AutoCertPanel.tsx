@@ -21,7 +21,7 @@ import {
   ToolOutlined,
 } from "@ant-design/icons";
 import { BarSize } from "@/app/dashboard/layout_client";
-import { memo, PropsWithChildren, useEffect, useRef } from "react";
+import { memo, PropsWithChildren, useCallback, useEffect, useRef } from "react";
 import SettingsTool from "./tool/settings/settings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLogger } from "@/utils/logger";
@@ -38,7 +38,6 @@ import {
 import { QueryKey } from "@/utils/react_query";
 import { ProjectById } from "@/app/dashboard/projects/[projectId]/builder/action";
 import { getApiBaseUrl } from "@/utils";
-import { apiWithAuth } from "@/utils/axios";
 import { getCookie } from "@/utils/server/cookie";
 import { AccessTokenCookie } from "@/auth/cookie";
 
@@ -304,163 +303,199 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
   };
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const streamingRef = useRef<boolean>(false);
 
   useEffect(() => {
     // Don't start streaming if not in processing status
     if (project.status !== ProjectStatus.Processing) {
-      abortControllerRef.current = null;
+      cleanupStream();
       return;
     }
 
+    if (streamingRef.current) {
+      logger.info("Already streaming SSE, skipping new connection.");
+      return;
+    }
+
+    startSSEStream();
+
+    return () => {
+      cleanupStream();
+    };
+  }, [project.id, project.status]);
+
+  const cleanupStream = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    streamingRef.current = false;
+  }, []);
+
+  const startSSEStream = useCallback(async () => {
+    // Prevent multiple concurrent streams
+    if (streamingRef.current) {
+      return;
+    }
+
+    streamingRef.current = true;
     abortControllerRef.current = new AbortController();
     const currentController = abortControllerRef.current;
 
-    const streamStatusMessage = async () => {
-      try {
-        const accessToken = await getCookie(AccessTokenCookie);
-        const response = await fetch(
-          `${getApiBaseUrl()}/api/v1/projects/${project.id}/sse/status`,
-          {
-            signal: currentController.signal,
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              Accept: "text/event-stream",
-            },
+    try {
+      const accessToken = await getCookie(AccessTokenCookie);
+      const response = await fetch(
+        `${getApiBaseUrl()}/api/v1/projects/${project.id}/sse/status`,
+        {
+          signal: currentController.signal,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "text/event-stream",
           },
-        );
+        },
+      );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        if (!response.body) {
-          throw new Error("No response body for SSE fetch.");
-        }
+      if (!response.body) {
+        throw new Error("No response body for SSE fetch.");
+      }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-        try {
-          while (!currentController.signal.aborted) {
-            const { value, done } = await reader.read();
+      try {
+        while (!currentController.signal.aborted) {
+          const { value, done } = await reader.read();
 
-            if (done) {
-              logger.info("Status sse stream completed");
-              break;
-            }
+          if (done) {
+            logger.info("Status SSE stream completed normally");
+            break;
+          }
 
-            if (value) {
-              buffer += decoder.decode(value, { stream: true });
-              // Example line: event:status,data:{"status":1}
-              let lines = buffer.split("\n");
-              buffer = lines.pop() || "";
+          if (value) {
+            buffer += decoder.decode(value, { stream: true });
+            // Example line: event:status,data:{"status":1}
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
 
-              let eventType: string | null = null;
+            let eventType: string | null = null;
 
-              for (const line of lines) {
-                if (line.startsWith("event:")) {
-                  // event: length is 6
-                  eventType = line.slice(6).trim();
-                } else if (line.startsWith("data:")) {
-                  try {
-                    const data: StatusMessageEvent = JSON.parse(
-                      line.slice(5).trim(),
-                    );
+            for (const line of lines) {
+              if (line.startsWith("event:")) {
+                // 'event:' length is 6, so we slice from index 6
+                eventType = line.slice(6).trim();
+              } else if (line.startsWith("data:")) {
+                try {
+                  const data: StatusMessageEvent = JSON.parse(
+                    line.slice(5).trim(),
+                  );
+
+                  logger.info(
+                    `Received SSE event: ${eventType ?? "unknown"}, status: ${ProjectStatusLabels[data.status] ?? "Unknown Status"}`,
+                  );
+
+                  if (
+                    data.status === ProjectStatus.Completed ||
+                    data.status === ProjectStatus.Draft
+                  ) {
                     logger.info(
-                      `Received event: ${eventType ?? "unknown"}, status: ${ProjectStatusLabels[data.status] ?? "Unknown Status"}`,
+                      `Project status changed to terminal state: ${ProjectStatusLabels[data.status] ?? "Unknown Status"}`,
                     );
 
-                    if (
-                      data.status === ProjectStatus.Completed ||
-                      data.status === ProjectStatus.Draft
-                    ) {
-                      logger.info(
-                        `Status changed to: ${ProjectStatusLabels[data.status] ?? "Unknown Status"}`,
-                      );
-                      reader.cancel();
-                      abortControllerRef.current = null;
+                    await reader.cancel();
+                    cleanupStream();
 
-                      switch (data.status) {
-                        case ProjectStatus.Completed:
-                          modal.success({
-                            title: "Certificates generated successfully",
-                            content: (
-                              <div className="motion-preset-confetti">
-                                <p>
-                                  Certificates have been generated successfully.
-                                </p>
-                                <p>
-                                  <Button
-                                    type="link"
-                                    onClick={() => {
-                                      router.push(
-                                        `/dashboard/projects/${project.id}/certificates`,
-                                      );
-                                    }}
-                                  >
-                                    Go to Generated Certificates Page
-                                  </Button>
-                                </p>
-                              </div>
-                            ),
-                          });
-                          break;
-                        case ProjectStatus.Draft:
-                          modal.warning({
-                            title: "Could not generate certificates",
-                            content: (
-                              <div>
-                                <p>
-                                  There was an issue generating the
-                                  certificates. The project has been reset to
-                                  draft status.
-                                </p>
-                              </div>
-                            ),
-                          });
-                          break;
-                      }
+                    handleTerminalStatus(data.status);
 
-                      queryClient.invalidateQueries({
-                        queryKey: [QueryKey.ProjectBuilderById, project.id],
-                      });
+                    await queryClient.cancelQueries({
+                      queryKey: [QueryKey.ProjectBuilderById, project.id],
+                    });
 
-                      return;
-                    }
-                  } catch (parseError) {
-                    logger.error(
-                      "Error parsing status event data:",
-                      parseError,
-                    );
-                  } finally {
-                    eventType = null;
+                    await queryClient.invalidateQueries({
+                      queryKey: [QueryKey.ProjectBuilderById, project.id],
+                    });
+
+                    return;
                   }
+                } catch (parseError) {
+                  logger.error("Error parsing SSE event data:", parseError);
+                } finally {
+                  eventType = null;
                 }
               }
             }
           }
-        } finally {
+        }
+      } finally {
+        try {
           reader.releaseLock();
+        } catch (e) {
+          // Reader might already be released
+          logger.debug("Reader already released or error releasing:", e);
         }
-      } catch (error: any) {
-        if (error.name === "AbortError") {
-          logger.warn("SSE stream was aborted");
-        } else {
-          logger.error("Error streaming SSE with fetch:", error);
-        }
+        streamingRef.current = false;
       }
-    };
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        logger.debug("SSE stream was intentionally aborted");
+      } else {
+        logger.error("Error in SSE stream:", error);
 
-    streamStatusMessage();
-
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
+        message.error(
+          "Project status stream connection lost. Please refresh the page.",
+        );
       }
-    };
-  }, [project.id, project.status]);
+    } finally {
+      streamingRef.current = false;
+    }
+  }, [project.id]);
+
+  const handleTerminalStatus = useCallback(
+    (status: ProjectStatus) => {
+      switch (status) {
+        case ProjectStatus.Completed:
+          modal.success({
+            title: "Certificates generated successfully",
+            content: (
+              <div className="motion-preset-confetti">
+                <p>Certificates have been generated successfully.</p>
+                <p>
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      router.push(
+                        `/dashboard/projects/${project.id}/certificates`,
+                      );
+                    }}
+                  >
+                    Go to Generated Certificates Page
+                  </Button>
+                </p>
+              </div>
+            ),
+          });
+          break;
+        case ProjectStatus.Draft:
+          modal.warning({
+            title: "Could not generate certificates",
+            content: (
+              <div>
+                <p>
+                  There was an issue generating the certificates. The project
+                  has been reset to draft status.
+                </p>
+              </div>
+            ),
+          });
+          break;
+      }
+    },
+    [project.id, router, modal],
+  );
 
   const { mutateAsync: onGenerateCertificatesMutation, isPending: generating } =
     useMutation({
@@ -530,7 +565,8 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
         }
       },
       onSettled: async () => {
-        await invalidateBuilderQueries();
+        // don't invalidate since sse will handle it
+        // await invalidateBuilderQueries();
       },
     });
 
