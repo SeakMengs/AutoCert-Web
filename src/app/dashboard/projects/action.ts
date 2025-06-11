@@ -79,7 +79,9 @@ export async function getOwnProjectsAction(
 }
 
 export type CreateProjectParams = z.infer<typeof createProjectSchema>;
-export type CreateProjectSuccessResponse = z.infer<typeof createProjectSuccessResponseSchema>;
+export type CreateProjectSuccessResponse = z.infer<
+  typeof createProjectSuccessResponseSchema
+>;
 
 export async function createProjectAction(
   data: CreateProjectParams,
@@ -120,5 +122,37 @@ export async function createProjectAction(
     logger.error("Failed to create project", error);
 
     return responseSomethingWentWrong("Failed to create project");
+  }
+}
+
+export type DeleteProjectByIdParams = {
+  projectId: string;
+};
+export type DeleteProjectByIdSuccessResponse = {};
+
+export async function deleteProjectByIdAction(
+  data: DeleteProjectByIdParams,
+): Promise<ResponseJson<DeleteProjectByIdSuccessResponse, {}>> {
+  try {
+    logger.info("delete project by id action", data);
+
+    const url = `/api/v1/projects/${data.projectId}/`;
+    const res =
+      await apiWithAuth.delete<
+        ResponseJson<DeleteProjectByIdSuccessResponse, {}>
+      >(url);
+
+    if (!res.data.success) {
+      return res.data;
+    }
+
+    return {
+      ...res.data,
+      data: {},
+    };
+  } catch (error) {
+    logger.error("Failed to delete project by id", error);
+
+    return responseSomethingWentWrong("Failed to delete project by id");
   }
 }

@@ -6,6 +6,7 @@ import { DownloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { z } from "zod";
 import { ProjectLogSchema } from "@/schemas/autocert_api/project";
 import moment from "moment";
+import { exportActivityLogToCSV } from "./utils";
 
 const { Text, Paragraph } = Typography;
 
@@ -13,12 +14,14 @@ type ProjectLog = z.infer<typeof ProjectLogSchema>;
 
 interface ActivityLogsDialogProps {
   projectLogs: ProjectLog[];
+  projectTitle: string;
   open: boolean;
   onClose: () => void;
 }
 
 export function ActivityLogsDialog({
   projectLogs,
+  projectTitle,
   open,
   onClose,
 }: ActivityLogsDialogProps) {
@@ -41,8 +44,8 @@ export function ActivityLogsDialog({
     }
   }, [searchQuery, projectLogs]);
 
-  const handleExportPdf = async () => {
-    // await exportProjectLogsAsPdf();
+  const handleExportActivityLogToCSV = async () => {
+    exportActivityLogToCSV(projectLogs, projectTitle)
   };
 
   return (
@@ -68,7 +71,7 @@ export function ActivityLogsDialog({
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ flex: 1 }}
           />
-          <Button icon={<DownloadOutlined />} onClick={handleExportPdf}>
+          <Button icon={<DownloadOutlined />} onClick={handleExportActivityLogToCSV}>
             Export to csv
           </Button>
         </Flex>

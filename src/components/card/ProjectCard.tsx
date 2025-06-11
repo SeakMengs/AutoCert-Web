@@ -1,10 +1,13 @@
 "use client";
 import {
+  App,
   Avatar,
   Badge,
+  Button,
   Card,
   CardProps,
   Flex,
+  Popconfirm,
   Skeleton,
   Tag,
   Tooltip,
@@ -13,6 +16,7 @@ import React, { memo } from "react";
 import {
   CheckCircleFilled,
   CloseCircleFilled,
+  DeleteOutlined,
   EyeOutlined,
   SignatureOutlined,
   ToolOutlined,
@@ -31,6 +35,12 @@ import {
 } from "@/types/project";
 import { useImageSrc } from "@/hooks/useImageSrc";
 import { cn } from "@/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createScopedLogger } from "@/utils/logger";
+import { deleteProjectByIdAction } from "@/app/dashboard/projects/action";
+import { QueryKey } from "@/utils/react_query";
+
+const logger = createScopedLogger("src:components:card:ProjectCard");
 
 export type ProjectCardProps = {
   project: z.infer<typeof ProjectSchema>;
@@ -83,10 +93,34 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
   const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
     `/api/proxy/projects/${project.id}/thumbnail`,
   );
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: handleRemoveProjectBydId, isPending: deleting } =
+    useMutation({
+      mutationFn: async () =>
+        await deleteProjectByIdAction({
+          projectId: project.id,
+        }),
+      onError: (error) => {
+        logger.error("Failed to delete project", error);
+
+        message.error(`Failed to delete project: ${project.title}`);
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: [QueryKey.OwnProjects],
+        });
+      },
+    });
 
   const getActions = (): CardProps["actions"] => {
     const actions: CardProps["actions"] = [];
-    if (project.status === ProjectStatus.Completed) {
+    if (
+      (project.status === ProjectStatus.Completed &&
+        projectRole === ProjectRole.Requestor) ||
+      projectRole === ProjectRole.Signatory
+    ) {
       actions.push(
         <Tooltip title="View Generated Certificates">
           <Link href={`/dashboard/projects/${project.id}/certificates`}>
@@ -105,10 +139,30 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
             </Link>
           </Tooltip>,
         );
+        actions.push(
+          <Popconfirm
+            title={`Are you sure you want to delete the project "${project.title}"?`}
+            onConfirm={async () => {
+              await handleRemoveProjectBydId();
+            }}
+          >
+            <Tooltip title="Delete">
+              <Button
+                variant="text"
+                size="small"
+                color="red"
+                danger
+                icon={<DeleteOutlined />}
+                loading={deleting}
+                disabled={deleting}
+              />
+            </Tooltip>
+          </Popconfirm>,
+        );
         break;
       case ProjectRole.Signatory:
         actions.push(
-          <Tooltip title="Approve signature request">
+          <Tooltip title="Review Signature Request">
             <Link href={`/dashboard/projects/${project.id}/builder`}>
               <SignatureOutlined />
             </Link>

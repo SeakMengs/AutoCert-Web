@@ -246,6 +246,7 @@ export default function Header({
       </Flex>
       <ActivityLogsDialog
         projectLogs={logs}
+        projectTitle= {title}
         open={isActivityLogOpen}
         onClose={() => setIsActivityLogOpen(false)}
       />

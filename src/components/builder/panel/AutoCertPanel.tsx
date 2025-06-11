@@ -1,4 +1,5 @@
 import {
+  Alert,
   App,
   Button,
   Collapse,
@@ -51,6 +52,10 @@ const { Text } = Typography;
 
 function AutoCertPanel({}: AutoCertPanelProps) {
   const {
+    project,
+    roles,
+    signaturesSigned,
+    signatureCount,
     // Annotate
     selectedAnnotateId,
     currentPdfPage,
@@ -83,6 +88,10 @@ function AutoCertPanel({}: AutoCertPanelProps) {
   } = useAutoCertStore(
     useShallow((state) => {
       return {
+        project: state.project,
+        signaturesSigned: state.signaturesSigned,
+        signatureCount: state.signatureCount,
+
         selectedAnnotateId: state.selectedAnnotateId,
         currentPdfPage: state.currentPdfPage,
         columnAnnotates: state.columnAnnotates,
@@ -116,6 +125,31 @@ function AutoCertPanel({}: AutoCertPanelProps) {
       };
     }),
   );
+
+  const isRequestor = hasRole(roles, ProjectRole.Requestor);
+  const isDraft = project.status === ProjectStatus.Draft;
+  const isProcessing = project.status === ProjectStatus.Processing;
+  const allSignaturesSigned = signaturesSigned === signatureCount;
+  const canGenerate =
+    !isProcessing && isDraft && isRequestor && allSignaturesSigned;
+
+  const cannotGenerateReasons: string[] = [];
+  if (isProcessing) {
+    cannotGenerateReasons.push("Generating certificates.");
+  }
+  if (!isDraft) {
+    cannotGenerateReasons.push(
+      "Certificates can only be generated when the project is in draft status.",
+    );
+  }
+  if (!isRequestor) {
+    cannotGenerateReasons.push("Only the requestor can generate certificates.");
+  }
+  if (!allSignaturesSigned) {
+    cannotGenerateReasons.push(
+      "All signatures must be signed before generating certificates.",
+    );
+  }
 
   const {
     token: { colorBgContainer },
@@ -195,6 +229,27 @@ function AutoCertPanel({}: AutoCertPanelProps) {
             bordered={false}
             expandIconPosition="end"
           />
+          {/* Show reason if cannot generate */}
+          {!canGenerate && (
+            <div className="mt-2">
+              <Alert
+                message="Cannot generate certificates because:"
+                description={
+                  cannotGenerateReasons.length > 0 ? (
+                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                      {cannotGenerateReasons.map((reason, index) => (
+                        <li key={index}>{reason}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "Unable to generate certificates."
+                  )
+                }
+                type="warning"
+                showIcon
+              />
+            </div>
+          )}
         </TabItemLayout>
       ),
     },
@@ -343,6 +398,10 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
     const currentController = abortControllerRef.current;
 
     try {
+      await queryClient.cancelQueries({
+        queryKey: [QueryKey.ProjectBuilderById, project.id],
+      });
+
       const accessToken = await getCookie(AccessTokenCookie);
       const response = await fetch(
         `${getApiBaseUrl()}/api/v1/projects/${project.id}/sse/status`,
