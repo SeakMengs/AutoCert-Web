@@ -27,6 +27,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
 import { AuthUser } from "@/auth";
 import { logout } from "@/auth/server/action";
+import Link from "next/link";
 
 const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
@@ -184,23 +185,25 @@ function Logo({ collapsed }: { collapsed: boolean }) {
   } = theme.useToken();
 
   return (
-    <Flex
-      justify="center"
-      align="center"
-      style={{ height: BarSize, borderBottom: `1px solid ${colorSplit}` }}
-      // gap={4}
-    >
-      <Image src="/logo.svg" alt="logo" width={48} height={48} />
-      <Title
-        level={3}
-        style={{
-          display: collapsed ? "none" : "block",
-        }}
-        className="motion-preset-blur-right m-0 text-blue-600"
+    <Link href={"/"}>
+      <Flex
+        justify="center"
+        align="center"
+        style={{ height: BarSize, borderBottom: `1px solid ${colorSplit}` }}
+        // gap={4}
       >
-        {APP_NAME}
-      </Title>
-    </Flex>
+        <Image src="/logo.svg" alt="logo" width={48} height={48} />
+        <Title
+          level={3}
+          style={{
+            display: collapsed ? "none" : "block",
+          }}
+          className="motion-preset-blur-right m-0 text-blue-600"
+        >
+          {APP_NAME}
+        </Title>
+      </Flex>
+    </Link>
   );
 }
 

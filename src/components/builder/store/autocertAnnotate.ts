@@ -563,6 +563,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
         type: AutoCertChangeType.AnnotateSignatureInvite,
         data: {
           id: id,
+          sendMail: true,
         },
       });
     },

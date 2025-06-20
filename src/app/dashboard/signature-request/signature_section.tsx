@@ -288,7 +288,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <Tabs
           items={tabs}

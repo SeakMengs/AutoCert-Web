@@ -49,7 +49,7 @@ export function MobileMenu({ isAuthenticated }: MobileMenuProps) {
                     key: "login",
                     icon: <GoogleOutlined />,
                     label: (
-                      <Link href="/api/oauth/google">Login with Google</Link>
+                      <Link href="/api/oauth/google" prefetch={false}>Login with Google</Link>
                     ),
                   },
                 ]

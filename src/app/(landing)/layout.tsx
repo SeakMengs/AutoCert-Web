@@ -42,7 +42,7 @@ export default async function LandingLayout({ children }: PropsWithChildren) {
             </Space>
           ) : (
             <Space>
-              <Link href={"/api/oauth/google"}>
+              <Link href={"/api/oauth/google"} prefetch={false}>
                 <Button type="primary" icon={<GoogleOutlined />}>
                   Login
                 </Button>
@@ -63,7 +63,7 @@ export default async function LandingLayout({ children }: PropsWithChildren) {
           <Paragraph className="text-gray-600 mb-2">
             © 2025 {APP_NAME}. All rights reserved.
           </Paragraph>
-          <Space split={<Divider type="vertical" />} wrap>
+          {/* <Space split={<Divider type="vertical" />} wrap>
             <Button type="link" className="text-gray-500">
               Bulk Certificate Creation
             </Button>
@@ -73,7 +73,7 @@ export default async function LandingLayout({ children }: PropsWithChildren) {
             <Button type="link" className="text-gray-500">
               Certificate Repository
             </Button>
-          </Space>
+          </Space> */}
         </div>
       </Footer>
     </Layout>

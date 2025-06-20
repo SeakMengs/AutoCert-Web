@@ -27,7 +27,7 @@ export default function AutoCertLanding() {
       icon: <DatabaseOutlined className="text-4xl text-blue-600" />,
       title: "Certificate Repository",
       description:
-        "Centralized storage and management of all your certificates with search, share, download, and print capabilities.",
+        "Storage and management of all your generated certificates with share, download, and print capabilities.",
     },
   ];
 
