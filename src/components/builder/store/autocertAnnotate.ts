@@ -124,7 +124,7 @@ const newSignatureAnnotate = (): SignatureAnnotateState => {
     y: 0,
     width: SignatureAnnotateWidth,
     height: SignatureAnnotateHeight,
-    signatureData: "",
+    signatureUrl: "",
     email: "",
     status: SignatoryStatus.NotInvited,
     color: AnnotateColor,

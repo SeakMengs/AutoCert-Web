@@ -120,9 +120,10 @@ export default function SignatureAnnotateCard({
             ) : (
               <SignatoryStatusTag status={signatureAnnotate.status} />
             )}
-            <Text type="secondary" className="text-xs">
+          {/* TODO: uncomment this if we allow multiple pdf pages */}
+            {/* <Text type="secondary" className="text-xs">
               Page: {pageNumber}
-            </Text>
+            </Text> */}
           </div>
         </Flex>
 

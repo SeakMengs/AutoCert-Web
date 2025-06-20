@@ -49,14 +49,13 @@ export async function getProjectByIdAction(data: GetProjectByIdParams): Promise<
     const parseData = getProjectByIdSuccessResponseSchema.safeParse(
       res.data.data,
     );
-
     if (!parseData.success) {
       return responseFailed(
         "Parse and get invalid expect response data",
         formatZodError(parseData.error),
       );
     }
-
+    
     return {
       ...res.data,
       data: parseData.data,

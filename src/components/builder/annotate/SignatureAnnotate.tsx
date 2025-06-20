@@ -23,7 +23,7 @@ export type SignatureAnnotateLock = BaseAnnotateLock & {
 };
 
 export type BaseSignatureAnnotate = {
-  signatureData?: string;
+  signatureUrl?: string;
   email: string;
   status: SignatoryStatus;
   reason?: string;
@@ -37,7 +37,7 @@ export interface SignatureAnnotateProps
 }
 
 function SignatureAnnotate({
-  signatureData,
+  signatureUrl,
   email,
   status,
   isCurrentSignatory,
@@ -50,10 +50,10 @@ function SignatureAnnotate({
       }}
       {...restProps}
     >
-      {signatureData ? (
+      {signatureUrl ? (
         // eslint-disable-next-line
         <img
-          src={signatureData}
+          src={signatureUrl}
           alt="Signature"
           className="w-full h-full pointer-events-none select-none!"
         />

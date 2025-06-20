@@ -10,11 +10,14 @@ import {
   SignatureAnnotateStates,
   ColumnAnnotateStates,
   AnnotateStates,
+  SignatureAnnotateState,
+  ColumnAnnotateState,
 } from "@/components/builder/store/autocertAnnotate";
 import { AutoCertChangeType } from "@/components/builder/store/autocertChangeSlice";
 import { AutoCertSettings } from "@/components/builder/store/autocertSettingSlice";
 
-interface ProjectBuilderWithProviderProps extends Omit<ProjectBuilderProps, "contextValue"> {
+interface ProjectBuilderWithProviderProps
+  extends Omit<ProjectBuilderProps, "contextValue"> {
   user: AuthUser;
 }
 
@@ -30,43 +33,23 @@ export default function ProjectBuilderWithProvider({
 
     if (project.signatureAnnotates) {
       for (const sig of project.signatureAnnotates) {
-        sigAnnot[sig.page] = [
-          ...(sigAnnot[sig.page] || []),
-          {
-            ...sig,
-            type: "signature",
-            signatureData: "",
-            status: sig.status,
-          },
-        ];
-        annot[sig.page] = [
-          ...(annot[sig.page] || []),
-          {
-            ...sig,
-            type: "signature",
-            signatureData: "",
-            status: sig.status,
-          },
-        ];
+        const sigWithType = {
+          ...sig,
+          type: "signature",
+        } satisfies SignatureAnnotateState;
+        sigAnnot[sig.page] = [...(sigAnnot[sig.page] || []), sigWithType];
+        annot[sig.page] = [...(annot[sig.page] || []), sigWithType];
       }
     }
 
     if (project.columnAnnotates) {
       for (const col of project.columnAnnotates) {
-        colAnnot[col.page] = [
-          ...(colAnnot[col.page] || []),
-          {
-            ...col,
-            type: "column",
-          },
-        ];
-        annot[col.page] = [
-          ...(annot[col.page] || []),
-          {
-            ...col,
-            type: "column",
-          },
-        ];
+        const colWithType = {
+          ...col,
+          type: "column",
+        } satisfies ColumnAnnotateState;
+        colAnnot[col.page] = [...(colAnnot[col.page] || []), colWithType];
+        annot[col.page] = [...(annot[col.page] || []), colWithType];
       }
     }
 
@@ -148,7 +131,7 @@ export default function ProjectBuilderWithProvider({
 
   return (
     <AutoCertStoreProvider value={contextValue}>
-      <Builder project={project} roles={roles} contextValue={contextValue}/>
+      <Builder project={project} roles={roles} contextValue={contextValue} />
     </AutoCertStoreProvider>
   );
 }

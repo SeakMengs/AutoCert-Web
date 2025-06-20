@@ -63,9 +63,10 @@ export default function ColumnAnnotateCard({
               }}
             />
           </Tooltip>
-          <Text type="secondary" className="text-xs">
+          {/* TODO: uncomment this if we allow multiple pdf pages */}
+          {/* <Text type="secondary" className="text-xs">
             Page: {pageNumber}
-          </Text>
+          </Text> */}
         </Space>
         <Space>
           <ColumnAnnotateEdit
