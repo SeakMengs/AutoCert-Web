@@ -26,6 +26,7 @@ export default function PdfThumbnail({
   pdfUrl,
   skeletonClassName,
 }: PdfThumbnailProps) {
+  const [pdfUrlOnce, setPdfUrlOnce] = useState<string | File | null>(pdfUrl);
   const [pdfPages, setPdfPages] = useState<number>(0);
   const { ref, inView } = useInView({
     triggerOnce: true,
@@ -40,20 +41,27 @@ export default function PdfThumbnail({
     }
   }, [pdfUrl]);
 
+  // Render only once when the component mounts since thumbnail is static
+  useEffect(() => {
+    if (pdfUrl) {
+      setPdfUrlOnce(pdfUrl);
+    }
+  }, []);
+
   return (
     <div ref={ref} className="relative overflow-hidden h-full w-full">
       {/* Key must change every refresh, since we use presigned url, using certificateUrl is ok
             Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216 */}
       <Document
         key={
-          typeof pdfUrl === "string"
-            ? pdfUrl
-            : pdfUrl instanceof File
-              ? pdfUrl.name + pdfUrl.size + pdfUrl.lastModified
+          typeof pdfUrlOnce === "string"
+            ? pdfUrlOnce
+            : pdfUrlOnce instanceof File
+              ? pdfUrlOnce.name + pdfUrlOnce.size + pdfUrlOnce.lastModified
               : "no-pdf"
         }
         className={"w-full h-full"}
-        file={pdfUrl}
+        file={pdfUrlOnce}
         onLoadSuccess={(pdf) => {
           setPdfPages(pdf.numPages);
         }}
