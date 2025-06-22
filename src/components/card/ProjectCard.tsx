@@ -34,11 +34,11 @@ import {
   SignatoryStatusLabels,
 } from "@/types/project";
 import { useImageSrc } from "@/hooks/useImageSrc";
-import { cn } from "@/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLogger } from "@/utils/logger";
 import { deleteProjectByIdAction } from "@/app/dashboard/projects/action";
 import { QueryKey } from "@/utils/react_query";
+import PdfThumbnail from "../pdf/PdfThumbnail";
 
 const logger = createScopedLogger("src:components:card:ProjectCard");
 
@@ -90,9 +90,9 @@ const GetBadgeIcon = ({ status }: { status: SignatoryStatus }) => {
 };
 
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
-  const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
-    `/api/proxy/projects/${project.id}/thumbnail`,
-  );
+  // const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
+  //   `/api/proxy/projects/${project.id}/thumbnail`,
+  // );
   const { message } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -180,7 +180,7 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
         <div className="relative w-full h-64 sm:h-48 xs:h-36">
-          <Image
+          {/* <Image
             className={cn("rounded-sm object-cover w-full", {
               "opacity-0": loading,
             })}
@@ -200,7 +200,11 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
                 className={cn("rounded-sm object-cover w-full h-full")}
               />
             </div>
-          )}
+          )} */}
+          <PdfThumbnail
+            pdfUrl={project.templateUrl}
+            skeletonClassName="h-64 sm:h-48 xs:h-36"
+          />
         </div>
       }
       actions={getActions()}

@@ -66,29 +66,32 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
         className="flex-col gap-2 sm:flex-row sm:gap-0 w-full"
         style={{ width: "100%" }}
       >
-        <Space align="center" className="w-full justify-center sm:w-auto sm:justify-start">
+        <Space
+          align="center"
+          className="w-full justify-center sm:w-auto sm:justify-start"
+        >
           <Button
-        icon={<LeftOutlined />}
-        onClick={handlePrevPage}
-        disabled={pageNumber === 1 || isLoading}
+            icon={<LeftOutlined />}
+            onClick={handlePrevPage}
+            disabled={pageNumber === 1 || isLoading}
           />
 
           {isLoading ? (
-        <Skeleton.Input active />
+            <Skeleton.Input active />
           ) : (
-        <Text className="text-gray-500">{`Page ${pageNumber} of ${pdfPages}`}</Text>
+            <Text className="text-gray-500">{`Page ${pageNumber} of ${pdfPages}`}</Text>
           )}
 
           <Button
-        icon={<RightOutlined />}
-        onClick={handleNextPage}
-        disabled={pageNumber === pdfPages || isLoading}
+            icon={<RightOutlined />}
+            onClick={handleNextPage}
+            disabled={pageNumber === pdfPages || isLoading}
           />
         </Space>
         <div className="w-full flex justify-center sm:w-auto sm:justify-end">
           <ZoomPanel
-        transformWrapperRef={transformWrapperRef}
-        zoomScale={zoomScale}
+            transformWrapperRef={transformWrapperRef}
+            zoomScale={zoomScale}
           />
         </div>
       </Flex>

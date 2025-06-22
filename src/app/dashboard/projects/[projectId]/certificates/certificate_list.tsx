@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import {
   Card,
   Button,
@@ -13,7 +12,6 @@ import {
   Space,
   Flex,
   App,
-  Skeleton,
 } from "antd";
 import {
   DownloadOutlined,
@@ -29,9 +27,9 @@ import moment from "moment";
 import { createScopedLogger } from "@/utils/logger";
 import { downloadCertificate, toCertificateTitle } from "./utils";
 import { useMutation } from "@tanstack/react-query";
-import { useImageSrc } from "@/hooks/useImageSrc";
-import { cn, DOMAIN } from "@/utils";
+import { DOMAIN } from "@/utils";
 import PdfViwer from "@/components/pdf/PdfViewer";
+import PdfThumbnail from "@/components/pdf/PdfThumbnail";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:certificate_list",
@@ -133,9 +131,9 @@ function GridView({
   certificate,
   onCertificateView,
 }: GridViewProps) {
-  const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
-    `/api/proxy/projects/${projectId}/certificates/${certificate.number}/thumbnail`,
-  );
+  // const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
+  //   `/api/proxy/projects/${projectId}/certificates/${certificate.number}/thumbnail`,
+  // );
   const { message } = App.useApp();
   const { onPrint, printLoading, setPrintLoading } = usePrint();
 
@@ -199,7 +197,7 @@ function GridView({
         hoverable
         cover={
           <div className="relative w-full h-64 sm:h-48 xs:h-36">
-            <Image
+            {/* <Image
               className={cn("rounded-sm object-cover w-full", {
                 "opacity-0": loading,
               })}
@@ -219,7 +217,11 @@ function GridView({
                   className={cn("rounded-sm object-cover w-full h-full")}
                 />
               </div>
-            )}
+            )} */}
+            <PdfThumbnail
+              pdfUrl={certificate.certificateUrl}
+              skeletonClassName="h-64 sm:h-48 xs:h-36"
+            />
           </div>
         }
       >

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Button, Space, Flex, Typography, Skeleton } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import {  Space, Flex, Typography, Skeleton } from "antd";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
