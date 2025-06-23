@@ -50,7 +50,7 @@ export default function PdfThumbnail({
         });
         const page = await pdf.getPage(pageNumber);
 
-        const viewport = page.getViewport({ scale: 2 });
+        const viewport = page.getViewport({ scale: 1 });
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
 

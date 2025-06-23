@@ -65,9 +65,7 @@ export type AnnotateSignatureRemove = {
 
 export type AnnotateSignatureInvite = {
   type: typeof AutoCertChangeType.AnnotateSignatureInvite;
-  data: { id: string,
-    sendMail: boolean;
-   };
+  data: { id: string; sendMail: boolean };
 };
 
 export type AnnotateSignatureReject = {
@@ -313,12 +311,25 @@ export const createAutoCertChangeSlice: StateCreator<
     },
 
     invalidateQueries: async () => {
+      logger.info("Invalidating queries for project builder");
+
       await queryClient.invalidateQueries({
         queryKey: [QueryKey.ProjectBuilderById, get().project.id],
       });
     },
 
     cancelInvalidateQueries: async () => {
+      logger.info(
+        "Cancelling pending query invalidation and debounced actions",
+      );
+
+      debouncedSetUserInteractionEnd.cancel();
+      debouncedCheckAndInvalidateQueries.cancel();
+
+      set((state) => {
+        state.pendingInvalidation = false;
+      });
+
       await queryClient.cancelQueries({
         queryKey: [QueryKey.ProjectBuilderById, get().project.id],
       });

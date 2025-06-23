@@ -1,3 +1,6 @@
+// For previewing pdf when creating a project 
+// TODO: write a base component for pdf viewer then extend button for reusability
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";

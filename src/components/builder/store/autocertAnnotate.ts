@@ -30,6 +30,7 @@ import { App } from "antd";
 import { AutoCertChangeType } from "./autocertChangeSlice";
 import { responseFailed } from "@/utils/response";
 import { generateAndFormatZodError } from "@/utils/error";
+import { IS_PRODUCTION } from "@/utils/env";
 
 // TODO: Check annotate lock state in each mutation
 
@@ -154,6 +155,8 @@ export interface AutocertAnnotateSliceActions {
   setAnnotates: (annotates: AnnotateStates) => void;
 
   setSelectedAnnotateId: (id?: string) => void;
+
+  hasAtLeastOneAnnotate: () => boolean;
 
   addColumnAnnotate: (page: number, data: ColumnAnnotateFormSchema) => void;
   updateColumnAnnotate: (id: string, data: ColumnAnnotateFormSchema) => void;
@@ -322,6 +325,17 @@ export const createAutoCertAnnotateSlice: StateCreator<
       set((state) => {
         state.selectedAnnotateId = id;
       });
+    },
+
+    hasAtLeastOneAnnotate: () => {
+      const { annotates } = get();
+      const pages = Object.keys(annotates);
+      for (const page of pages) {
+        if (annotates[Number(page)].length > 0) {
+          return true;
+        }
+      }
+      return false;
     },
 
     addColumnAnnotate: (page, data) => {
@@ -563,7 +577,8 @@ export const createAutoCertAnnotateSlice: StateCreator<
         type: AutoCertChangeType.AnnotateSignatureInvite,
         data: {
           id: id,
-          sendMail: true,
+          // TIP: if test smtp in dev, set this to true
+          sendMail: IS_PRODUCTION, 
         },
       });
     },

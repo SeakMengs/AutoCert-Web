@@ -4,6 +4,10 @@ import {
   AutoCertTableRow,
 } from "./panel/table/AutoCertTable";
 import Papa from "papaparse";
+import { ProjectRole, ProjectStatus } from "@/types/project";
+import { ProjectByIdSchema } from "@/schemas/autocert_api/project";
+import { z } from "zod";
+import { hasRole } from "@/auth/rbac";
 
 const logger = createScopedLogger("components:builder:utils");
 
@@ -73,4 +77,57 @@ function processCSVData(result: Papa.ParseResult<unknown>): {
 
 export function pxToPercent(value: number, total: number): number {
   return (value / total) * 100;
+}
+
+export function getCanGenerateCertificateState({
+  roles,
+  project,
+  signatureCount,
+  signaturesSigned,
+  hasAtLeastOneAnnotate,
+}: {
+  roles: ProjectRole[];
+  project: z.infer<typeof ProjectByIdSchema>;
+  signatureCount: number;
+  signaturesSigned: number;
+  hasAtLeastOneAnnotate: () => boolean;
+}): { canGenerate: boolean; cannotGenerateReasons: string[] } {
+  const isRequestor = hasRole(roles, ProjectRole.Requestor);
+  const isDraft = project.status === ProjectStatus.Draft;
+  const isProcessing = project.status === ProjectStatus.Processing;
+  const allSignaturesSigned = signaturesSigned === signatureCount;
+  const hasAnnot = hasAtLeastOneAnnotate();
+
+  const canGenerate =
+    !isProcessing && isDraft && isRequestor && allSignaturesSigned && hasAnnot;
+
+  const cannotGenerateReasons: string[] = [];
+
+  if (isProcessing) {
+    cannotGenerateReasons.push("Generating certificates.");
+  }
+
+  if (!isDraft && !isProcessing) {
+    cannotGenerateReasons.push(
+      "Certificates can only be generated when the project is in draft status.",
+    );
+  }
+
+  if (!isRequestor) {
+    cannotGenerateReasons.push("Only the requestor can generate certificates.");
+  }
+
+  if (!hasAnnot) {
+    cannotGenerateReasons.push(
+      "At least one annotate is required to generate certificates. Add column or signature fields first.",
+    );
+  }
+
+  if (!allSignaturesSigned) {
+    cannotGenerateReasons.push(
+      "All signatures must be signed before generating certificates.",
+    );
+  }
+
+  return { canGenerate, cannotGenerateReasons };
 }

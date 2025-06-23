@@ -41,6 +41,7 @@ import { ProjectById } from "@/app/dashboard/projects/[projectId]/builder/action
 import { getApiBaseUrl } from "@/utils";
 import { getCookie } from "@/utils/server/cookie";
 import { AccessTokenCookie } from "@/auth/cookie";
+import { getCanGenerateCertificateState } from "../utils";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -62,6 +63,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     columnAnnotates,
     signatureAnnotates,
     settings,
+    hasAtLeastOneAnnotate,
     onQrCodeEnabledChange,
     onAnnotateSelect,
     onColumnAnnotateAdd,
@@ -98,6 +100,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         signatureAnnotates: state.signatureAnnotates,
         settings: state.settings,
         roles: state.roles,
+        hasAtLeastOneAnnotate: state.hasAtLeastOneAnnotate,
         getAnnotateLockState: state.getAnnotateLockState,
         onQrCodeEnabledChange: state.onQrCodeEnabledChange,
         onAnnotateSelect: state.setSelectedAnnotateId,
@@ -126,30 +129,15 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     }),
   );
 
-  const isRequestor = hasRole(roles, ProjectRole.Requestor);
-  const isDraft = project.status === ProjectStatus.Draft;
-  const isProcessing = project.status === ProjectStatus.Processing;
-  const allSignaturesSigned = signaturesSigned === signatureCount;
-  const canGenerate =
-    !isProcessing && isDraft && isRequestor && allSignaturesSigned;
-
-  const cannotGenerateReasons: string[] = [];
-  if (isProcessing) {
-    cannotGenerateReasons.push("Generating certificates.");
-  }
-  if (!isDraft) {
-    cannotGenerateReasons.push(
-      "Certificates can only be generated when the project is in draft status.",
-    );
-  }
-  if (!isRequestor) {
-    cannotGenerateReasons.push("Only the requestor can generate certificates.");
-  }
-  if (!allSignaturesSigned) {
-    cannotGenerateReasons.push(
-      "All signatures must be signed before generating certificates.",
-    );
-  }
+  const { canGenerate, cannotGenerateReasons } = getCanGenerateCertificateState(
+    {
+      roles,
+      project,
+      signatureCount,
+      signaturesSigned,
+      hasAtLeastOneAnnotate: hasAtLeastOneAnnotate,
+    },
+  );
 
   const {
     token: { colorBgContainer },
@@ -287,7 +275,10 @@ function AutoCertPanel({}: AutoCertPanelProps) {
   ] satisfies TabsProps["items"];
 
   return (
-    <Layout>
+    <Layout
+      canGenerate={canGenerate}
+      cannotGenerateReasons={cannotGenerateReasons}
+    >
       <style>
         {`
           /*  
@@ -327,25 +318,26 @@ function AutoCertPanel({}: AutoCertPanelProps) {
 
 export default memo(AutoCertPanel);
 
-interface LayoutProps {}
+interface LayoutProps
+  extends ReturnType<typeof getCanGenerateCertificateState> {}
 
-const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
+function Layout({
+  children,
+  canGenerate,
+  cannotGenerateReasons,
+}: PropsWithChildren<LayoutProps>) {
   const {
     project,
-    roles,
-    signaturesSigned,
-    signatureCount,
-    onGenerateCertificates,
     invalidateBuilderQueries,
+    cancelBuilderInvalidQueries,
+    onGenerateCertificates,
   } = useAutoCertStore(
     useShallow((state) => {
       return {
         project: state.project,
-        roles: state.roles,
-        signaturesSigned: state.signaturesSigned,
-        signatureCount: state.signatureCount,
         onGenerateCertificates: state.onGenerateCertificates,
         invalidateBuilderQueries: state.invalidateQueries,
+        cancelBuilderInvalidQueries: state.cancelInvalidateQueries,
       };
     }),
   );
@@ -404,9 +396,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
     const currentController = abortControllerRef.current;
 
     try {
-      await queryClient.cancelQueries({
-        queryKey: [QueryKey.ProjectBuilderById, project.id],
-      });
+      await cancelBuilderInvalidQueries();
 
       const accessToken = await getCookie(AccessTokenCookie);
       const response = await fetch(
@@ -476,13 +466,8 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
 
                     handleTerminalStatus(data.status);
 
-                    await queryClient.cancelQueries({
-                      queryKey: [QueryKey.ProjectBuilderById, project.id],
-                    });
-
-                    await queryClient.invalidateQueries({
-                      queryKey: [QueryKey.ProjectBuilderById, project.id],
-                    });
+                    await cancelBuilderInvalidQueries();
+                    await invalidateBuilderQueries();
 
                     return;
                   }
@@ -639,16 +624,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
     await onGenerateCertificatesMutation();
   };
 
-  const isRequestor = hasRole(roles, ProjectRole.Requestor);
-  const isDraft = project.status === ProjectStatus.Draft;
   const isProcessing = project.status === ProjectStatus.Processing;
-  const allSignaturesSigned = signaturesSigned === signatureCount;
-  const canGenerate =
-    !generating &&
-    !isProcessing &&
-    isDraft &&
-    isRequestor &&
-    allSignaturesSigned;
 
   return (
     <Flex
@@ -662,20 +638,7 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       <div style={{ borderTop: `1px solid ${colorSplit}` }}>
         <Flex className="m-2" justify="center">
           {!canGenerate ? (
-            <Tooltip
-              title={
-                generating
-                  ? "Generating certificates."
-                  : !isDraft
-                    ? "Certificates can only be generated when the project is in draft status."
-                    : !isRequestor
-                      ? "Only the requestor can generate certificates."
-                      : !allSignaturesSigned
-                        ? "All signatures must be signed before generating certificates."
-                        : // Most likely this never happen
-                          "Unable to generate certificates."
-              }
-            >
+            <Tooltip title={cannotGenerateReasons[0]}>
               <Button
                 type="primary"
                 onClick={handleGenerateCertificates}
@@ -698,8 +661,8 @@ const Layout = memo(({ children }: PropsWithChildren<LayoutProps>) => {
       </div>
     </Flex>
   );
-});
+}
 
-const TabItemLayout = memo(({ children }: PropsWithChildren) => {
+function TabItemLayout({ children }: PropsWithChildren) {
   return <div className="m-2">{children}</div>;
-});
+}
