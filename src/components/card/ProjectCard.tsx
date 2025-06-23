@@ -238,21 +238,25 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
 
         {/* Avatars (with check or close badges) */}
         <Flex gap={8} wrap>
-          {project.signatories.map((s, i) => (
-            <Tooltip
-              title={`${s.email}: ${SignatoryStatusLabels[s.status].toLowerCase()}`}
-              key={`${s.email}-${i}`}
-            >
-              <Badge
-                count={GetBadgeIcon({ status: s.status })}
-                offset={[-5, 5]}
+          {project.signatories.length === 0 ? (
+            <div style={{ minHeight: 32 }} />
+          ) : (
+            project.signatories.map((s, i) => (
+              <Tooltip
+                title={`${s.email}: ${SignatoryStatusLabels[s.status].toLowerCase()}`}
+                key={`${s.email}-${i}`}
               >
-                <Avatar src={s.profileUrl} alt={s.email}>
-                  {s.email.substring(0, 2).toUpperCase()}
-                </Avatar>
-              </Badge>
-            </Tooltip>
-          ))}
+                <Badge
+                  count={GetBadgeIcon({ status: s.status })}
+                  offset={[-5, 5]}
+                >
+                  <Avatar src={s.profileUrl} alt={s.email}>
+                    {s.email.substring(0, 2).toUpperCase()}
+                  </Avatar>
+                </Badge>
+              </Tooltip>
+            ))
+          )}
         </Flex>
       </div>
     </Card>

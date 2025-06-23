@@ -48,7 +48,16 @@ function setLevel(level: DebugLevel) {
   currentLevel = level;
 }
 
-function log(level: DebugLevel, scope: string | undefined, messages: any[]) {
+function log(
+  level: DebugLevel,
+  scope: string | undefined,
+  messages: any[],
+): void {
+  // TODO: uncomment this when everything is ready for production
+  // if (IS_PRODUCTION) {
+  //   return;
+  // }
+
   const levelOrder: DebugLevel[] = ["trace", "debug", "info", "warn", "error"];
 
   if (levelOrder.indexOf(level) < levelOrder.indexOf(currentLevel)) {

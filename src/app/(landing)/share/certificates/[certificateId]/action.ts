@@ -1,3 +1,4 @@
+"use server"
 import { createScopedLogger } from "@/utils/logger";
 import { getCertificateByIdSuccessResponseSchema } from "./schema";
 import { responseFailed, ResponseJson, responseSomethingWentWrong } from "@/utils/response";

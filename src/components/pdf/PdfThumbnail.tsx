@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Flex, Skeleton } from "antd";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
+import { useEffect, useState } from "react";
+import { Skeleton } from "antd";
 import Image from "next/image";
-import { IMAGE_PLACEHOLDER } from "@/utils/image";
 import { useInView } from "react-intersection-observer";
+import { pdfjs } from "react-pdf";
 import { cn } from "@/utils";
+import { IMAGE_PLACEHOLDER } from "@/utils/image";
+import { createScopedLogger } from "@/utils/logger";
+
+const logger = createScopedLogger("src:components:pdf:PdfThumbnail");
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -16,7 +17,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 interface PdfThumbnailProps {
-  pdfUrl: string | File | null;
+  pdfUrl: string | URL | undefined;
   skeletonClassName?: string;
 }
 
@@ -26,71 +27,74 @@ export default function PdfThumbnail({
   pdfUrl,
   skeletonClassName,
 }: PdfThumbnailProps) {
-  const [pdfUrlOnce, setPdfUrlOnce] = useState<string | File | null>(pdfUrl);
-  const [pdfPages, setPdfPages] = useState<number>(0);
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
 
-  // Prevent page render before loading the pdf
-  // Ref: https://github.com/wojtekmaj/react-pdf/issues/974
-  useEffect(() => {
-    if (pdfUrl) {
-      setPdfPages(0);
-    }
-  }, [pdfUrl]);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Render only once when the component mounts since thumbnail is static
   useEffect(() => {
-    if (pdfUrl) {
-      setPdfUrlOnce(pdfUrl);
-    }
-  }, []);
+    if (!pdfUrl || !inView) return;
+
+    const renderPageToImage = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const pdf = await pdfjs.getDocument(pdfUrl).promise.catch((err) => {
+          logger.error("Error loading PDF document", err);
+          throw new Error("Failed to load PDF document");
+        });
+        const page = await pdf.getPage(pageNumber);
+
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        if (!context) throw new Error("Failed to get canvas context");
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        const dataUrl = canvas.toDataURL("image/png");
+        setImageDataUrl(dataUrl);
+      } catch (e) {
+        logger.error("Error rendering PDF page to image", e);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    renderPageToImage();
+
+    return () => {
+      if (imageDataUrl) {
+        URL.revokeObjectURL(imageDataUrl);
+        setImageDataUrl(null);
+      }
+      setError(false);
+      setLoading(false);
+    };
+  }, [inView]);
 
   return (
-    <div ref={ref} className="relative overflow-hidden h-full w-full">
-      {/* Key must change every refresh, since we use presigned url, using certificateUrl is ok
-            Ref: https://github.com/wojtekmaj/react-pdf/issues/974#issuecomment-2758494216 */}
-      <Document
-        key={
-          typeof pdfUrlOnce === "string"
-            ? pdfUrlOnce
-            : pdfUrlOnce instanceof File
-              ? pdfUrlOnce.name + pdfUrlOnce.size + pdfUrlOnce.lastModified
-              : "no-pdf"
-        }
-        className={"w-full h-full"}
-        file={pdfUrlOnce}
-        onLoadSuccess={(pdf) => {
-          setPdfPages(pdf.numPages);
-        }}
-        loading={<DocumentLoading skeletonClassName={skeletonClassName} />}
-        error={<PageError />}
-      >
-        {inView && (
-          <Page
-            key={`page_${pageNumber}`}
-            _className="max-h-full w-full h-auto object-cover"
-            className="pointer-events-none select-none"
-            scale={1}
-            loading={<DocumentLoading skeletonClassName={skeletonClassName} />}
-            error={<PageError />}
-            noData={<PageError />}
-            pageNumber={pageNumber}
-            canvasRef={(ref) => {
-              if (ref) {
-                const ctx = ref.getContext("2d");
-                if (ctx) {
-                  ctx.imageSmoothingEnabled = false;
-                }
-              }
-            }}
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-          />
-        )}
-      </Document>
+    <div ref={ref} className="relative w-full h-full overflow-hidden">
+      {loading && <DocumentLoading skeletonClassName={skeletonClassName} />}
+      {!loading && error && <PageError />}
+      {!loading && !error && imageDataUrl && (
+        <Image
+          src={imageDataUrl}
+          alt="PDF Thumbnail"
+          className="w-full h-full object-cover pointer-events-none select-none"
+          fill
+        />
+      )}
     </div>
   );
 }
@@ -112,7 +116,7 @@ function DocumentLoading({ skeletonClassName }: DocumentLoadingProps) {
   return (
     <Skeleton.Image
       active
-      className={cn("w-full h-full object-cover", skeletonClassName)}
+      className={cn("w-full h-auto object-cover", skeletonClassName)}
     />
   );
 }

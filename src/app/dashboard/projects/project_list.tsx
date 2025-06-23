@@ -88,6 +88,7 @@ export default function CertificateProjectList({
           current={page}
           total={total}
           showQuickJumper
+          showSizeChanger={false}
           responsive
           showTotal={(total, range): string =>
             `Showing ${range[0]}-${range[1]} of ${total} items`
