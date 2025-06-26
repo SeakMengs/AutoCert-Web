@@ -26,9 +26,7 @@ import { createScopedLogger } from "@/utils/logger";
 import usePrint from "@/hooks/usePrint";
 import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
-import {
-  downloadFromUrl,
-} from "./utils";
+import { downloadFromUrl, redirectToDownloadFromUrl } from "./utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityLogsDialog } from "./activity_logs_dialog";
 import {
@@ -175,7 +173,8 @@ export default function Header({
         return;
       }
 
-      await downloadFromUrl(certificateZipUrl, "certificates.zip");
+      // Since zip can be big, we let user download it directly
+      redirectToDownloadFromUrl(certificateZipUrl, "certificates.zip");
     },
     onError: (error) => {
       logger.error("Failed to download all certificates", error);

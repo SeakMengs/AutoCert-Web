@@ -33,6 +33,18 @@ export const downloadFromUrl = async (
   download(blob, filename);
 };
 
+export const redirectToDownloadFromUrl = (
+  url: string,
+  filename: string,
+): void => {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
 export const toCertificateTitle = (certificate: Certificate): string => {
   return `Certificate No. ${certificate.number}`;
 };
