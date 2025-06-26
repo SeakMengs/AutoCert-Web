@@ -99,13 +99,6 @@ export function getCanGenerateCertificateState({
   const isProcessing = project.status === ProjectStatus.Processing;
   const allSignaturesSigned = signaturesSigned === signatureCount;
 
-  const canGenerate =
-    !isProcessing &&
-    isDraft &&
-    isRequestor &&
-    allSignaturesSigned &&
-    hasAtLeastOneAnnotate;
-
   const cannotGenerateReasons: string[] = [];
 
   if (isProcessing) {
@@ -140,5 +133,8 @@ export function getCanGenerateCertificateState({
     );
   }
 
-  return { canGenerate, cannotGenerateReasons };
+  return {
+    canGenerate: cannotGenerateReasons.length === 0,
+    cannotGenerateReasons,
+  };
 }

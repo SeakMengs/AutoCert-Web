@@ -59,7 +59,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
     columnAnnotates,
     signatureAnnotates,
     settings,
-    changeMap,
+    pendingChanges,
     hasAtLeastOneAnnotate,
     onQrCodeEnabledChange,
     onAnnotateSelect,
@@ -97,7 +97,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
         signatureAnnotates: state.signatureAnnotates,
         settings: state.settings,
         roles: state.roles,
-        changeMap: state.changeMap,
+        pendingChanges: state.changes,
         hasAtLeastOneAnnotate: state.hasAtLeastOneAnnotate,
         onQrCodeEnabledChange: state.onQrCodeEnabledChange,
         onAnnotateSelect: state.setSelectedAnnotateId,
@@ -133,7 +133,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
       signatureCount,
       signaturesSigned,
       hasAtLeastOneAnnotate: hasAtLeastOneAnnotate(),
-      hasPendingChange: changeMap.size > 0,
+      hasPendingChange: pendingChanges.length > 0,
     },
   );
 
