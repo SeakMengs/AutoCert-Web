@@ -252,7 +252,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
                       href={`/dashboard/projects/${project.id}/certificates`}
                       className="text-green-600 hover:text-green-700 transition underline"
                     >
-                      View The Generated Certificates
+                      View the generated certificates
                     </Link>
                   </Text>
                 }
@@ -544,7 +544,7 @@ function Layout({
                     href={`/dashboard/projects/${project.id}/certificates`}
                     className="text-green-600 hover:text-green-700 transition underline"
                   >
-                    View The Generated Certificates
+                    View the generated certificates
                   </Link>
                 </div>
               </div>

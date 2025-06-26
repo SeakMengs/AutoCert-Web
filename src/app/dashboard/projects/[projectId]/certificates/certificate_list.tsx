@@ -25,7 +25,7 @@ import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 import moment from "moment";
 import { createScopedLogger } from "@/utils/logger";
-import { downloadCertificate, toCertificateTitle } from "./utils";
+import { downloadFromUrl, toCertificateTitle } from "./utils";
 import { useMutation } from "@tanstack/react-query";
 import { DOMAIN } from "@/utils";
 import PdfViwer from "@/components/pdf/PdfViewer";
@@ -131,9 +131,6 @@ function GridView({
   certificate,
   onCertificateView,
 }: GridViewProps) {
-  // const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
-  //   `/api/proxy/projects/${projectId}/certificates/${certificate.number}/thumbnail`,
-  // );
   const { message } = App.useApp();
   const { onPrint, printLoading, setPrintLoading } = usePrint();
 
@@ -176,19 +173,21 @@ function GridView({
     }
   };
 
-  const {
-    mutateAsync: onDownloadCertificateMutation,
-    isPending: isDownloading,
-  } = useMutation({
-    mutationFn: async (): Promise<void> =>
-      await downloadCertificate(certificate, message),
-    onError: (error) => {
-      logger.error("Failed to download certificate", error);
-      message.error(
-        `Failed to download certificate number ${certificate.number}`,
-      );
-    },
-  });
+  const { mutateAsync: onDownloadCertificate, isPending: isDownloading } =
+    useMutation({
+      mutationFn: async (): Promise<void> => {
+        await downloadFromUrl(
+          certificate.certificateUrl,
+          `certificate-${certificate.number}.pdf`,
+        );
+      },
+      onError: (error) => {
+        logger.error("Failed to download certificate", error);
+        message.error(
+          `Failed to download certificate number ${certificate.number}`,
+        );
+      },
+    });
 
   return (
     <Col key={certificate.id} xs={24} sm={12} md={8} lg={4}>
@@ -197,27 +196,6 @@ function GridView({
         hoverable
         cover={
           <div className="relative w-full h-64 sm:h-48 xs:h-36">
-            {/* <Image
-              className={cn("rounded-sm object-cover w-full", {
-                "opacity-0": loading,
-              })}
-              alt={toCertificateTitle(certificate)}
-              src={src}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority
-              onError={onError}
-              onLoadStart={onLoadStart}
-              onLoad={onLoadingComplete}
-            />
-            {loading && (
-              <div className="absolute inset-0 z-10">
-                <Skeleton.Image
-                  active
-                  className={cn("rounded-sm object-cover w-full h-full")}
-                />
-              </div>
-            )} */}
             <PdfThumbnail
               pdfUrl={certificate.certificateUrl}
               skeletonClassName="h-64 sm:h-48 xs:h-36"
@@ -270,7 +248,7 @@ function GridView({
             <Tooltip title="Download Certificate">
               <Button
                 icon={<DownloadOutlined />}
-                onClick={async () => onDownloadCertificateMutation()}
+                onClick={async () => onDownloadCertificate()}
                 loading={isDownloading}
                 disabled={isDownloading}
               />

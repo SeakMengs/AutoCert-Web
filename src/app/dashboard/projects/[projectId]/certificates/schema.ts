@@ -18,5 +18,7 @@ export const getCertificatesByProjectIdSuccessResponseSchema = z.object({
   }).extend({
     logs: z.array(ProjectLogSchema).default([]),
     certificates: z.array(CertificateSchema).default([]),
+    certificateMergedUrl: z.string().nullable().default(null),
+    certificateZipUrl: z.string().nullable().default(null),
   }),
 });

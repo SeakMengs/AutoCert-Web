@@ -12,9 +12,9 @@ import { z } from "zod";
 import { getCertificateByIdSuccessResponseSchema } from "./schema";
 import { useMutation } from "@tanstack/react-query";
 import { createScopedLogger } from "@/utils/logger";
-import { downloadCertificate } from "@/app/dashboard/projects/[projectId]/certificates/utils";
 import usePrint from "@/hooks/usePrint";
 import { DOMAIN } from "@/utils";
+import { downloadFromUrl } from "@/app/dashboard/projects/[projectId]/certificates/utils";
 
 const logger = createScopedLogger(
   "src:app:(landing):share:certificates:[certificateId]:certificate_content.tsx",
@@ -72,27 +72,21 @@ export default function CertificateContent({
     }
   };
 
-  const {
-    mutateAsync: onDownloadCertificateMutation,
-    isPending: isDownloading,
-  } = useMutation({
-    mutationFn: async (): Promise<void> =>
-      await downloadCertificate(
-        {
-          certificateUrl: certificate.certificateUrl,
-          number: certificate.number,
-          id: certificate.id,
-          createdAt: certificate.issuedAt,
-        },
-        message,
-      ),
-    onError: (error) => {
-      logger.error("Failed to download certificate", error);
-      message.error(
-        `Failed to download certificate number ${certificate.number}`,
-      );
-    },
-  });
+  const { mutateAsync: onDownloadCertificate, isPending: isDownloading } =
+    useMutation({
+      mutationFn: async (): Promise<void> => {
+        await downloadFromUrl(
+          certificate.certificateUrl,
+          `certificate-${certificate.number}.pdf`,
+        );
+      },
+      onError: (error) => {
+        logger.error("Failed to download certificate", error);
+        message.error(
+          `Failed to download certificate number ${certificate.number}`,
+        );
+      },
+    });
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-white">
@@ -125,7 +119,7 @@ export default function CertificateContent({
                 <Button
                   type="primary"
                   icon={<DownloadOutlined />}
-                  onClick={async () => onDownloadCertificateMutation()}
+                  onClick={async () => onDownloadCertificate()}
                   loading={isDownloading}
                   disabled={isDownloading}
                   className="w-full h-12 text-base font-medium"

@@ -90,9 +90,6 @@ const GetBadgeIcon = ({ status }: { status: SignatoryStatus }) => {
 };
 
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
-  // const { src, loading, onLoadStart, onLoadingComplete, onError } = useImageSrc(
-  //   `/api/proxy/projects/${project.id}/thumbnail`,
-  // );
   const { message } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -180,27 +177,6 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
         <div className="relative w-full h-64 sm:h-48 xs:h-36">
-          {/* <Image
-            className={cn("rounded-sm object-cover w-full", {
-              "opacity-0": loading,
-            })}
-            alt="Certificate Template"
-            src={src}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
-            onError={onError}
-            onLoadStart={onLoadStart}
-            onLoad={onLoadingComplete}
-          />
-          {loading && (
-            <div className="absolute inset-0 z-10">
-              <Skeleton.Image
-                active
-                className={cn("rounded-sm object-cover w-full h-full")}
-              />
-            </div>
-          )} */}
           <PdfThumbnail
             pdfUrl={project.templateUrl}
             skeletonClassName="h-64 sm:h-48 xs:h-36"

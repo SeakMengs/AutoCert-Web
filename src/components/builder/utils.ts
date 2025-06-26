@@ -102,7 +102,9 @@ export function getCanGenerateCertificateState({
   const cannotGenerateReasons: string[] = [];
 
   if (isProcessing) {
-    cannotGenerateReasons.push("Generating certificates.");
+    cannotGenerateReasons.push(
+      "Certificate generation is currently in progress. Please wait until the process is complete.",
+    );
   }
 
   if (!isDraft && !isProcessing) {

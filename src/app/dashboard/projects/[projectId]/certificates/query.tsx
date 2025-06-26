@@ -76,6 +76,8 @@ export default function ProjectCertificatesById({
         logs={project.logs}
         signatories={project.signatories}
         title={project.title}
+        certificateMergedUrl={project.certificateMergedUrl}
+        certificateZipUrl={project.certificateZipUrl}
       />
       <Space direction="vertical" size={"middle"} className="w-full p-4">
         <CertificateList

@@ -27,8 +27,7 @@ import usePrint from "@/hooks/usePrint";
 import { z } from "zod";
 import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
 import {
-  downloadAllCertificates,
-  getMergedCertificateObjectUrl,
+  downloadFromUrl,
 } from "./utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityLogsDialog } from "./activity_logs_dialog";
@@ -47,13 +46,21 @@ const { Title, Text } = Typography;
 interface HeaderProps
   extends Pick<
     z.infer<typeof getCertificatesByProjectIdSuccessResponseSchema>["project"],
-    "isPublic" | "id" | "title" | "signatories" | "logs"
+    | "isPublic"
+    | "id"
+    | "title"
+    | "signatories"
+    | "logs"
+    | "certificateMergedUrl"
+    | "certificateZipUrl"
   > {}
 
 export default function Header({
   id: projectId,
   isPublic,
   title,
+  certificateMergedUrl,
+  certificateZipUrl,
   logs,
   signatories,
 }: HeaderProps) {
@@ -136,11 +143,11 @@ export default function Header({
   const onPrintAllPdf = async () => {
     try {
       setPrintLoading(true);
-      const url = await getMergedCertificateObjectUrl(projectId);
-      logger.info("Printing certificates", url);
+      // const url = await getMergedCertificateObjectUrl(projectId);
+      logger.info("Printing certificates", certificateMergedUrl);
 
       await onPrint({
-        printable: url,
+        printable: certificateMergedUrl,
         type: "pdf",
         onLoadingEnd() {
           message.success("Certificates are ready to print");
@@ -150,8 +157,6 @@ export default function Header({
           logger.error("Error printing certificates", err);
         },
       });
-
-      URL.revokeObjectURL(url);
     } catch (error) {
       message.error("Error printing certificates");
       logger.error("Error printing certificates", error);
@@ -164,8 +169,14 @@ export default function Header({
     mutateAsync: onDownloadAllCertificatesMutation,
     isPending: isDownloading,
   } = useMutation({
-    mutationFn: async (projectId: string) =>
-      await downloadAllCertificates(projectId, message),
+    mutationFn: async (projectId: string) => {
+      if (!certificateZipUrl) {
+        message.error("No certificates to download");
+        return;
+      }
+
+      await downloadFromUrl(certificateZipUrl, "certificates.zip");
+    },
     onError: (error) => {
       logger.error("Failed to download all certificates", error);
       message.error("Failed to download all certificates");
@@ -246,7 +257,7 @@ export default function Header({
       </Flex>
       <ActivityLogsDialog
         projectLogs={logs}
-        projectTitle= {title}
+        projectTitle={title}
         open={isActivityLogOpen}
         onClose={() => setIsActivityLogOpen(false)}
       />
