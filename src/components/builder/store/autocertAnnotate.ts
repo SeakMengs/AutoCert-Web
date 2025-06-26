@@ -245,6 +245,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
       const pages = Object.keys(get().annotates);
       let signaturesSigned = 0;
       let signatureCount = 0;
+      let isSignatory = false;
 
       pages.forEach((p) => {
         get().annotates[Number(p)].forEach((a) => {
@@ -253,6 +254,13 @@ export const createAutoCertAnnotateSlice: StateCreator<
               columns[Number(p)] = [...(columns[Number(p)] || []), a];
               break;
             case AnnotateType.Signature:
+              if (
+                a.status !== SignatoryStatus.NotInvited &&
+                a.email.toLowerCase() === get().user.email.toLowerCase()
+              ) {
+                isSignatory = true;
+              }
+
               if (a.status === SignatoryStatus.Signed) {
                 signaturesSigned += 1;
               }
@@ -270,6 +278,16 @@ export const createAutoCertAnnotateSlice: StateCreator<
         state.signaturesSigned = signaturesSigned;
         state.signatureCount = signatureCount;
       });
+
+      let roles = [...(get().roles || [])];
+      if (isSignatory) {
+        if (!roles.includes(ProjectRole.Signatory)) {
+          roles.push(ProjectRole.Signatory);
+        }
+      } else {
+        roles = roles.filter((r) => r !== ProjectRole.Signatory);
+      }
+      get().setRoles(roles);
     },
 
     setSelectedAnnotateId: (id) => {
@@ -578,7 +596,7 @@ export const createAutoCertAnnotateSlice: StateCreator<
         data: {
           id: id,
           // TIP: if test smtp in dev, set this to true
-          sendMail: IS_PRODUCTION, 
+          sendMail: IS_PRODUCTION,
         },
       });
     },

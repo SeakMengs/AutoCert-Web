@@ -15,6 +15,7 @@ import ColumnTool from "./tool/column/ColumnTool";
 import SignatureTool from "./tool/signature/SignatureTool";
 import AutoCertTable from "./table/AutoCertTable";
 import {
+  CheckCircleOutlined,
   FontSizeOutlined,
   FormOutlined,
   SettingOutlined,
@@ -24,24 +25,19 @@ import {
 import { BarSize } from "@/app/dashboard/layout_client";
 import { memo, PropsWithChildren, useCallback, useEffect, useRef } from "react";
 import SettingsTool from "./tool/settings/settings";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createScopedLogger } from "@/utils/logger";
 import { useRouter } from "next/navigation";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { useAutoCertStore } from "../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
-import { hasRole } from "@/auth/rbac";
-import {
-  ProjectRole,
-  ProjectStatus,
-  ProjectStatusLabels,
-} from "@/types/project";
-import { QueryKey } from "@/utils/react_query";
-import { ProjectById } from "@/app/dashboard/projects/[projectId]/builder/action";
+import { ProjectStatus, ProjectStatusLabels } from "@/types/project";
 import { getApiBaseUrl } from "@/utils";
 import { getCookie } from "@/utils/server/cookie";
 import { AccessTokenCookie } from "@/auth/cookie";
 import { getCanGenerateCertificateState } from "../utils";
+import Link from "next/link";
+import useModal from "antd/es/modal/useModal";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -49,7 +45,7 @@ const logger = createScopedLogger(
 
 export interface AutoCertPanelProps {}
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 function AutoCertPanel({}: AutoCertPanelProps) {
   const {
@@ -218,7 +214,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
             expandIconPosition="end"
           />
           {/* Show reason if cannot generate */}
-          {!canGenerate && (
+          {!canGenerate && project.status !== ProjectStatus.Completed && (
             <div className="mt-2">
               <Alert
                 message={
@@ -241,6 +237,26 @@ function AutoCertPanel({}: AutoCertPanelProps) {
                 }
                 type="warning"
                 showIcon
+              />
+            </div>
+          )}
+          {project.status === ProjectStatus.Completed && (
+            <div className="mt-2">
+              <Alert
+                message={
+                  <Text className="text-green-700">
+                    This project has already generated certificates.{" "}
+                    <Link
+                      href={`/dashboard/projects/${project.id}/certificates`}
+                      className="text-green-600 hover:text-green-700 transition underline"
+                    >
+                      View The Generated Certificates
+                    </Link>
+                  </Text>
+                }
+                type="success"
+                showIcon
+                className="border-green-200"
               />
             </div>
           )}
@@ -328,6 +344,7 @@ function Layout({
 }: PropsWithChildren<LayoutProps>) {
   const {
     project,
+    setProject,
     invalidateBuilderQueries,
     cancelBuilderInvalidQueries,
     onGenerateCertificates,
@@ -335,17 +352,17 @@ function Layout({
     useShallow((state) => {
       return {
         project: state.project,
+        setProject: state.setProject,
         onGenerateCertificates: state.onGenerateCertificates,
         invalidateBuilderQueries: state.invalidateQueries,
         cancelBuilderInvalidQueries: state.cancelInvalidateQueries,
       };
     }),
   );
-
-  const queryClient = useQueryClient();
-
+  const isProcessing = project.status === ProjectStatus.Processing;
   const router = useRouter();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
+  const [modal, contextHolder] = useModal();
   const {
     token: { colorSplit },
   } = theme.useToken();
@@ -360,7 +377,7 @@ function Layout({
 
   useEffect(() => {
     // Don't start streaming if not in processing status
-    if (project.status !== ProjectStatus.Processing) {
+    if (!isProcessing) {
       cleanupStream();
       return;
     }
@@ -509,25 +526,31 @@ function Layout({
       switch (status) {
         case ProjectStatus.Completed:
           modal.success({
-            title: "Certificates generated successfully",
-            content: (
-              <div className="motion-preset-confetti">
-                <p>Certificates have been generated successfully.</p>
-                <p>
-                  <Button
-                    type="link"
-                    onClick={() => {
-                      router.push(
-                        `/dashboard/projects/${project.id}/certificates`,
-                      );
-                    }}
-                  >
-                    Go to Generated Certificates Page
-                  </Button>
-                </p>
+            title: (
+              <div className="text-green-600 font-semibold text-lg flex items-center gap-2">
+                <CheckCircleOutlined className="text-green-500" />
+                <Title level={5} className="!mb-0 !text-green-600">
+                  Certificates Generated Successfully!
+                </Title>
               </div>
             ),
+            content: (
+              <div className="motion-preset-confetti mt-2 text-gray-700 text-sm space-y-2">
+                <Text>Your certificates has been generated successfully.</Text>
+                <div>
+                  <Link
+                    href={`/dashboard/projects/${project.id}/certificates`}
+                    className="text-green-600 hover:text-green-700 transition underline"
+                  >
+                    View The Generated Certificates
+                  </Link>
+                </div>
+              </div>
+            ),
+            icon: null,
+            centered: true,
           });
+
           break;
         case ProjectStatus.Draft:
           modal.warning({
@@ -567,52 +590,19 @@ function Layout({
           message.error("Failed to generate certificates");
           return;
         }
-      },
-      onMutate: async (variables) => {
+
         // Cancel any outgoing refetches
         // (so they don't overwrite our optimistic update)
-        await queryClient.cancelQueries({
-          queryKey: [QueryKey.ProjectBuilderById, project.id],
+        await cancelBuilderInvalidQueries();
+
+        setProject({
+          ...project,
+          status: ProjectStatus.Processing,
         });
-
-        const previousData = queryClient.getQueryData<ProjectById>([
-          QueryKey.ProjectBuilderById,
-          project.id,
-        ]);
-
-        if (previousData && previousData.success) {
-          // Optimistically update the project status
-          const updatedProject = {
-            ...previousData.data.project,
-            status: ProjectStatus.Processing,
-          };
-
-          queryClient.setQueryData<ProjectById>(
-            [QueryKey.ProjectBuilderById, project.id],
-            {
-              ...previousData,
-              data: {
-                ...previousData.data,
-                project: updatedProject,
-              },
-            },
-          );
-        }
-
-        return {
-          previousData,
-        };
       },
       onError: (error, variables, context: any) => {
         logger.error("Failed to generate certificates", error);
         message.error("Failed to generate certificates");
-
-        if (context?.previousData) {
-          queryClient.setQueryData(
-            [QueryKey.ProjectBuilderById, project.id],
-            context.previousData,
-          );
-        }
       },
       onSettled: async () => {
         // don't invalidate since sse will handle it
@@ -624,42 +614,43 @@ function Layout({
     await onGenerateCertificatesMutation();
   };
 
-  const isProcessing = project.status === ProjectStatus.Processing;
-
   return (
-    <Flex
-      vertical
-      justify="space-between"
-      style={{
-        height: "100%",
-      }}
-    >
-      <div className="overflow-auto">{children}</div>
-      <div style={{ borderTop: `1px solid ${colorSplit}` }}>
-        <Flex className="m-2" justify="center">
-          {!canGenerate ? (
-            <Tooltip title={cannotGenerateReasons[0]}>
+    <>
+      <Flex
+        vertical
+        justify="space-between"
+        style={{
+          height: "100%",
+        }}
+      >
+        <div className="overflow-auto">{children}</div>
+        <div style={{ borderTop: `1px solid ${colorSplit}` }}>
+          <Flex className="m-2" justify="center">
+            {!canGenerate ? (
+              <Tooltip title={cannotGenerateReasons[0]}>
+                <Button
+                  type="primary"
+                  onClick={handleGenerateCertificates}
+                  loading={isProcessing || generating}
+                  disabled
+                >
+                  Generate certificates
+                </Button>
+              </Tooltip>
+            ) : (
               <Button
                 type="primary"
                 onClick={handleGenerateCertificates}
                 loading={isProcessing || generating}
-                disabled
               >
                 Generate certificates
               </Button>
-            </Tooltip>
-          ) : (
-            <Button
-              type="primary"
-              onClick={handleGenerateCertificates}
-              loading={isProcessing || generating}
-            >
-              Generate certificates
-            </Button>
-          )}
-        </Flex>
-      </div>
-    </Flex>
+            )}
+          </Flex>
+        </div>
+      </Flex>
+      {contextHolder}
+    </>
   );
 }
 

@@ -32,6 +32,7 @@ export interface AutoCertActions {
     saveChanges: SaveChangesCallback;
   }) => Promise<void>;
   setRoles: (roles: ProjectRole[]) => void;
+  setProject: (project: z.infer<typeof ProjectByIdSchema>) => void;
   onGenerateCertificates: () => ReturnType<
     typeof generateCertificatesByIdAction
   >;
@@ -91,6 +92,13 @@ export const createAutoCertSlice: StateCreator<
       }
 
       await get().initTable(csvUrl);
+    },
+
+    setProject: (project) => {
+      logger.debug("Setting project", project);
+      set((state) => {
+        state.project = project;
+      });
     },
 
     setRoles: (roles) => {

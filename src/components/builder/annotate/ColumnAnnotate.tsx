@@ -41,7 +41,7 @@ function ColumnAnnotate({
   ...restProps
 }: ColumnAnnotateProps) {
   return (
-    <BaseAnnotate {...restProps} lockResizeY={true}>
+    <BaseAnnotate {...restProps}>
       <span
         // contentEditable={!restProps.previewMode}
         suppressContentEditableWarning
