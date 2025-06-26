@@ -85,21 +85,26 @@ export function getCanGenerateCertificateState({
   signatureCount,
   signaturesSigned,
   hasAtLeastOneAnnotate,
+  hasPendingChange,
 }: {
   roles: ProjectRole[];
   project: z.infer<typeof ProjectByIdSchema>;
   signatureCount: number;
   signaturesSigned: number;
-  hasAtLeastOneAnnotate: () => boolean;
+  hasAtLeastOneAnnotate: boolean;
+  hasPendingChange: boolean;
 }): { canGenerate: boolean; cannotGenerateReasons: string[] } {
   const isRequestor = hasRole(roles, ProjectRole.Requestor);
   const isDraft = project.status === ProjectStatus.Draft;
   const isProcessing = project.status === ProjectStatus.Processing;
   const allSignaturesSigned = signaturesSigned === signatureCount;
-  const hasAnnot = hasAtLeastOneAnnotate();
 
   const canGenerate =
-    !isProcessing && isDraft && isRequestor && allSignaturesSigned && hasAnnot;
+    !isProcessing &&
+    isDraft &&
+    isRequestor &&
+    allSignaturesSigned &&
+    hasAtLeastOneAnnotate;
 
   const cannotGenerateReasons: string[] = [];
 
@@ -117,7 +122,13 @@ export function getCanGenerateCertificateState({
     cannotGenerateReasons.push("Only the requestor can generate certificates.");
   }
 
-  if (!hasAnnot) {
+  if (hasPendingChange) {
+    cannotGenerateReasons.push(
+      "Pending changes must be applied before generating certificates. Please wait while changes are processed automatically.",
+    );
+  }
+
+  if (!hasAtLeastOneAnnotate) {
     cannotGenerateReasons.push(
       "At least one annotate is required to generate certificates. Add column or signature fields first.",
     );

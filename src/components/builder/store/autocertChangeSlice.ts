@@ -136,6 +136,7 @@ export interface AutoCertChangeActions {
   saveChanges?: SaveChangesCallback;
   setSaveChanges: (fn: SaveChangesCallback) => void;
   setIsUserInteracting: (isUserInteracting: boolean) => void;
+  hasPendingChange: ()=> boolean;
   checkAndInvalidateQueries: () => Promise<void>;
   invalidateQueries: () => Promise<void>;
   cancelInvalidateQueries: () => Promise<void>;
@@ -236,6 +237,10 @@ export const createAutoCertChangeSlice: StateCreator<
       debouncedSetUserInteractionEnd();
 
       debouncedPushChanges();
+    },
+
+    hasPendingChange: () => {
+      return get().changeMap.size > 0;
     },
 
     clearChanges: () => {

@@ -21,7 +21,7 @@ export const getMergedCertificateObjectUrl = async (
       },
     );
     if (res.status !== 200) {
-      throw new Error("Get merged certificates however response is not 200");
+      throw new Error(`Get merged certificates failed because reponse status is: ${res.status}`);
     }
 
     const blob = res.data;
@@ -46,7 +46,7 @@ export const downloadCertificate = async (
       responseType: "blob",
     });
     if (res.status !== 200) {
-      throw new Error("Get certificate however response is not 200");
+      throw new Error(`Get certificate failed because response status is: ${res.status}`);
     }
     const blob = new Blob([res.data]);
     const filename = `certificate-${certificate.number}.pdf`;
@@ -73,7 +73,7 @@ export const downloadAllCertificates = async (
     );
 
     if (res.status !== 200) {
-      throw new Error("Get certificates zip however response is not 200");
+      throw new Error(`Get certificates zip failed because response status is: ${res.status}`);
     }
 
     const blob = new Blob([res.data]);
