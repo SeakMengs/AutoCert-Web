@@ -3,12 +3,12 @@ import { SignatureToolProps } from "./SignatureTool";
 import { JSX } from "react";
 import SignatureAnnotateRemove from "./SignatureAnnotateRemove";
 import SignatureAnnotateInvite from "./SignatureAnnotateInvite";
-import { SignatoryStatus } from "@/types/project";
 import SignatoryStatusTag from "@/components/tag/SignatoryStatusTag";
 import SignatureAnnotateSign from "./SignatureAnnotateSign";
 import { SignatureAnnotateState } from "@/components/builder/store/autocertAnnotate";
 import { SignatureAnnotateLock } from "@/components/builder/annotate/SignatureAnnotate";
 import SignatureAnnotateReject from "./SignatureAnnotateReject";
+import { SignatoryStatus } from "@/components/builder/annotate/util";
 
 export interface SignatureAnnotateCardProps
   extends Pick<

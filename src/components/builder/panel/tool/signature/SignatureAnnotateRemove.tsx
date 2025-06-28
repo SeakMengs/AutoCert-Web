@@ -3,10 +3,10 @@ import { Button, Popconfirm, Tooltip } from "antd";
 import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
 import { DeleteOutlined } from "@ant-design/icons";
 import { createScopedLogger } from "@/utils/logger";
-import { SignatoryStatus } from "@/types/project";
 import { useState } from "react";
 import { wait } from "@/utils";
 import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
+import { SignatoryStatus } from "@/components/builder/annotate/util";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateRemove",

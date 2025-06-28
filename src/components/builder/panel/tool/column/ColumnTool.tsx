@@ -6,13 +6,13 @@ import { z } from "zod";
 import { isHexColor } from "@/utils/color";
 import ColumnAnnotateAdd from "./ColumnAnnotateAdd";
 import ColumnAnnotateCard from "./ColumnAnnotateCard";
-import fontMetadata from "../../../../../../public/font_metadata.json";
 import { ColumnAnnotateStates } from "@/components/builder/store/autocertAnnotate";
 import { ProjectRole, ProjectStatus } from "@/types/project";
 import { ColumnAnnotateLock } from "@/components/builder/annotate/ColumnAnnotate";
 import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
+import { fontMetadata } from "@/utils/font";
 
 // const logger = createScopedLogger(
 //   "components:builder:panel:tool:column:ColumnTool",
@@ -21,6 +21,13 @@ import { hasPermission, ProjectPermission } from "@/auth/rbac";
 export const columnAnnotateFormSchema = z.object({
   value: z.string().trim(),
   fontName: z.string().trim(),
+  fontColor: z
+    .string()
+    .trim()
+    .refine((val) => {
+      // check if hex color
+      return isHexColor(val);
+    }, "Invalid hex color"),
   color: z
     .string()
     .trim()

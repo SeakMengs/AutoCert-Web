@@ -5,16 +5,14 @@ import {
   BaseAnnotateProps,
 } from "../annotate/BaseAnnotate";
 import {
-  AnnotateFontSize,
   BaseColumnAnnotate,
   ColumnAnnotateLock,
-  FontWeight,
 } from "../annotate/ColumnAnnotate";
 import {
   BaseSignatureAnnotate,
   SignatureAnnotateLock,
 } from "../annotate/SignatureAnnotate";
-import { ProjectRole, ProjectStatus, SignatoryStatus } from "@/types/project";
+import { ProjectRole, ProjectStatus } from "@/types/project";
 import { nanoid } from "nanoid";
 import {
   ColumnAnnotateFormSchema,
@@ -31,6 +29,10 @@ import { AutoCertChangeType } from "./autocertChangeSlice";
 import { responseFailed } from "@/utils/response";
 import { generateAndFormatZodError } from "@/utils/error";
 import { IS_PRODUCTION } from "@/utils/env";
+import {
+    AnnotateFontColor,
+  AnnotateFontSize, FontWeight, 
+  SignatoryStatus} from "../annotate/util";
 
 // TODO: Check annotate lock state in each mutation
 
@@ -111,7 +113,7 @@ const newColumnAnnotate = (): ColumnAnnotateState => {
     fontName: FontOptions[0].value,
     fontSize: AnnotateFontSize,
     fontWeight: FontWeight.Regular,
-    fontColor: "#000000",
+    fontColor: AnnotateFontColor,
     color: AnnotateColor,
     textFitRectBox: true,
   };
@@ -369,9 +371,10 @@ export const createAutoCertAnnotateSlice: StateCreator<
       newCA = {
         ...newCA,
         fontName: data.fontName,
+        fontColor: data.fontColor,
         value: data.value,
         color: data.color,
-        textFitRectBox: data.textFitRectBox,
+        textFitRectBox: true,
       } satisfies ColumnAnnotateState;
 
       get().setAnnotates({
@@ -418,9 +421,10 @@ export const createAutoCertAnnotateSlice: StateCreator<
       const updatedAnnotate = {
         ...annotate,
         fontName: data.fontName,
+        fontColor: data.fontColor,
         value: data.value,
         color: data.color,
-        textFitRectBox: data.textFitRectBox,
+        textFitRectBox: true,
       } satisfies ColumnAnnotateState;
 
       get().setAnnotates({

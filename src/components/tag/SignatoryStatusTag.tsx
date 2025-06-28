@@ -1,6 +1,6 @@
-import { SignatoryStatus, SignatoryStatusLabels } from "@/types/project";
 import { Tag } from "antd";
 import { JSX } from "react";
+import { SignatoryStatus, SignatoryStatusLabels } from "../builder/annotate/util";
 
 const StatusColors: Record<SignatoryStatus, string | undefined> = {
   [SignatoryStatus.NotInvited]: undefined,

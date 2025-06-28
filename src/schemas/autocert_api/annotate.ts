@@ -1,5 +1,4 @@
-import { FontWeight } from "@/components/builder/annotate/ColumnAnnotate";
-import { SignatoryStatus } from "@/types/project";
+import { FontWeight, SignatoryStatus } from "@/components/builder/annotate/util";
 import { z } from "zod";
 
 export const ColumnAnnotateSchema = z.object({

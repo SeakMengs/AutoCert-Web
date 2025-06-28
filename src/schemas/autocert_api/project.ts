@@ -1,6 +1,7 @@
-import { ProjectStatus, SignatoryStatus } from "@/types/project";
+import { ProjectStatus } from "@/types/project";
 import { z } from "zod";
 import { ColumnAnnotateSchema, SignatureAnnotateSchema } from "./annotate";
+import { SignatoryStatus } from "@/components/builder/annotate/util";
 
 export const ProjectSignatorySchema = z.object({
   email: z.string().email(),

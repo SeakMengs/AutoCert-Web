@@ -30,8 +30,6 @@ import {
   ProjectRole,
   ProjectStatus,
   ProjectStatusLabels,
-  SignatoryStatus,
-  SignatoryStatusLabels,
 } from "@/types/project";
 import { useImageSrc } from "@/hooks/useImageSrc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,6 +37,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { deleteProjectByIdAction } from "@/app/dashboard/projects/action";
 import { QueryKey } from "@/utils/react_query";
 import PdfThumbnail from "../pdf/PdfThumbnail";
+import { SignatoryStatus, SignatoryStatusLabels } from "../builder/annotate/util";
 
 const logger = createScopedLogger("src:components:card:ProjectCard");
 

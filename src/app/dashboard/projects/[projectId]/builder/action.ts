@@ -45,7 +45,6 @@ export async function getProjectByIdAction(data: GetProjectByIdParams): Promise<
     if (!res.data.success) {
       return res.data;
     }
-
     const parseData = getProjectByIdSuccessResponseSchema.safeParse(
       res.data.data,
     );

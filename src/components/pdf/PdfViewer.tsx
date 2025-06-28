@@ -121,7 +121,7 @@ export default function PdfViwer({ pdfUrl }: PdfViwerProps) {
               key={`page_${pageNumber}`}
               _className="max-h-full w-full h-auto object-cover"
               className="pointer-events-none select-none"
-              scale={2}
+              scale={3}
               loading={<DocumentLoading />}
               pageNumber={pageNumber}
               canvasRef={(ref) => {

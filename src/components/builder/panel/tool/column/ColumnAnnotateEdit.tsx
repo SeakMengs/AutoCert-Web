@@ -28,8 +28,8 @@ export interface ColumnAnnotateEditProps
     ColumnAnnotateCardProps,
     "columns" | "onColumnAnnotateUpdate" | "columnAnnotate"
   > {
-    canEdit: boolean;
-  }
+  canEdit: boolean;
+}
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -49,6 +49,7 @@ export default function ColumnAnnotateEdit({
       value: columnAnnotate.value,
       fontName: columnAnnotate.fontName,
       color: columnAnnotate.color,
+      fontColor: columnAnnotate.fontColor,
       textFitRectBox: columnAnnotate.textFitRectBox,
     });
   };
@@ -142,6 +143,17 @@ export default function ColumnAnnotateEdit({
           </Form.Item>
           <Form.Item
             required
+            name="fontColor"
+            label="Font Color"
+            initialValue={columnAnnotate.fontColor}
+            getValueFromEvent={(color: AggregationColor) => {
+              return `#${color.toHex()}`;
+            }}
+          >
+            <ColorPicker size="small" showText />
+          </Form.Item>
+          <Form.Item
+            required
             name="color"
             label="Color"
             initialValue={columnAnnotate.color}
@@ -151,7 +163,7 @@ export default function ColumnAnnotateEdit({
           >
             <ColorPicker size="small" showText />
           </Form.Item>
-          <Form.Item
+          {/* <Form.Item
             required
             name={"textFitRectBox"}
             initialValue={columnAnnotate.textFitRectBox}
@@ -165,7 +177,7 @@ export default function ColumnAnnotateEdit({
             }
           >
             <Switch />
-          </Form.Item>
+          </Form.Item> */}
         </Form>
       </Modal>
     </>

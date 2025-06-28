@@ -3,19 +3,9 @@ import BaseAnnotate, {
   BaseAnnotateLock,
   BaseAnnotateProps,
 } from "./BaseAnnotate";
-import { SignatoryStatus } from "@/types/project";
 import { SignatureOutlined } from "@ant-design/icons";
 import { Flex } from "antd";
-
-export const SignatureStatusColors: Record<
-  SignatoryStatus,
-  string | undefined
-> = {
-  [SignatoryStatus.NotInvited]: undefined,
-  [SignatoryStatus.Invited]: "#1677FF",
-  [SignatoryStatus.Signed]: "#90EE90",
-  [SignatoryStatus.Rejected]: "#FF4D4F",
-};
+import { SignatoryStatus, SignatureStatusColors } from "./util";
 
 export type SignatureAnnotateLock = BaseAnnotateLock & {
   sign: boolean;

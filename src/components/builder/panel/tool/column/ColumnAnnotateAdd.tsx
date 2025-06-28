@@ -11,7 +11,7 @@ import {
   Typography,
 } from "antd";
 import { AggregationColor } from "antd/es/color-picker/color";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   FontOptions,
   ColumnAnnotateFormSchema,
@@ -22,6 +22,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { wait } from "@/utils";
 import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
 import { AnnotateColor } from "@/components/builder/annotate/BaseAnnotate";
+import { AnnotateFontColor } from "@/components/builder/annotate/util";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateAdd",
@@ -44,17 +45,23 @@ export default function ColumnAnnotateAdd({
   canAdd,
   onColumnAnnotateAdd,
 }: ColumnAnnotateAddProps) {
+  const getDefaultFormValues = useCallback(
+    (): ColumnAnnotateFormSchema => ({
+      value: columns[0]?.title,
+      fontName: FontOptions[0].value,
+      fontColor: AnnotateFontColor,
+      color: AnnotateColor,
+      textFitRectBox: true,
+    }),
+    [],
+  );
+
   const [adding, setAdding] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm<ColumnAnnotateFormSchema>();
-
+  // TODO: use useForm
   const resetForm = (): void => {
-    form.setFieldsValue({
-      value: columns[0]?.title,
-      fontName: FontOptions[0].value,
-      color: AnnotateColor,
-      textFitRectBox: true,
-    });
+    form.setFieldsValue(getDefaultFormValues());
   };
 
   const toggleModal = (): void => {
@@ -154,6 +161,17 @@ export default function ColumnAnnotateAdd({
           </Form.Item>
           <Form.Item
             required
+            name="fontColor"
+            label="Font Color"
+            initialValue={AnnotateFontColor}
+            getValueFromEvent={(color: AggregationColor) => {
+              return `#${color.toHex()}`;
+            }}
+          >
+            <ColorPicker size="small" showText />
+          </Form.Item>
+          <Form.Item
+            required
             name="color"
             label="Color"
             initialValue={AnnotateColor}
@@ -164,7 +182,7 @@ export default function ColumnAnnotateAdd({
             <ColorPicker size="small" showText />
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             required
             name={"textFitRectBox"}
             initialValue={true}
@@ -178,7 +196,7 @@ export default function ColumnAnnotateAdd({
             }
           >
             <Switch />
-          </Form.Item>
+          </Form.Item> */}
         </Form>
       </Modal>
     </>
