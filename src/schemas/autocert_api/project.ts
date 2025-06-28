@@ -35,6 +35,7 @@ export const ProjectByIdSchema = ProjectSchema.pick({
   status: true,
   templateUrl: true,
 }).extend({
+  maxCertificate: z.number(),
   embedQr: z.boolean(),
   csvFileUrl: z.string(),
   columnAnnotates: z.array(ColumnAnnotateSchema),

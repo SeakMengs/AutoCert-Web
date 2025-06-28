@@ -32,7 +32,7 @@ export interface AutoCertTableActions {
   setInitialCSVParsed: (parsed: boolean) => void;
   parseCSV: (csvFileUrl: string, silent?: boolean) => Promise<void>;
   onTableChange: () => void;
-  onRowAdd: (newRow: AutoCertTableRow) => void;
+  onRowAdd: (newRow: AutoCertTableRow) => boolean;
   onRowUpdate: (updatedRow: AutoCertTableRow) => void;
   onColumnAdd: (newColumn: AutoCertTableColumn) => void;
   onColumnDelete: (columnTitle: string) => void;
@@ -71,17 +71,30 @@ export const createAutoCertTableSlice: StateCreator<
       set((state) => {
         state.csvFileUrl = csvUrl;
         // Reset initialCSVParsed to false on init such that until csv update, the system can remove unnecessary annotates
-        state.initialCSVParsed = false; 
+        state.initialCSVParsed = false;
       });
 
       // If already parsed before, silently parse the CSV
       await get().parseCSV(csvUrl, parsedBefore);
     },
 
-    setRows: (rows) =>
+    setRows: (rows) => {
+      // if rows exceed maxCertificate, show warning and truncate
+      const maxCertificate = get().project.maxCertificate;
+      if (rows.length > maxCertificate) {
+        logger.warn(
+          `Rows exceed maximum limit (${maxCertificate}). Truncating to allowed maximum.`,
+        );
+        message.warning(
+          `Rows exceed the maximum allowed (${maxCertificate}). Only the first ${maxCertificate} rows will be kept.`,
+        );
+        rows = rows.slice(0, maxCertificate);
+      }
+
       set((state) => {
         state.rows = rows;
-      }),
+      });
+    },
     setColumns: (columns) =>
       set((state) => {
         state.columns = columns;
@@ -134,13 +147,24 @@ export const createAutoCertTableSlice: StateCreator<
       if (!hasPermission(get().roles, [ProjectPermission.TableUpdate])) {
         logger.warn("Permission denied to add row");
         message.error(denyMsg);
-        return;
+        return false;
+      }
+      
+      if (get().project.maxCertificate <= get().rows.length) {
+        logger.warn(
+          `Cannot add new row, maximum limit of ${get().project.maxCertificate} reached.`,
+        );
+        message.warning(
+          `Cannot add new row, maximum limit of ${get().project.maxCertificate} reached.`,
+        );
+        return false;
       }
 
       const newRows = [...get().rows, newRow];
       get().setRows(newRows);
 
       get().onTableChange();
+      return true;
     },
 
     onRowUpdate: (updatedRow) => {

@@ -70,7 +70,7 @@ export interface AutoCertTableProps {
   onColumnAdd: (newColumn: AutoCertTableColumn) => void;
   onColumnDelete: (columnTitle: string) => void;
   onColumnUpdate: (oldTitle: string, newTitle: string) => void;
-  onRowAdd: (newRow: AutoCertTableRow) => void;
+  onRowAdd: (newRow: AutoCertTableRow) => boolean;
   onRowUpdate: (updatedRow: AutoCertTableRow) => void;
   onRowsDelete: (selectedKeys: React.Key[]) => void;
   onImportFromCSV: (
@@ -150,9 +150,11 @@ function AutoCertTable({
             key: nanoid(),
           };
 
-          onRowAdd(newRow);
-          addRowForm.resetFields();
-          message.success("New row added.");
+          const ok = onRowAdd(newRow);
+          if (ok) {
+            addRowForm.resetFields();
+            message.success("New row added.");
+          }
         } catch (error) {
           logger.error("Failed to add new row", error);
           message.error("Failed to add new row.");
