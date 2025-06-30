@@ -14,17 +14,6 @@ export interface AnnotateRendererProps
   annotatesByPage: AnnotateState[];
 }
 
-// const COLUMN_RESIZABLE = {
-//   bottom: false,
-//   bottomLeft: false,
-//   bottomRight: false,
-//   left: true,
-//   right: true,
-//   top: false,
-//   topLeft: false,
-//   topRight: false,
-// };
-
 function AnnotateRenderer({
   annotatesByPage,
   containerRef,

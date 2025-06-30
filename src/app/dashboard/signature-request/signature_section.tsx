@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Modal,
@@ -27,8 +27,8 @@ import {
   getSignatureByIdAction,
   removeSignatureAction,
 } from "./action";
-import { base64ToFile } from "@/utils/file";
-import { SIGNATURE_COOKIE_NAME } from "@/utils";
+import { base64ToFile, urlToFile } from "@/utils/file";
+import { SIGNATURE_AES_COOKIE_NAME, SIGNATURE_COOKIE_NAME } from "@/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCookie, setCookie } from "@/utils/server/cookie";
 import moment from "moment";
@@ -36,6 +36,7 @@ import SignatureUpload from "./signature_upload";
 import SignatureDrawer from "./signature_drawer";
 import { responseFailed } from "@/utils/response";
 import { QueryKey } from "@/utils/react_query";
+import { decryptFileAES, encryptFileAES, generateAESKey } from "@/utils/crypto";
 
 const { Title } = Typography;
 const logger = createScopedLogger(
@@ -73,14 +74,63 @@ export default function SignatureSection({}: SignatureSectionProps) {
         );
       }
 
-      return await getSignatureByIdAction({
+      const res = await getSignatureByIdAction({
         signatureId: signatureId,
       });
+
+      if (!res.success) {
+        logger.error("Failed to get signature by id", res.errors);
+        return res;
+      }
+
+      const file = await urlToFile(
+        res.data.signature.url,
+        res.data.signature.filename,
+      );
+      const sigAESKey = await getCookie(SIGNATURE_AES_COOKIE_NAME);
+      if (!sigAESKey) {
+        logger.error("Signature AES key not found in cookie");
+        message.error("Signature AES key not found");
+        return responseFailed(
+          "Signature AES key not found in cookie",
+          {},
+        );
+      }
+
+      let decryptFile: File;
+      try {
+        decryptFile = await decryptFileAES(file, sigAESKey);
+      } catch (error) {
+        logger.error("Failed to decrypt signature file", error);
+        message.error("Failed to decrypt signature file");
+        return responseFailed("Failed to decrypt signature file", {});
+      }
+      const url = URL.createObjectURL(decryptFile);
+      return {
+        ...res,
+        data: {
+          ...res.data,
+          signature: {
+            ...res.data.signature,
+            decryptedUrl: url,
+          },
+        },
+      };
     },
   });
 
+  const sig = signature.data;
+
   const addSignature = useMutation({
-    mutationFn: addSignatureAction,
+    mutationFn: async (
+      data: Parameters<typeof addSignatureAction>[0] & {
+        aesKey: string;
+      },
+    ) => {
+      return await addSignatureAction({
+        signatureFile: data.signatureFile,
+      });
+    },
     onSuccess: async (data, variables) => {
       if (!data.success) {
         message.error("Failed to save signature");
@@ -97,14 +147,21 @@ export default function SignatureSection({}: SignatureSectionProps) {
         data.data.signature.id,
         moment().add(5, "year").toDate(),
       );
+      await setCookie(
+        SIGNATURE_AES_COOKIE_NAME,
+        variables.aesKey,
+        moment().add(5, "year").toDate(),
+      );
     },
     onError: (error) => {
       logger.error("Failed to save signature", error);
       message.error("Failed to save signature.");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
-    }
+      await queryClient.invalidateQueries({
+        queryKey: [QueryKey.SignatureById],
+      });
+    },
   });
 
   const removeSignature = useMutation({
@@ -115,6 +172,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
     },
     onSuccess: async (data, varaible) => {
       await setCookie(SIGNATURE_COOKIE_NAME, "", moment().toDate());
+      await setCookie(SIGNATURE_AES_COOKIE_NAME, "", moment().toDate());
 
       if (!varaible.silent) {
         message.success("Signature removed successfully");
@@ -125,25 +183,36 @@ export default function SignatureSection({}: SignatureSectionProps) {
       message.error("Failed to remove signature.");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.SignatureById] });
+      await queryClient.invalidateQueries({
+        queryKey: [QueryKey.SignatureById],
+      });
     },
   });
 
   const onSignatureSave = async (sig: string | File): Promise<boolean> => {
-    logger.debug("addSignatureState signature");
+    try {
+      logger.debug("addSignatureState signature");
 
-    let file: File = sig as File;
+      let file: File = sig as File;
 
-    if (typeof sig === "string") {
-      const base64Signature = sig;
-      file = base64ToFile(base64Signature, "signature.svg");
+      if (typeof sig === "string") {
+        file = base64ToFile(sig, "signature.svg");
+      }
+
+      const aesKey = await generateAESKey();
+      const encryptedFile = await encryptFileAES(file, aesKey);
+
+      await addSignature.mutateAsync({
+        signatureFile: encryptedFile,
+        aesKey: aesKey,
+      });
+
+      return true;
+    } catch (error) {
+      logger.error("Failed to save signature", error);
+      message.error("Failed to save signature.");
+      return false;
     }
-
-    await addSignature.mutateAsync({
-      signatureFile: file,
-    });
-
-    return true;
   };
 
   // If silent, don't show error, success message, use for changing signature which we delete the old signature file
@@ -219,8 +288,6 @@ export default function SignatureSection({}: SignatureSectionProps) {
     },
   ] satisfies TabsProps["items"];
 
-  const sig = signature.data;
-
   return (
     <div>
       <Space direction="vertical" className="w-full">
@@ -249,7 +316,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
         ) : sig && sig.success ? (
           <Space direction="vertical">
             <img
-              src={sig.data.signature.url}
+              src={sig.data.signature.decryptedUrl}
               alt="Your signature"
               className="max-w-80"
               style={{

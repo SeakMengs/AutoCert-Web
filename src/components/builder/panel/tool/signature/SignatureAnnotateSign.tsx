@@ -26,9 +26,8 @@ export default function SignatureAnnotateSign({
   onSignatureAnnotateSign,
 }: SignatureAnnotateSignProps) {
   const { message } = App.useApp();
-  const queryClient = useQueryClient();
 
-  const { project, invalidateBuilderQueries } = useAutoCertStore(
+  const { invalidateBuilderQueries } = useAutoCertStore(
     useShallow((state) => {
       return {
         project: state.project,
@@ -54,6 +53,7 @@ export default function SignatureAnnotateSign({
           signatureFile: "Signature file is not valid",
           notFound: "Could not find the signature annotate",
           forbidden: "You are not allowed to sign this signature request",
+          failToDecrypt: errors.failToDecrypt,
           noSignatureInCookie:
             "You have not uploaded a signature file yet. Please go to signature request and upload a signature file",
         });

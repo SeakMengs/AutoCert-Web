@@ -1,3 +1,8 @@
+import { api } from "./axios";
+import { createScopedLogger } from "./logger";
+
+const logger = createScopedLogger("src:utils:file");
+
 export const KB = 1024;
 export const MB = KB * KB;
 export const GB = KB * MB;
@@ -54,10 +59,33 @@ export function base64ToFile(base64: string, filename: string): File {
         break;
     }
 
-    const finalFilename = filename.endsWith(`.${ext}`) ? filename : `${filename}.${ext}`;
+    const finalFilename = filename.endsWith(`.${ext}`)
+      ? filename
+      : `${filename}.${ext}`;
     return new File([bytes], finalFilename, { type: mime });
   } catch (e) {
-    console.error("Error converting base64 to file:", e);
+    logger.error("Error converting base64 to file:", e);
     throw e;
   }
+}
+
+export async function urlToFile(url: string, filename: string): Promise<File> {
+  const res = await api.get(url, {
+    responseType: "arraybuffer",
+  });
+
+  if (res.status !== 200) {
+    logger.error("Failed to fetch file from URL", { url, status: res.status });
+    throw new Error(`Failed to fetch file from URL: ${url}`);
+  }
+
+  const mimeType = res.headers["content-type"] || "application/octet-stream";
+
+  const signatureFile = new Blob([res.data], {
+    type: mimeType,
+  });
+
+  return new File([signatureFile], filename, {
+    type: mimeType,
+  });
 }

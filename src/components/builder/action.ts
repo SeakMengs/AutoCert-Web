@@ -1,9 +1,11 @@
 "use server";
 
 import { getSignatureByIdAction } from "@/app/dashboard/signature-request/action";
-import { SIGNATURE_COOKIE_NAME } from "@/utils";
+import { SIGNATURE_AES_COOKIE_NAME, SIGNATURE_COOKIE_NAME } from "@/utils";
 import { api, apiWithAuth } from "@/utils/axios";
+import { decryptFileAES } from "@/utils/crypto";
 import { generateAndFormatZodError } from "@/utils/error";
+import { urlToFile } from "@/utils/file";
 import { createScopedLogger } from "@/utils/logger";
 import {
   responseFailed,
@@ -55,7 +57,6 @@ export type ApproveSignature = {
 };
 export type ApproveSignatureSuccessResponse = {};
 
-// TODO: decrypt signature file after implementing encryption
 export async function approveSignatureAction(data: ApproveSignature): Promise<
   ResponseJson<
     ApproveSignatureSuccessResponse,
@@ -65,6 +66,7 @@ export async function approveSignatureAction(data: ApproveSignature): Promise<
       notSignatory: string;
       signatureFile: string;
       noSignatureInCookie: string;
+      failToDecrypt: string;
     }
   >
 > {
@@ -100,33 +102,29 @@ export async function approveSignatureAction(data: ApproveSignature): Promise<
       );
     }
 
-    const res = await api.get(sig.data.signature.url, {
-      responseType: "arraybuffer",
-    });
-
-    if (res.status !== 200) {
-      return responseFailed(
-        "Failed to get signature file",
-        generateAndFormatZodError(
-          "signatureFile",
-          "Failed to get signature file",
-        ),
-      );
+    const file = await urlToFile(
+      sig.data.signature.url,
+      sig.data.signature.filename,
+    );
+    const sigAESKey = await getCookie(SIGNATURE_AES_COOKIE_NAME);
+    if (!sigAESKey) {
+      logger.error("Signature AES key not found in cookie");
+      return responseFailed("Signature AES key not found in cookie", {
+        failToDecrypt: "Signature AES key not found",
+      });
+    }
+    let decryptFile: File;
+    try {
+      decryptFile = await decryptFileAES(file, sigAESKey);
+    } catch (error) {
+      logger.error("Failed to decrypt signature file", error);
+      return responseFailed("Failed to decrypt signature file", {
+        failToDecrypt: "Failed to decrypt signature file",
+      });
     }
 
-    const mimeType = res.headers["content-type"] || "application/octet-stream";
-
-    const signatureFile = new Blob([res.data], {
-      type: mimeType,
-    });
-
-    const file = new File([signatureFile], sig.data.signature.filename, {
-      type: mimeType,
-      lastModified: Date.now(),
-    });
-
     const form = new FormData();
-    form.append("signatureFile", file);
+    form.append("signatureFile", decryptFile);
 
     const res2 = await apiWithAuth.patchForm<
       ResponseJson<ApproveSignatureSuccessResponse, {}>
