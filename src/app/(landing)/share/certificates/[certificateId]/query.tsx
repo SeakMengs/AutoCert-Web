@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getCertificateByProjectIdAction } from "./action";
 import { Flex } from "antd";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
-import { notFound } from "next/navigation";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
 import CertificateContent from "./certificate_content";
 import { QueryKey } from "@/utils/react_query";
+import CertificateNotFound from "./not-found";
 
 interface PublicCertificateByIdProps {
   certificateId: string;
@@ -50,11 +50,11 @@ export default function PublicCertificateById({
 
   if (data && !data.success) {
     if (Object.hasOwn(data.errors, "notFound")) {
-      return notFound();
+      return <CertificateNotFound />
     }
 
     if (Object.hasOwn(data.errors, "forbidden")) {
-      return notFound();
+      return <CertificateNotFound />
     }
 
     return (

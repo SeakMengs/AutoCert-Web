@@ -193,7 +193,7 @@ export default function CertificateContent({
                 </Title>
                 <Paragraph className="text-blue-700 text-sm mb-0">
                   If you're having trouble viewing or downloading your
-                  certificate, please contact support or try refreshing the
+                  certificate, please disable internet download manager or try refreshing the
                   page.
                 </Paragraph>
               </div> */}

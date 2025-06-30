@@ -1,7 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { getProjectByIdAction } from "./action";
-import { notFound } from "next/navigation";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
 import { Flex } from "antd";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
@@ -56,7 +55,7 @@ export default function ProjectBuilderQuery({
 
   if (data && !data.success) {
     if (Object.hasOwn(data.errors, "notFound")) {
-      return notFound();
+      return <ProjectNotFound errorType="not-found" />;
     }
 
     if (Object.hasOwn(data.errors, "forbidden")) {

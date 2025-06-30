@@ -6,7 +6,6 @@ import { Flex, Space } from "antd";
 import { getCertificatesByProjectIdAction } from "./action";
 import DisplayZodErrors from "@/components/error/DisplayZodErrors";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
-import { notFound } from "next/navigation";
 import ProjectNotFound from "@/components/not_found/ProjectNotFound";
 import { QueryKey } from "@/utils/react_query";
 
@@ -47,7 +46,7 @@ export default function ProjectCertificatesById({
 
   if (data && !data.success) {
     if (Object.hasOwn(data.errors, "notFound")) {
-      return notFound();
+      return <ProjectNotFound errorType="not-found" />;
     }
 
     if (Object.hasOwn(data.errors, "forbidden")) {
