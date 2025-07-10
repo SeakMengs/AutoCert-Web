@@ -41,11 +41,10 @@ function SignatureAnnotate({
       {...restProps}
     >
       {signatureUrl ? (
-        // eslint-disable-next-line
         <img
           src={signatureUrl}
           alt="Signature"
-          className="w-full h-full pointer-events-none select-none!"
+          className="max-w-full max-h-full w-auto h-auto pointer-events-none select-none object-contain"
         />
       ) : (
         <Flex
