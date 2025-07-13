@@ -92,6 +92,19 @@ export default function ProjectBuilderWithProvider({
             },
           };
         }
+
+        if (
+          change.type === AutoCertChangeType.AnnotateSignatureApprove &&
+          change.data.signatureFile
+        ) {
+          return {
+            ...change,
+            data: {
+              ...change.data,
+              signatureFile: undefined,
+            },
+          };
+        }
         return change;
       });
 
@@ -104,6 +117,16 @@ export default function ProjectBuilderWithProvider({
           change.data.csvFile
         ) {
           formData.append("csvFile", change.data.csvFile);
+        }
+
+        if (
+          change.type === AutoCertChangeType.AnnotateSignatureApprove &&
+          change.data.signatureFile
+        ) {
+          formData.append(
+            `signature_approve_file_${change.data.id}`,
+            change.data.signatureFile,
+          );
         }
       });
 

@@ -19,20 +19,24 @@ import {
   FontOptions,
 } from "../panel/tool/column/ColumnTool";
 import { SignatureAnnotateFormSchema } from "../panel/tool/signature/SignatureTool";
-import { approveSignatureAction } from "../action";
 import { AutoCertTableColumn } from "../panel/table/AutoCertTable";
 import { StateCreator } from "zustand";
 import { AutoCertStore } from "./useAutoCertStore";
 import { hasPermission, hasRole, ProjectPermission } from "@/auth/rbac";
 import { App } from "antd";
 import { AutoCertChangeType } from "./autocertChangeSlice";
-import { responseFailed } from "@/utils/response";
-import { generateAndFormatZodError } from "@/utils/error";
 import { IS_PRODUCTION } from "@/utils/env";
 import {
-    AnnotateFontColor,
-  AnnotateFontSize, FontWeight, 
-  SignatoryStatus} from "../annotate/util";
+  AnnotateFontColor,
+  AnnotateFontSize,
+  FontWeight,
+  SignatoryStatus,
+} from "../annotate/util";
+import { getSignatureByIdAction } from "@/app/dashboard/signature-request/action";
+import { urlToFile } from "@/utils/file";
+import { getCookie } from "@/utils/server/cookie";
+import { SIGNATURE_AES_COOKIE_NAME, SIGNATURE_COOKIE_NAME } from "@/utils";
+import { decryptFileAES } from "@/utils/crypto";
 
 // TODO: Check annotate lock state in each mutation
 
@@ -171,9 +175,7 @@ export interface AutocertAnnotateSliceActions {
   removeSignatureAnnotate: (id: string) => void;
   inviteSignatureAnnotate: (id: string) => void;
   rejectSignatureAnnotate: (id: string, reason?: string) => void;
-  signSignatureAnnotate: (
-    id: string,
-  ) => ReturnType<typeof approveSignatureAction>;
+  signSignatureAnnotate: (id: string) => Promise<void>;
 
   onAnnotateDragStart: BaseAnnotateProps["onDragStart"];
   onAnnotateDragStop: BaseAnnotateProps["onDragStop"];
@@ -657,25 +659,21 @@ export const createAutoCertAnnotateSlice: StateCreator<
 
     signSignatureAnnotate: async (id) => {
       logger.debug(`Sign signature annotate with id ${id}`);
-      // Don't check permission, let the server handle it
-      // if (!hasPermission(roles, [ProjectPermission.AnnotateSignatureApprove])) {
-      //   logger.warn("Permission denied to sign signature annotate");
-      //   return responseFailed(
-      //     "Permission denied to sign signature annotate",
-      //     generateAndFormatZodError(
-      //       "forbidden",
-      //       "Permission denied to approve signature",
-      //     ),
-      //   );
-      // }
+
+      if (
+        !hasPermission(get().roles, [
+          ProjectPermission.AnnotateSignatureApprove,
+        ])
+      ) {
+        logger.warn("Permission denied to sign signature annotate");
+        message.error("You do not have permission to sign signature");
+        return;
+      }
 
       const existingAnnotate = get().findAnnotateById(id);
       if (!existingAnnotate) {
         logger.warn(`Signature annotate with id ${id} not found`);
-        return responseFailed(
-          "Signature annotate not found",
-          generateAndFormatZodError("notFound", "Signature annotate not found"),
-        );
+        return;
       }
 
       const { annotate, page } = existingAnnotate;
@@ -683,36 +681,79 @@ export const createAutoCertAnnotateSlice: StateCreator<
         logger.warn(
           `Signature annotate with id ${id} found, but not a signature`,
         );
-        return responseFailed(
-          "Signature annotate not found",
-          generateAndFormatZodError("type", "Signature annotate not found"),
-        );
+        return;
       }
 
       if (annotate.status !== SignatoryStatus.Invited) {
         logger.warn(`Signature annotate with id ${id} found, but not invited`);
-        return responseFailed(
-          "Signature annotate not invited",
-          generateAndFormatZodError("status", "Signature annotate not invited"),
-        );
+        return;
       }
 
-      const res = await approveSignatureAction({
-        projectId: get().project.id,
-        signatureAnnotateId: id,
+      const signatureId = await getCookie(SIGNATURE_COOKIE_NAME);
+
+      if (!signatureId) {
+        logger.error("Get signature by id but id not found in cookie");
+        message.error(
+          "You do not have a saved signature to approve signature, please add one first in signature request page",
+        );
+        return;
+      }
+
+      const sig = await getSignatureByIdAction({
+        signatureId,
       });
 
-      if (res.success) {
-        get().setAnnotates({
-          ...get().annotates,
-          [page]: get().annotates[page].map((a) =>
-            a.id === id ? { ...a, status: SignatoryStatus.Signed } : a,
-          ),
-        });
-        get().setSelectedAnnotateId(undefined);
+      if (!sig.success) {
+        logger.error("Failed to get signature by id: ", sig.errors);
+        message.error(`Failed to get your saved signature`);
+        return;
       }
 
-      return res;
+      const file = await urlToFile(
+        sig.data.signature.url,
+        sig.data.signature.filename,
+      );
+      const sigAESKey = await getCookie(SIGNATURE_AES_COOKIE_NAME);
+      if (!sigAESKey) {
+        logger.error("Signature AES key not found in cookie");
+        message.error("Signature AES key not found");
+        return;
+      }
+      let decryptFile: File;
+      try {
+        decryptFile = await decryptFileAES(file, sigAESKey);
+      } catch (error) {
+        logger.error("Failed to decrypt signature file", error);
+        message.error("Failed to decrypt signature file");
+        return;
+      }
+
+      if (!decryptFile) {
+        logger.error("Decrypted signature file is empty");
+        message.error("Decrypted signature file is empty");
+        return;
+      }
+
+      get().setAnnotates({
+        ...get().annotates,
+        [page]: get().annotates[page].map((a) =>
+          a.id === id
+            ? ({
+                ...a,
+                status: SignatoryStatus.Signed,
+                signatureUrl: URL.createObjectURL(decryptFile),
+              } as SignatureAnnotateState)
+            : a,
+        ),
+      });
+
+      get().enqueueChange({
+        type: AutoCertChangeType.AnnotateSignatureApprove,
+        data: {
+          id: id,
+          signatureFile: decryptFile,
+        },
+      });
     },
 
     onAnnotateResizeStart: (id, e, rect, pageNumber) => {

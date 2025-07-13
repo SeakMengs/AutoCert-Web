@@ -2,11 +2,7 @@
 import { App, Button, Popconfirm, Tooltip } from "antd";
 import { SignatureAnnotateCardProps } from "./SignatureAnnotateCard";
 import { createScopedLogger } from "@/utils/logger";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTranslatedErrorMessage } from "@/utils/error";
-import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
-import { useShallow } from "zustand/react/shallow";
-import { QueryKey } from "@/utils/react_query";
+import { useState } from "react";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:signature:SignatureAnnotateSign",
@@ -26,67 +22,40 @@ export default function SignatureAnnotateSign({
   onSignatureAnnotateSign,
 }: SignatureAnnotateSignProps) {
   const { message } = App.useApp();
+  const [signing, setSigning] = useState<boolean>(false);
 
-  const { invalidateBuilderQueries } = useAutoCertStore(
-    useShallow((state) => {
-      return {
-        project: state.project,
-        invalidateBuilderQueries: state.invalidateQueries,
-      };
-    }),
-  );
+  const handleSignAnnotate = async (): Promise<void> => {
+    logger.debug("AutoCert sign signature annotate confirmed");
 
-  const { mutateAsync, isPending: approving } = useMutation({
-    mutationFn: async () => {
-      logger.debug("AutoCert sign signature annotate confirmed");
-      return await onSignatureAnnotateSign(signatureAnnotate.id);
-    },
-    onSuccess: (data, variables) => {
-      if (!data.success) {
-        const { errors } = data;
+    if (!canSign) {
+      logger.warn("AutoCert sign signature annotate is not allowed");
+      return;
+    }
 
-        const specificError = getTranslatedErrorMessage(errors, {
-          type: "Wrong annotate type",
-          status: "Signature request is not in a valid state to be signed",
-          notSignatory:
-            "You are not allowed to sign this signature request as you are not a signatory of this request",
-          signatureFile: "Signature file is not valid",
-          notFound: "Could not find the signature annotate",
-          forbidden: "You are not allowed to sign this signature request",
-          failToDecrypt: errors.failToDecrypt,
-          noSignatureInCookie:
-            "You have not uploaded a signature file yet. Please go to signature request and upload a signature file",
-        });
-        if (specificError) {
-          message.error(specificError);
-          return;
-        }
+    setSigning(true);
 
-        message.error("Failed to approve signature");
-        return;
-      }
-    },
-    onError: (error) => {
-      logger.error("Failed to approve signature", error);
-      message.error("Failed to approve signature");
-    },
-    onSettled: async () => {
-      await invalidateBuilderQueries();
-    },
-  });
+    try {
+      await onSignatureAnnotateSign(signatureAnnotate.id);
+    } catch (error) {
+      logger.error("AutoCert sign signature annotate failed", error);
+      message.error("Failed to sign signature");
+    } finally {
+      setSigning(false);
+    }
+  };
 
   return (
     <Popconfirm
-      title="Are you sure you want to approve signature to this project?"
-      onConfirm={async () => mutateAsync()}
+      title="Are you sure you want to sign signature to this project?"
+      onConfirm={handleSignAnnotate}
     >
-      <Tooltip title="Approve signature">
+      <Tooltip title="Sign signature">
         <Button
           variant="solid"
           size="small"
           color="green"
-          loading={approving}
-          disabled={!canSign || approving}
+          loading={signing}
+          disabled={!canSign || signing}
         >
           Approve
         </Button>

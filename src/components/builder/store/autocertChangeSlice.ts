@@ -78,7 +78,7 @@ export type AnnotateSignatureReject = {
 
 export type AnnotateSignatureApprove = {
   type: typeof AutoCertChangeType.AnnotateSignatureApprove;
-  data: { id: string };
+  data: { id: string; signatureFile: File };
 };
 
 export type SettingsUpdate = {
