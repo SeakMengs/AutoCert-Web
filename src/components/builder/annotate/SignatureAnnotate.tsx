@@ -44,7 +44,7 @@ function SignatureAnnotate({
         <img
           src={signatureUrl}
           alt="Signature"
-          className="max-w-full max-h-full w-auto h-auto pointer-events-none select-none"
+          className="pointer-events-none select-none object-contain w-full h-full"
         />
       ) : (
         <Flex

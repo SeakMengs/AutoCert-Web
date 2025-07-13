@@ -196,6 +196,7 @@ export const createAutoCertChangeSlice: StateCreator<
 
     initChange: (fn) => {
       get().setSaveChanges(fn);
+      get().cancelInvalidateQueries();
       set((state) => {
         state.changes = [];
         state.changeMap = new Map<string, AutoCertChangeEvent>();
@@ -328,6 +329,7 @@ export const createAutoCertChangeSlice: StateCreator<
 
       debouncedSetUserInteractionEnd.cancel();
       debouncedCheckAndInvalidateQueries.cancel();
+      debouncedPushChanges.cancel();
 
       set((state) => {
         state.pendingInvalidation = false;
