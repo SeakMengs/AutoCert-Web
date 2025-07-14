@@ -102,9 +102,11 @@ export default function Header({ title }: BuilderHeaderProps) {
 
         <Space size="middle">
           {renderStatus()}
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {`Last sync: ${lastSyncFromNow}`}
-          </Text>
+          {lastSync && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {`Last sync: ${lastSyncFromNow}`}
+            </Text>
+          )}
         </Space>
       </Flex>
     </header>
