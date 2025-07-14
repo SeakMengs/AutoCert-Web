@@ -103,35 +103,37 @@ export function getCanGenerateCertificateState({
 
   if (isProcessing) {
     cannotGenerateReasons.push(
-      "Certificate generation is currently in progress. Please wait until the process is complete.",
+      "Certificate generation is currently in progress. Please wait for the process to complete.",
     );
   }
 
   if (!isDraft && !isProcessing) {
     cannotGenerateReasons.push(
-      "Certificates can only be generated when the project is in draft status.",
+      "Certificates can only be generated while the project is in draft status.",
     );
   }
 
   if (!isRequestor) {
-    cannotGenerateReasons.push("Only the requestor can generate certificates.");
+    cannotGenerateReasons.push(
+      "You must be the project requestor to generate certificates.",
+    );
   }
 
   if (hasPendingChange) {
     cannotGenerateReasons.push(
-      "Pending changes must be applied before generating certificates. Please wait while changes are processed automatically.",
+      "There are pending changes. Please wait for them to be applied before generating certificates.",
     );
   }
 
   if (!hasAtLeastOneAnnotate) {
     cannotGenerateReasons.push(
-      "At least one annotate is required to generate certificates. Add column or signature fields first.",
+      "At least one annotation (e.g., a signature or column) is required before generating certificates.",
     );
   }
 
   if (!allSignaturesSigned) {
     cannotGenerateReasons.push(
-      "All signatures must be signed before generating certificates.",
+      "All signature fields must be signed before you can generate certificates. Please ensure all signatories have approved their signatures.",
     );
   }
 

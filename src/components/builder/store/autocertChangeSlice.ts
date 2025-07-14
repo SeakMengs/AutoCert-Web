@@ -14,6 +14,7 @@ import { queryClient } from "@/app/react_query";
 import { QueryKey } from "@/utils/react_query";
 import { hasRole } from "@/auth/rbac";
 import { ProjectRole } from "@/types/project";
+import moment from "moment";
 
 const logger = createScopedLogger(
   "components:builder:store:autocertChangeSlice",
@@ -116,6 +117,7 @@ export const FAKE_LOADING_TIME = 0.5 * SECOND;
 const messageKey = "autoCertPushChangesMessageKey";
 
 export type AutoCertChangeState = {
+  lastSync: Date | null;
   changes: AutoCertChangeEvent[];
   isPushingChanges: boolean;
   changeMap: Map<string, AutoCertChangeEvent>;
@@ -188,6 +190,7 @@ export const createAutoCertChangeSlice: StateCreator<
   }, INTERACTION_SETTLE_TIME);
 
   return {
+    lastSync: null,
     changes: [],
     isPushingChanges: false,
     changeMap: new Map<string, AutoCertChangeEvent>(),
@@ -198,6 +201,7 @@ export const createAutoCertChangeSlice: StateCreator<
       get().setSaveChanges(fn);
       get().cancelInvalidateQueries();
       set((state) => {
+        state.lastSync = moment().toDate();
         state.changes = [];
         state.changeMap = new Map<string, AutoCertChangeEvent>();
         state.isPushingChanges = false;
@@ -250,11 +254,11 @@ export const createAutoCertChangeSlice: StateCreator<
       if (get().changeMap.size === 0) return;
       get().setIsPushingChanges(true);
 
-      message.loading({
-        content: "Saving changes...",
-        key: messageKey,
-        duration: 0,
-      });
+      // message.loading({
+      //   content: "Saving changes...",
+      //   key: messageKey,
+      //   duration: 0,
+      // });
 
       const batchedChanges = Array.from(get().changeMap.values());
       logger.debug("Pushing changes:", batchedChanges);
@@ -273,11 +277,15 @@ export const createAutoCertChangeSlice: StateCreator<
         get().clearChanges();
         await get().checkAndInvalidateQueries();
 
-        message.success({
-          content: "Changes saved successfully",
-          key: messageKey,
-          duration: 2,
+        set((state) => {
+          state.lastSync = moment().toDate();
         });
+
+        // message.success({
+        //   content: "Changes saved successfully",
+        //   key: messageKey,
+        //   duration: 2,
+        // });
       } catch (error) {
         message.error({
           content: "Failed to save changes",
