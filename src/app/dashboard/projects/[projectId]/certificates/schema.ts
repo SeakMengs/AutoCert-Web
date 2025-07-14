@@ -21,4 +21,21 @@ export const getCertificatesByProjectIdSuccessResponseSchema = z.object({
     certificateMergedUrl: z.string().nullable().default(null),
     certificateZipUrl: z.string().nullable().default(null),
   }),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+});
+
+export const getCertificatesByProjectIdParamsSchema = z.object({
+  page: z
+    .number()
+    .int()
+    .positive({ message: "Page must be a positive integer" })
+    .optional(),
+  pageSize: z
+    .number()
+    .int()
+    .positive({ message: "Page size must be a positive integer" })
+    .optional(),
+  projectId: z.string().min(1, "Project ID is required"),
 });

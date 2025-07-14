@@ -46,7 +46,7 @@ export async function getOwnProjectsAction(
         searchParams.append("status", status.toString());
       });
 
-    const url = `/api/v1/me/projects/?${searchParams.toString()}`;
+    const url = `/api/v1/me/projects?${searchParams.toString()}`;
 
     const res =
       await apiWithAuth.get<ResponseJson<GetOwnProjectsSuccessResponse, {}>>(

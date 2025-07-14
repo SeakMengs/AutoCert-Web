@@ -220,7 +220,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
             <div className="mt-2">
               <Alert
                 message={
-                  <Text className="text-gray-600" strong>
+                  <Text className="text-amber-800" strong>
                     Cannot generate certificates because:
                   </Text>
                 }
@@ -228,7 +228,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
                   cannotGenerateReasons.length > 0 ? (
                     <ul className="m-0 pl-5">
                       {cannotGenerateReasons.map((reason, index) => (
-                        <li key={index} className="text-gray-600 text-sm">
+                        <li key={index} className="text-amber-800 text-sm">
                           {reason}
                         </li>
                       ))}

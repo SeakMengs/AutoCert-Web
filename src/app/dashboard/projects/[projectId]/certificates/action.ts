@@ -1,7 +1,10 @@
 "use server";
 
 import { createScopedLogger } from "@/utils/logger";
-import { getCertificatesByProjectIdSuccessResponseSchema } from "./schema";
+import {
+  getCertificatesByProjectIdParamsSchema,
+  getCertificatesByProjectIdSuccessResponseSchema,
+} from "./schema";
 import {
   responseFailed,
   ResponseJson,
@@ -10,14 +13,15 @@ import {
 import { apiWithAuth } from "@/utils/axios";
 import { formatZodError } from "@/utils/error";
 import { z } from "zod";
+import { PageSize } from "@/utils/pagination";
 
 const logger = createScopedLogger(
   "src:app:dashboard:projects:[projectId]:certificates:action.ts",
 );
 
-export type GetCertificatesByProjectIdParams = {
-  projectId: string;
-};
+export type GetCertificatesByProjectIdParams = z.infer<
+  typeof getCertificatesByProjectIdParamsSchema
+>;
 
 export type GetCertificatesByProjectIdSuccessResponse = z.infer<
   typeof getCertificatesByProjectIdSuccessResponseSchema
@@ -33,7 +37,17 @@ export async function getCertificatesByProjectIdAction(
   try {
     logger.info("get certificates by project id action", data);
 
-    const url = `/api/v1/projects/${data.projectId}/certificates`;
+    const params = getCertificatesByProjectIdParamsSchema.safeParse(data);
+    if (!params.success) {
+      return responseFailed("Invalid params", formatZodError(params.error));
+    }
+
+    const searchParams = new URLSearchParams({
+      page: data.page ? String(data.page) : "1",
+      pageSize: data.pageSize ? String(data.pageSize) : PageSize.toString(),
+    });
+
+    const url = `/api/v1/projects/${data.projectId}/certificates?${searchParams.toString()}`;
 
     const res =
       await apiWithAuth.get<

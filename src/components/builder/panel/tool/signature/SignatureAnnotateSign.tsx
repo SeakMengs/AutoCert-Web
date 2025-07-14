@@ -46,7 +46,7 @@ export default function SignatureAnnotateSign({
 
   return (
     <Popconfirm
-      title="Are you sure you want to sign signature to this project?"
+      title="Are you sure you want to approve this signature request?"
       onConfirm={handleSignAnnotate}
     >
       <Tooltip title="Approve signature">

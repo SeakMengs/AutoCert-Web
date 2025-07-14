@@ -58,14 +58,20 @@ export default function CertificateProjectList({
         <Flex vertical align="center" justify="center">
           <Empty
             description={
-              <p className="text-muted-foreground">
-                No project found{" "}
-                {search && (
-                  <>
-                    for <strong>{search}</strong>
-                  </>
-                )}
-              </p>
+              page === 1 && !search ? (
+                <p className="text-muted-foreground">
+                  No projects yet. Start by creating a new project!
+                </p>
+              ) : (
+                <p className="text-muted-foreground">
+                  No project found{" "}
+                  {search && (
+                    <>
+                      for <strong>{search}</strong>
+                    </>
+                  )}
+                </p>
+              )
             }
           />
         </Flex>

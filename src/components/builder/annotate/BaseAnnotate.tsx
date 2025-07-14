@@ -180,7 +180,7 @@ function BaseAnnotate({
     >
       <div
         onClick={handleClick}
-        className={cn("relative rounded w-full h-full", {
+        className={cn("relative w-full h-full", {
           "cursor-auto": lock.disable || !canUpdate,
           "cursor-move": enableDragging,
         })}
@@ -193,7 +193,7 @@ function BaseAnnotate({
         }}
       >
         <div
-          className="absolute inset-0 rounded z-0 opacity-[0.4]"
+          className="absolute inset-0 z-0 opacity-[0.4]"
           style={{
             backgroundColor:
               lock.showBg && !lock.disable ? bgColor : "transparent",

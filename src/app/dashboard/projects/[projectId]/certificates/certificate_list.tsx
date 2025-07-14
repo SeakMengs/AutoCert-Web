@@ -12,6 +12,7 @@ import {
   Space,
   Flex,
   App,
+  Empty,
 } from "antd";
 import {
   DownloadOutlined,
@@ -43,14 +44,20 @@ export type Certificate = z.infer<
 
 export interface CertificateListProps {
   certificates: Certificate[];
+  totalCertificates: number;
   projectId: string;
+  page: number;
+  setPage: (page: number) => void;
   isPublic: boolean;
 }
 
 export default function CertificateList({
   projectId,
   isPublic,
+  page,
   certificates,
+  totalCertificates,
+  setPage,
 }: CertificateListProps) {
   const [selectedCertificate, setSelectedCertificate] =
     useState<Certificate | null>(null);
@@ -79,24 +86,33 @@ export default function CertificateList({
     <div>
       <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
         <Title level={5} style={{ margin: 0 }}>
-          {certificates.length} Certificate
-          {certificates.length !== 1 ? "s" : ""}
+          {totalCertificates} Certificate
+          {totalCertificates !== 1 ? "s" : ""}
         </Title>
       </Flex>
 
       {certificates.length === 0 ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: 200,
-            background: "#f5f5f5",
-            borderRadius: 8,
-          }}
-        >
-          <Text type="secondary">No certificate</Text>
-        </div>
+        <Flex vertical align="center" justify="center">
+          <Empty
+            description={
+              page === 1 ? (
+                <p className="text-muted-foreground">No certificates.</p>
+              ) : (
+                <Space direction="vertical" align="center">
+                  <div>No certificate for page {page}</div>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setPage(1);
+                    }}
+                  >
+                    Go to page 1
+                  </Button>
+                </Space>
+              )
+            }
+          />
+        </Flex>
       ) : (
         GridViews
       )}
