@@ -9,7 +9,6 @@ import { SaveChangesCallback } from "./autocertChangeSlice";
 import { AuthUser } from "@/auth";
 import { z } from "zod";
 import { ProjectByIdSchema } from "@/schemas/autocert_api/project";
-import { App } from "antd";
 
 // TODO: watch for project, roles change
 const logger = createScopedLogger("components:builder:store:autocertSlice");
@@ -21,6 +20,7 @@ export type AutoCertState = {
 };
 
 export interface AutoCertActions {
+  initCount: number;
   init: (params: {
     user: AuthUser;
     project: z.infer<typeof ProjectByIdSchema>;
@@ -46,9 +46,9 @@ export const createAutoCertSlice: StateCreator<
   [],
   AutoCertSlice
 > = (set, get) => {
-  const { message } = App.useApp();
 
   return {
+    initCount: 0,
     project: {} as z.infer<typeof ProjectByIdSchema>,
     roles: [],
     user: {} as AuthUser,
@@ -84,7 +84,12 @@ export const createAutoCertSlice: StateCreator<
       });
       get().initAnnotates(annotates);
       get().initSettings(settings);
-      get().initChange(saveChanges);
+
+      if (get().initCount === 0) {
+        get().initChange(saveChanges);
+      } else {
+        logger.info("AutoCert store already initialized change, skipping change init");
+      }
 
       // Only initialize pdf once since we only need to load it once
       if (!get().pdfFileUrl) {
@@ -92,6 +97,10 @@ export const createAutoCertSlice: StateCreator<
       }
 
       await get().initTable(csvUrl);
+
+      set((state) => {
+        state.initCount += 1;
+      });
     },
 
     setProject: (project) => {

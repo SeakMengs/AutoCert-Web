@@ -49,7 +49,7 @@ export default function SignatureAnnotateSign({
       title="Are you sure you want to sign signature to this project?"
       onConfirm={handleSignAnnotate}
     >
-      <Tooltip title="Sign signature">
+      <Tooltip title="Approve signature">
         <Button
           variant="solid"
           size="small"

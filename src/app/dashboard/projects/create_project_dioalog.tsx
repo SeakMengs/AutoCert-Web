@@ -242,12 +242,12 @@ export default function CreateProjectDialog({}: CreateProjectDialogProps) {
               <p className="ant-upload-hint">Only PDF files are supported.</p>
               Click or drag file to this area to upload
             </Upload.Dragger>
-            {form.formState.errors.templateFile && (
-              <Typography.Text type="danger">
-                {form.formState.errors.templateFile?.message?.toString()}
-              </Typography.Text>
-            )}
           </Form.Item>
+          {form.formState.errors.templateFile && (
+            <Typography.Text type="danger">
+              {form.formState.errors.templateFile?.message?.toString()}
+            </Typography.Text>
+          )}
           {pdfPageCount > 0 && (
             <>
               <FormItem
