@@ -107,16 +107,17 @@ export default function AutoCertLanding() {
           <Paragraph className="text-blue-100 text-lg mb-8">
             Join {APP_NAME} to streamline your certification workflows.
           </Paragraph>
-          <Link href="/api/oauth/google">
+            <Link href="/api/oauth/google">
             <Button
-              type="default"
+              type="primary"
               size="large"
               icon={<GoogleOutlined />}
-              className="h-12 px-8 text-lg font-medium"
+              className="h-12 px-8 text-lg font-medium bg-white text-blue-600 border-none hover:bg-blue-50 hover:text-blue-700"
+              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
             >
               Get started with Google
             </Button>
-          </Link>
+            </Link>
         </div>
       </div>
     </>

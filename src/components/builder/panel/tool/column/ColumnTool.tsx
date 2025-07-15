@@ -54,11 +54,13 @@ export interface ColumnToolProps {
 export type FontOption = {
   label: string;
   value: string;
+  path: string;
 };
 
 export const FontOptions = fontMetadata.map((f) => ({
   label: f.name,
   value: f.name,
+  path: f.path,
 })) satisfies readonly FontOption[];
 
 export default function ColumnTool({

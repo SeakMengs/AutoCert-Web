@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import ColumnTool from "./tool/column/ColumnTool";
+import ColumnTool, { FontOptions } from "./tool/column/ColumnTool";
 import SignatureTool from "./tool/signature/SignatureTool";
 import AutoCertTable from "./table/AutoCertTable";
 import {
@@ -38,6 +38,7 @@ import { AccessTokenCookie } from "@/auth/cookie";
 import { getCanGenerateCertificateState } from "../utils";
 import Link from "next/link";
 import useModal from "antd/es/modal/useModal";
+import { loadCustomFont } from "@/utils/font";
 
 const logger = createScopedLogger(
   "src:app:components:builder:panel:AutoCertPanel.ts",
@@ -615,6 +616,15 @@ function Layout({
   const handleGenerateCertificates = async () => {
     await onGenerateCertificatesMutation();
   };
+
+  useEffect(() => {
+    // Preload font options
+    FontOptions.forEach((font) => {
+      loadCustomFont(font.value, font.path).catch((error) => {
+        logger.error(`Failed to load font ${font.label}:`, error);
+      });
+    });
+  }, [FontOptions]);
 
   return (
     <>

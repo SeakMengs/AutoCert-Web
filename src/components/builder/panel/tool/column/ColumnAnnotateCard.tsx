@@ -35,7 +35,6 @@ export default function ColumnAnnotateCard({
   const {
     token: { colorPrimary },
   } = theme.useToken();
-
   return (
     <Card
       onClick={() => {
@@ -54,15 +53,24 @@ export default function ColumnAnnotateCard({
           <Tooltip title="Table column">
             <Tag>{columnAnnotate.value}</Tag>
           </Tooltip>
-          <Tooltip
-            title={`Text fit rectangle box enabled: ${columnAnnotate.textFitRectBox ? "Yes" : "No"}`}
-          >
-            <FontSizeOutlined
-              style={{
-                color: columnAnnotate.textFitRectBox ? colorPrimary : undefined,
-              }}
-            />
-          </Tooltip>
+            {columnAnnotate.fontName && (
+            <Tooltip title={columnAnnotate.fontName}>
+              <span
+              className="inline-flex items-center gap-1 sm:gap-1.5 max-w-[100px] sm:max-w-none"
+              >
+              <FontSizeOutlined style={{ color: colorPrimary }} />
+              <Text
+                ellipsis
+                className="align-middle truncate"
+                style={{
+                fontFamily: columnAnnotate.fontName,
+                }}
+              >
+                {columnAnnotate.fontName}
+              </Text>
+              </span>
+            </Tooltip>
+            )}
           {/* TODO: uncomment this if we allow multiple pdf pages */}
           {/* <Text type="secondary" className="text-xs">
             Page: {pageNumber}

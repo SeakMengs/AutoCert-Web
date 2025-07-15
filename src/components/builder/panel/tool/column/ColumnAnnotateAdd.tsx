@@ -23,6 +23,7 @@ import { wait } from "@/utils";
 import { FAKE_LOADING_TIME } from "@/components/builder/store/autocertChangeSlice";
 import { AnnotateColor } from "@/components/builder/annotate/BaseAnnotate";
 import { AnnotateFontColor } from "@/components/builder/annotate/util";
+import { DEFAULT_FONT_INDEX } from "@/utils/font";
 
 const logger = createScopedLogger(
   "components:builder:panel:tool:column:ColumnAnnotateAdd",
@@ -48,7 +49,7 @@ export default function ColumnAnnotateAdd({
   const getDefaultFormValues = useCallback(
     (): ColumnAnnotateFormSchema => ({
       value: columns[0]?.title,
-      fontName: FontOptions[0].value,
+      fontName: FontOptions[DEFAULT_FONT_INDEX].value,
       fontColor: AnnotateFontColor,
       color: AnnotateColor,
       textFitRectBox: true,
@@ -154,7 +155,15 @@ export default function ColumnAnnotateAdd({
             <Select>
               {FontOptions.map((font) => (
                 <Option key={font.value} value={font.value}>
-                  {font.label}
+                  <Tooltip title={font.label}>
+                    <span
+                      style={{
+                        fontFamily: font.value,
+                      }}
+                    >
+                      {font.label}
+                    </span>
+                  </Tooltip>
                 </Option>
               ))}
             </Select>

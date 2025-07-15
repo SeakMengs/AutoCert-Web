@@ -4,9 +4,9 @@ import BaseAnnotate, {
   BaseAnnotateProps,
 } from "./BaseAnnotate";
 import { memo, useEffect } from "react";
-import { FontWeight, loadCustomFont } from "./util";
+import { FontWeight } from "./util";
 import { createScopedLogger } from "@/utils/logger";
-import { fontMetadata } from "@/utils/font";
+import { fontMetadata, loadCustomFont } from "@/utils/font";
 
 const logger = createScopedLogger("components:builder:annotate:ColumnAnnotate");
 

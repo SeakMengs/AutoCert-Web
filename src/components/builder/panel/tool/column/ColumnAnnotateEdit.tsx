@@ -136,7 +136,15 @@ export default function ColumnAnnotateEdit({
             <Select>
               {FontOptions.map((font) => (
                 <Option key={font.value} value={font.value}>
-                  {font.label}
+                  <Tooltip title={font.label}>
+                    <span
+                      style={{
+                        fontFamily: font.value,
+                      }}
+                    >
+                      {font.label}
+                    </span>
+                  </Tooltip>
                 </Option>
               ))}
             </Select>

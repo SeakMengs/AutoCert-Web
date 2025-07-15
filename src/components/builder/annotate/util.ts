@@ -32,9 +32,3 @@ export const SignatoryStatusLabels: Record<SignatoryStatus, string> = {
   [SignatoryStatus.Signed]: "Signed",
   [SignatoryStatus.Rejected]: "Rejected",
 };
-
-export const loadCustomFont = async (fontName: string, fontPath: string) => {
-  const font = new FontFace(fontName, `url(/annotate/${fontPath})`);
-  await font.load();
-  document.fonts.add(font);
-};
