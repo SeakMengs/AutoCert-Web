@@ -4,16 +4,16 @@ import { AutoCertStore } from "./useAutoCertStore";
 import { SECOND } from "@/utils/time";
 import debounce from "lodash.debounce";
 import {
-  AnnotateType,
   ColumnAnnotateState,
   SignatureAnnotateState,
 } from "./autocertAnnotate";
 import { AutoCertSettings } from "./autocertSettingSlice";
 import { App } from "antd";
 import { queryClient } from "@/app/react_query";
-import { QueryKey } from "@/utils/react_query";
 import moment from "moment";
 import { pushBuilderChange } from "../clientAction";
+import { getTranslatedErrorMessage } from "@/utils/error";
+import { QueryKey } from "@/utils/react_query";
 
 const logger = createScopedLogger(
   "components:builder:store:autocertChangeSlice",
@@ -117,6 +117,7 @@ const messageKey = "autoCertPushChangesMessageKey";
 
 export type AutoCertChangeState = {
   lastSync: Date | null;
+  pushVersion: number;
   changes: AutoCertChangeEvent[];
   isPushingChanges: boolean;
   changeMap: Map<string, AutoCertChangeEvent>;
@@ -192,6 +193,7 @@ export const createAutoCertChangeSlice: StateCreator<
     changeMap: new Map<string, AutoCertChangeEvent>(),
     isUserInteracting: false,
     pendingInvalidation: false,
+    pushVersion: 0,
 
     initChange: () => {
       get().cancelInvalidateQueries();
@@ -202,6 +204,7 @@ export const createAutoCertChangeSlice: StateCreator<
         state.isPushingChanges = false;
         state.isUserInteracting = false;
         state.pendingInvalidation = false;
+        state.pushVersion = 0;
       });
     },
 
@@ -243,44 +246,77 @@ export const createAutoCertChangeSlice: StateCreator<
 
     pushChanges: async () => {
       if (get().changeMap.size === 0) return;
+
+      // Prevent concurrent pushes
+      if (get().isPushingChanges) {
+        return;
+      }
+
+      // Create snapshot of current changes and increment version
+      const changesToPush = Array.from(get().changeMap.values());
+      const currentVersion = get().pushVersion + 1;
+
+      set((state) => {
+        state.pushVersion = currentVersion;
+      });
+
       get().setIsPushingChanges(true);
 
-      // message.loading({
-      //   content: "Saving changes...",
-      //   key: messageKey,
-      //   duration: 0,
-      // });
-
-      const batchedChanges = Array.from(get().changeMap.values());
-      logger.debug("Pushing changes:", batchedChanges);
+      logger.debug(
+        `Pushing changes (v${get().pushVersion}: ${changesToPush.length} changes)`,
+      );
 
       try {
-        if (typeof get().syncChangesWithBackend !== "function" || !get().syncChangesWithBackend) {
+        if (
+          typeof get().syncChangesWithBackend !== "function" ||
+          !get().syncChangesWithBackend
+        ) {
           throw new Error("syncChangesWithBackend function is not set");
         }
 
         const data = await get().syncChangesWithBackend!({
-          changes: batchedChanges,
+          changes: changesToPush,
           projectId: get().project.id,
-        })
-
-        // TODO: handle the response properly
-        if (!data.success) {
-          throw new Error("Failed to save changes");
-        }
-
-        get().clearChanges();
-        await get().checkAndInvalidateQueries();
-
-        set((state) => {
-          state.lastSync = moment().toDate();
         });
 
-        // message.success({
-        //   content: "Changes saved successfully",
-        //   key: messageKey,
-        //   duration: 2,
-        // });
+        if (!data.success) {
+          const { errors } = data;
+          const specificError = getTranslatedErrorMessage(errors, {
+            events: errors.events,
+            project: errors.project,
+          });
+
+          if (specificError) {
+            message.error(`Failed to sync changes: ${specificError}`);
+            return;
+          }
+
+          message.error("Failed to sync changes");
+          return;
+        }
+
+        // Only clear changes if this is still the current version
+        // (no new changes were added while we were pushing)
+        // Example:
+        // Time 0: Changes A,B,C → pushVersion=1 → Start push
+        // Time 1: Change D added → pushVersion=2
+        // Time 2: Push completes → Check version (1 ≠ 2) → Don't clear → Trigger new push
+        // Time 3: New push starts with A,B,C,D → pushVersion=3 → Start push
+        // Time 4: Push completes → Check version (3 = 3) → Clear all changes
+        if (get().pushVersion === currentVersion) {
+          get().clearChanges();
+          await get().checkAndInvalidateQueries();
+
+          set((state) => {
+            state.lastSync = moment().toDate();
+          });
+        } else {
+          // New changes were added while pushing, trigger another push
+          logger.debug(
+            `New changes detected, triggering another push (Current version: ${get().pushVersion}, Pushed version: ${currentVersion})`,
+          );
+          debouncedPushChanges();
+        }
       } catch (error) {
         message.error({
           content: "Failed to save changes",
