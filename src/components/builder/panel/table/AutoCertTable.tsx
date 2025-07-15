@@ -33,6 +33,7 @@ import { useAutoCertStore } from "../../providers/AutoCertStoreProvider";
 import { useShallow } from "zustand/react/shallow";
 import { hasPermission, ProjectPermission } from "@/auth/rbac";
 import { ProjectStatus } from "@/types/project";
+import FetchLoading from "@/components/loading/FetchLoading";
 
 const logger = createScopedLogger(
   "components:builder:panel:table:AutoCertTable",
@@ -462,7 +463,10 @@ function AutoCertTable({
     <Flex vertical gap="middle">
       <Table
         title={() => Buttons}
-        loading={tableLoading || parsingCSV}
+        loading={{
+          indicator: <FetchLoading />,
+          spinning: tableLoading || parsingCSV,
+        }}
         ref={tblRef}
         bordered
         components={components}

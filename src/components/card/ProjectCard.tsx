@@ -6,20 +6,28 @@ import {
   Button,
   Card,
   CardProps,
+  Dropdown,
   Flex,
-  Popconfirm,
+  Menu,
+  MenuProps,
+  Modal,
   Skeleton,
+  Space,
   Tag,
   Tooltip,
+  Typography,
 } from "antd";
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import {
-  CheckCircleFilled,
-  CloseCircleFilled,
+  LoadingOutlined,
+  CheckCircleOutlined,
+  CalendarOutlined,
+  EditOutlined,
   DeleteOutlined,
   EyeOutlined,
   SignatureOutlined,
   ToolOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import moment from "moment";
@@ -37,7 +45,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { deleteProjectByIdAction } from "@/app/dashboard/projects/action";
 import { QueryKey } from "@/utils/react_query";
 import PdfThumbnail from "../pdf/PdfThumbnail";
-import { SignatoryStatus, SignatoryStatusLabels } from "../builder/annotate/util";
+import { wait } from "@/utils";
 
 const logger = createScopedLogger("src:components:card:ProjectCard");
 
@@ -48,192 +56,180 @@ export type ProjectCardProps = {
 
 export const StatusColorMap = {
   [ProjectStatus.Draft]: "default",
-  [ProjectStatus.Processing]: "warning",
+  [ProjectStatus.Processing]: "processing",
   [ProjectStatus.Completed]: "success",
 };
 
 const { Meta } = Card;
+const { Title, Text } = Typography;
 
-const GetBadgeIcon = ({ status }: { status: SignatoryStatus }) => {
+const GetStatusIcon = ({ status }: { status: ProjectStatus }) => {
   switch (status) {
-    case SignatoryStatus.Signed:
-      return (
-        <CheckCircleFilled
-          style={{
-            color: "#52c41a",
-            fontSize: "16px",
-          }}
-        />
-      );
-    case SignatoryStatus.Rejected:
-      return (
-        <CloseCircleFilled
-          style={{
-            color: "#ff4d4f",
-            fontSize: "16px",
-          }}
-        />
-      );
-    case SignatoryStatus.Invited:
-      return (
-        <CloseCircleFilled
-          style={{
-            color: "#1677FF",
-            fontSize: "16px",
-          }}
-        />
-      );
+    case ProjectStatus.Draft:
+      return <EditOutlined />;
+    case ProjectStatus.Processing:
+      return <LoadingOutlined spin />;
+    case ProjectStatus.Completed:
+      return <CheckCircleOutlined />;
     default:
       return null;
   }
 };
 
 function ProjectCard({ project, projectRole }: ProjectCardProps) {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { mutateAsync: handleRemoveProjectBydId, isPending: deleting } =
     useMutation({
       mutationFn: async () =>
-        await deleteProjectByIdAction({
-          projectId: project.id,
-        }),
+        await deleteProjectByIdAction({ projectId: project.id }),
       onError: (error) => {
         logger.error("Failed to delete project", error);
-
         message.error(`Failed to delete project: ${project.title}`);
       },
       onSettled: async () => {
         await queryClient.invalidateQueries({
           queryKey: [QueryKey.OwnProjects],
         });
+        setMenuOpen(false);
       },
     });
 
-  const getActions = (): CardProps["actions"] => {
-    const actions: CardProps["actions"] = [];
-    if (
-      (project.status === ProjectStatus.Completed &&
-        projectRole === ProjectRole.Requestor) ||
-      projectRole === ProjectRole.Signatory
-    ) {
-      actions.push(
-        <Tooltip title="View Generated Certificates">
+  const showDeleteConfirm = () => {
+    modal.confirm({
+      title: `Delete "${project.title}"?`,
+      content: "Are you sure you want to delete this project?",
+      okText: "Delete",
+      okType: "danger",
+      maskClosable: true,
+      onOk: async () => {
+        await handleRemoveProjectBydId();
+        message.success(`Project "${project.title}" deleted successfully.`);
+      },
+      onCancel: () => setMenuOpen(false),
+    });
+  };
+
+  const getDropdownMenuItems = (): MenuProps["items"] => {
+    const items: MenuProps["items"] = [];
+
+    if (project.status === ProjectStatus.Completed) {
+      items.push({
+        key: "view-certs",
+        label: (
           <Link href={`/dashboard/projects/${project.id}/certificates`}>
-            <EyeOutlined />
+            View Generated Certificates
           </Link>
-        </Tooltip>,
+        ),
+        icon: <EyeOutlined />,
+      });
+    }
+
+    if (projectRole === ProjectRole.Requestor) {
+      items.push(
+        {
+          key: "builder",
+          label: (
+            <Link href={`/dashboard/projects/${project.id}/builder`}>
+              Template Builder
+            </Link>
+          ),
+          icon: <ToolOutlined />,
+        },
+        {
+          key: "delete",
+          label: <span className="text-red-600">Delete</span>,
+          icon: <DeleteOutlined className="text-red-500" />,
+          onClick: showDeleteConfirm,
+        },
       );
     }
 
-    switch (projectRole) {
-      case ProjectRole.Requestor:
-        actions.push(
-          <Tooltip title="Template Builder">
-            <Link href={`/dashboard/projects/${project.id}/builder`}>
-              <ToolOutlined />
-            </Link>
-          </Tooltip>,
-        );
-        actions.push(
-          <Popconfirm
-            title={`Are you sure you want to delete the project "${project.title}"?`}
-            onConfirm={async () => {
-              await handleRemoveProjectBydId();
-            }}
-          >
-            <Tooltip title="Delete">
-              <Button
-                variant="text"
-                size="small"
-                color="red"
-                danger
-                icon={<DeleteOutlined />}
-                loading={deleting}
-                disabled={deleting}
-              />
-            </Tooltip>
-          </Popconfirm>,
-        );
-        break;
-      case ProjectRole.Signatory:
-        actions.push(
-          <Tooltip title="Review Signature Request">
-            <Link href={`/dashboard/projects/${project.id}/builder`}>
-              <SignatureOutlined />
-            </Link>
-          </Tooltip>,
-        );
-        break;
+    if (projectRole === ProjectRole.Signatory) {
+      items.push({
+        key: "sign",
+        label: (
+          <Link href={`/dashboard/projects/${project.id}/builder`}>
+            Review Signature Request
+          </Link>
+        ),
+        icon: <SignatureOutlined />,
+      });
     }
 
-    return actions;
+    return items;
   };
 
   return (
     <Card
-      // loading={loading}
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
-        <div className="relative w-full h-64 sm:h-48 xs:h-36">
-          <PdfThumbnail
-            pdfUrl={project.templateUrl}
-            skeletonClassName="h-64 sm:h-48 xs:h-36"
-          />
-        </div>
+        <Link href={`/dashboard/projects/${project.id}/builder`}>
+          <div className="relative w-full h-64 sm:h-48 xs:h-36">
+            <PdfThumbnail
+              pdfUrl={project.templateUrl}
+              skeletonClassName="h-64 sm:h-48 xs:h-36"
+            />
+          </div>
+        </Link>
       }
-      actions={getActions()}
     >
-      <Meta
-        title={
-          <Tooltip title={`Project title: ${project.title}`}>
-            {project.title}
-          </Tooltip>
-        }
-        description={
-          <Flex gap={8} align="center" justify="space-between">
-            <Tooltip title="Project status">
-              <Tag color={StatusColorMap[project.status]}>
-                {ProjectStatusLabels[project.status]}
-              </Tag>
-            </Tooltip>
-            <span>{moment(project.createdAt).fromNow()}</span>
-          </Flex>
-        }
-      />
+      <div className="flex justify-between items-start gap-2">
+        <Tooltip
+          title={`Project title: ${project.title}`}
+          className="flex-1 min-w-0"
+        >
+          <Link href={`/dashboard/projects/${project.id}/builder`}>
+            <Title
+              level={5}
+              className="truncate hover:text-blue-600 transition-colors line-clamp-2"
+            >
+              {project.title}
+            </Title>
+          </Link>
+        </Tooltip>
 
-      {/* Signatories Section */}
-      <div style={{ marginTop: "1rem" }}>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <strong>Signatories signed:</strong>{" "}
-          {`${project.signatories.filter((s) => s.status === SignatoryStatus.Signed).length}/${
-            project.signatories.length
-          }`}
-        </div>
-
-        {/* Avatars (with check or close badges) */}
-        <Flex gap={8} wrap>
-          {project.signatories.length === 0 ? (
-            <div style={{ minHeight: 32 }} />
-          ) : (
-            project.signatories.map((s, i) => (
-              <Tooltip
-                title={`${s.email}: ${SignatoryStatusLabels[s.status].toLowerCase()}`}
-                key={`${s.email}-${i}`}
-              >
-                <Badge
-                  count={GetBadgeIcon({ status: s.status })}
-                  offset={[-5, 5]}
-                >
-                  <Avatar src={s.profileUrl} alt={s.email}>
-                    {s.email.substring(0, 2).toUpperCase()}
-                  </Avatar>
-                </Badge>
-              </Tooltip>
-            ))
-          )}
-        </Flex>
+        <Dropdown
+          menu={{ items: getDropdownMenuItems() }}
+          trigger={["click"]}
+          open={menuOpen}
+          onOpenChange={(open) => setMenuOpen(open)}
+        >
+          <Button
+            size="small"
+            type="text"
+            variant="filled"
+            icon={<MoreOutlined />}
+            className="shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          />
+        </Dropdown>
       </div>
+
+      <Flex gap={8} align="center" justify="space-between" className="mt-2">
+        <Tooltip title="Project status">
+          <Tag
+            color={StatusColorMap[project.status]}
+            icon={GetStatusIcon({ status: project.status })}
+          >
+            {ProjectStatusLabels[project.status]}
+          </Tag>
+        </Tooltip>
+        <Space
+          direction="vertical"
+          size={4}
+          style={{ marginBottom: 8, color: "rgba(0, 0, 0, 0.45)" }}
+        >
+          <Flex align="center" gap={8}>
+            <CalendarOutlined />
+            <Text type="secondary">{moment(project.createdAt).fromNow()}</Text>
+          </Flex>
+        </Space>
+      </Flex>
     </Card>
   );
 }

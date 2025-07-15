@@ -3,6 +3,7 @@ import { Badge, Flex, Space, Spin, Tag, theme, Typography } from "antd";
 import {
   CheckCircleTwoTone,
   ClockCircleOutlined,
+  LoadingOutlined,
   SyncOutlined,
 } from "@ant-design/icons";
 import { useAutoCertStore } from "@/components/builder/providers/AutoCertStoreProvider";
@@ -10,6 +11,7 @@ import { useShallow } from "zustand/react/shallow";
 import { JSX, useEffect, useState } from "react";
 import moment from "moment";
 import { SECOND } from "@/utils/time";
+import { ProjectStatus } from "@/types/project";
 
 const { Title, Text } = Typography;
 
@@ -23,9 +25,10 @@ export default function Header({ title }: BuilderHeaderProps) {
     token: { colorSplit, colorBgContainer },
   } = theme.useToken();
 
-  const { lastSync, changes, isPushingChanges } = useAutoCertStore(
+  const { lastSync, changes, isPushingChanges, project } = useAutoCertStore(
     useShallow((state) => {
       return {
+        project: state.project,
         lastSync: state.lastSync,
         changes: state.changes,
         isPushingChanges: state.isPushingChanges,
@@ -34,8 +37,29 @@ export default function Header({ title }: BuilderHeaderProps) {
   );
 
   const changeCount = changes.length;
+  const isCompleted = project.status === ProjectStatus.Completed;
+  const isProcessing = project.status === ProjectStatus.Processing;
 
   const renderStatus = (): JSX.Element => {
+    if (isCompleted) {
+      return (
+        <Tag
+          icon={<CheckCircleTwoTone twoToneColor="#52c41a" />}
+          color="success"
+        >
+          Certificates generated
+        </Tag>
+      );
+    }
+
+    if (isProcessing) {
+      return (
+        <Tag icon={<LoadingOutlined spin />} color="processing">
+          Generating certificates...
+        </Tag>
+      );
+    }
+
     if (isPushingChanges) {
       return (
         <Tag icon={<SyncOutlined spin />} color="processing">
@@ -102,7 +126,7 @@ export default function Header({ title }: BuilderHeaderProps) {
 
         <Space size="middle">
           {renderStatus()}
-          {lastSync && (
+          {!isProcessing && lastSync && (
             <Text type="secondary" style={{ fontSize: 12 }}>
               {`Last sync: ${lastSyncFromNow}`}
             </Text>
