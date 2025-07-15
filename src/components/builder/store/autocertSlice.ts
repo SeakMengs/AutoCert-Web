@@ -5,7 +5,7 @@ import { generateCertificatesByIdAction } from "../action";
 import { ProjectRole } from "@/types/project";
 import { AnnotateStates } from "./autocertAnnotate";
 import { AutoCertSettings } from "./autocertSettingSlice";
-import { SaveChangesCallback } from "./autocertChangeSlice";
+import { SyncChangesWithBackendCallback } from "./autocertChangeSlice";
 import { AuthUser } from "@/auth";
 import { z } from "zod";
 import { ProjectByIdSchema } from "@/schemas/autocert_api/project";
@@ -29,7 +29,6 @@ export interface AutoCertActions {
     settings: AutoCertSettings;
     csvUrl: string;
     pdfUrl: string;
-    saveChanges: SaveChangesCallback;
   }) => Promise<void>;
   setRoles: (roles: ProjectRole[]) => void;
   setProject: (project: z.infer<typeof ProjectByIdSchema>) => void;
@@ -61,7 +60,6 @@ export const createAutoCertSlice: StateCreator<
       settings,
       csvUrl,
       pdfUrl,
-      saveChanges,
     }) => {
       logger.info("Initializing AutoCert store", {
         project,
@@ -86,7 +84,7 @@ export const createAutoCertSlice: StateCreator<
       get().initSettings(settings);
 
       if (get().initCount === 0) {
-        get().initChange(saveChanges);
+        get().initChange();
       } else {
         logger.info("AutoCert store already initialized change, skipping change init");
       }

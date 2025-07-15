@@ -15,6 +15,7 @@ import {
 } from "@/components/builder/store/autocertAnnotate";
 import { AutoCertChangeType } from "@/components/builder/store/autocertChangeSlice";
 import { AutoCertSettings } from "@/components/builder/store/autocertSettingSlice";
+import { pushBuilderChange } from "@/components/builder/clientAction";
 
 interface ProjectBuilderWithProviderProps
   extends Omit<ProjectBuilderProps, "contextValue"> {
@@ -72,84 +73,6 @@ export default function ProjectBuilderWithProvider({
     pdfUrl: project.templateUrl,
     roles: roles,
     settings: initialSettings,
-    // TOOD: update change
-    saveChanges: async (changes) => {
-      console.log("saveChanges called with changes:", changes);
-
-      const formData = new FormData();
-
-      // TODO: Optimzie this
-      // Prepare an array to include in the form's "events" field.
-      // Here we make a deep copy of changes, but remove the csvFile property
-      // from TableUpdate events to avoid issues with JSON.stringify.
-      const changesWithoutFiles = changes.map((change) => {
-        if (change.type === AutoCertChangeType.TableUpdate) {
-          return {
-            ...change,
-            data: {
-              ...change.data,
-              csvFile: undefined,
-            },
-          };
-        }
-
-        if (
-          change.type === AutoCertChangeType.AnnotateSignatureApprove &&
-          change.data.signatureFile
-        ) {
-          return {
-            ...change,
-            data: {
-              ...change.data,
-              signatureFile: undefined,
-            },
-          };
-        }
-        return change;
-      });
-
-      // Append the events field as JSON string.
-      formData.append("events", JSON.stringify(changesWithoutFiles));
-
-      changes.forEach((change, index) => {
-        if (
-          change.type === AutoCertChangeType.TableUpdate &&
-          change.data.csvFile
-        ) {
-          formData.append("csvFile", change.data.csvFile);
-        }
-
-        if (
-          change.type === AutoCertChangeType.AnnotateSignatureApprove &&
-          change.data.signatureFile
-        ) {
-          formData.append(
-            `signature_approve_file_${change.data.id}`,
-            change.data.signatureFile,
-          );
-        }
-      });
-
-      console.log("saveChanges to backend", changes);
-      try {
-        const res = await apiWithAuth.patchForm(
-          `/api/v1/projects/${project.id}/builder`,
-          formData,
-        );
-
-        console.log("saveChanges res", res.data);
-
-        if (!res.data.success) {
-          return false;
-        }
-
-        return true;
-      } catch (error: any) {
-        console.error("Error saving changes:", error.response.data);
-        // Handle error (e.g., show a notification)
-        return false;
-      }
-    },
   } satisfies AutoCertStoreProviderProps["value"];
 
   return (

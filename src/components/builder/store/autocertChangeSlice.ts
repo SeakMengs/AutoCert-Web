@@ -12,9 +12,8 @@ import { AutoCertSettings } from "./autocertSettingSlice";
 import { App } from "antd";
 import { queryClient } from "@/app/react_query";
 import { QueryKey } from "@/utils/react_query";
-import { hasRole } from "@/auth/rbac";
-import { ProjectRole } from "@/types/project";
 import moment from "moment";
+import { pushBuilderChange } from "../clientAction";
 
 const logger = createScopedLogger(
   "components:builder:store:autocertChangeSlice",
@@ -125,18 +124,15 @@ export type AutoCertChangeState = {
   pendingInvalidation: boolean;
 };
 
-export type SaveChangesCallback = (
-  changes: AutoCertChangeEvent[],
-) => Promise<boolean>;
+export type SyncChangesWithBackendCallback = typeof pushBuilderChange;
 
 export interface AutoCertChangeActions {
-  initChange: (fn: SaveChangesCallback) => void;
+  initChange: () => void;
   enqueueChange: (change: AutoCertChangeEvent) => void;
   clearChanges: () => void;
   pushChanges: () => Promise<void>;
   setIsPushingChanges: (isPushing: boolean) => void;
-  saveChanges?: SaveChangesCallback;
-  setSaveChanges: (fn: SaveChangesCallback) => void;
+  syncChangesWithBackend: SyncChangesWithBackendCallback;
   setIsUserInteracting: (isUserInteracting: boolean) => void;
   checkAndInvalidateQueries: () => Promise<void>;
   invalidateQueries: () => Promise<void>;
@@ -197,8 +193,7 @@ export const createAutoCertChangeSlice: StateCreator<
     isUserInteracting: false,
     pendingInvalidation: false,
 
-    initChange: (fn) => {
-      get().setSaveChanges(fn);
+    initChange: () => {
       get().cancelInvalidateQueries();
       set((state) => {
         state.lastSync = null;
@@ -207,12 +202,6 @@ export const createAutoCertChangeSlice: StateCreator<
         state.isPushingChanges = false;
         state.isUserInteracting = false;
         state.pendingInvalidation = false;
-      });
-    },
-
-    setSaveChanges: (fn) => {
-      set((state) => {
-        state.saveChanges = fn;
       });
     },
 
@@ -243,6 +232,8 @@ export const createAutoCertChangeSlice: StateCreator<
       debouncedPushChanges();
     },
 
+    syncChangesWithBackend: pushBuilderChange,
+
     clearChanges: () => {
       get().changeMap.clear();
       set((state) => {
@@ -264,13 +255,17 @@ export const createAutoCertChangeSlice: StateCreator<
       logger.debug("Pushing changes:", batchedChanges);
 
       try {
-        if (typeof get().saveChanges !== "function" || !get().saveChanges) {
-          throw new Error("saveChanges function is not set");
+        if (typeof get().syncChangesWithBackend !== "function" || !get().syncChangesWithBackend) {
+          throw new Error("syncChangesWithBackend function is not set");
         }
 
-        const success = (await get().saveChanges?.(batchedChanges)) ?? false;
+        const data = await get().syncChangesWithBackend!({
+          changes: batchedChanges,
+          projectId: get().project.id,
+        })
 
-        if (!success) {
+        // TODO: handle the response properly
+        if (!data.success) {
           throw new Error("Failed to save changes");
         }
 

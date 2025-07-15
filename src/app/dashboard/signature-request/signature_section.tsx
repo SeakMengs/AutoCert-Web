@@ -297,7 +297,7 @@ export default function SignatureSection({}: SignatureSectionProps) {
         <Alert
           banner
           message={
-            <Marquee pauseOnHover gradient={false}>
+            <Marquee pauseOnHover gradient={false} className="text-amber-800">
               Upload or draw your signature to encrypt and store it securely on
               the server. Only you can access it, and it will be used to sign
               certificates upon your approval.
