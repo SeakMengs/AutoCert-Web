@@ -1,3 +1,37 @@
+/**
+ * AutoCert auto sync (AI Summary)
+ *
+ * This slice manages the synchronization of user changes with the backend.
+ * It implements a robust system to handle concurrent edits and ensure data consistency.
+ *
+ * KEY CONCEPTS:
+ *
+ * 1. LOGICAL KEYS: Group changes by their logical entity (e.g., "annotate:column:update-colA")
+ *    - Only the latest change per logical key is kept
+ *    - Prevents sending redundant/outdated changes to the backend
+ *
+ * 2. UNIQUE KEYS: Each individual change gets a unique identifier using changeVersion
+ *    - Allows precise tracking of which specific changes were pushed
+ *    - Prevents accidentally removing newer changes during cleanup
+ *
+ * 3. CHANGE VERSION: Incremented for every change to detect concurrent modifications
+ *    - Used to determine if new changes were added during sync operations
+ *    - Ensures no changes are lost during concurrent operations
+ *
+ * CONCURRENT CHANGE HANDLING EXAMPLE:
+ *
+ * Timeline:
+ * 1. User changes column A to "X" → changeVersion: 1, logicalKey: "annotate:column:update-colA"
+ * 2. Sync starts, captures version 1, pushes "X" to backend
+ * 3. During sync, user changes column A to "Y" → changeVersion: 2, overwrites in map
+ * 4. Sync completes successfully
+ * 5. System detects version changed (1 → 2), knows there are new changes
+ * 6. Only removes the specific "X" change (by unique key), keeps "Y" change
+ * 7. Triggers new sync to push "Y"
+ *
+ * This ensures the latest change always gets synced, even during concurrent operations.
+ */
+
 import { StateCreator } from "zustand";
 import { createScopedLogger } from "@/utils/logger";
 import { AutoCertStore } from "./useAutoCertStore";
@@ -106,23 +140,25 @@ export type AutoCertChangeEvent =
   | SettingsUpdate
   | TableUpdate;
 
+const CHANGE_DEBOUNCE_TIME = 1.5 * SECOND;
+
 // When the user enqueues a change, we want to wait until the user stops interacting
 // before invalidate queries such that it never flickers the ui with the old state
-const INTERACTION_SETTLE_TIME = 2 * SECOND;
-
-const CHANGE_DEBOUNCE_TIME = 1 * SECOND;
+const INTERACTION_SETTLE_TIME = 3 * SECOND;
 // to make change feel natural with loading state
 export const FAKE_LOADING_TIME = 0.5 * SECOND;
 const messageKey = "autoCertPushChangesMessageKey";
 
 export type AutoCertChangeState = {
   lastSync: Date | null;
-  pushVersion: number;
+  changeVersion: number; // Incremented for each change to detect concurrent modifications during sync
   changes: AutoCertChangeEvent[];
   isPushingChanges: boolean;
-  changeMap: Map<string, AutoCertChangeEvent>;
+  changeMap: Map<
+    string,
+    { change: AutoCertChangeEvent; timestamp: Date; uniqueKey: string }
+  >;
   isUserInteracting: boolean;
-  pendingInvalidation: boolean;
 };
 
 export type SyncChangesWithBackendCallback = typeof pushBuilderChange;
@@ -135,7 +171,6 @@ export interface AutoCertChangeActions {
   setIsPushingChanges: (isPushing: boolean) => void;
   syncChangesWithBackend: SyncChangesWithBackendCallback;
   setIsUserInteracting: (isUserInteracting: boolean) => void;
-  checkAndInvalidateQueries: () => Promise<void>;
   invalidateQueries: () => Promise<void>;
   cancelInvalidateQueries: () => Promise<void>;
 }
@@ -151,11 +186,10 @@ export const createAutoCertChangeSlice: StateCreator<
   const { message } = App.useApp();
 
   /**
-   * Returns a unique key for the change.
-   * For annotate changes that have a related id, the key is "<type>-<id>".
-   * For settings or other changes, the type itself is used as the key.
+   * Returns a logical key for grouping changes of the same type and id.
+   * This is used to ensure we only keep the latest change for each logical entity.
    */
-  const getChangeKey = (change: AutoCertChangeEvent): string => {
+  const getLogicalKey = (change: AutoCertChangeEvent): string => {
     switch (change.type) {
       case AutoCertChangeType.AnnotateColumnAdd:
       case AutoCertChangeType.AnnotateColumnUpdate:
@@ -165,13 +199,24 @@ export const createAutoCertChangeSlice: StateCreator<
       case AutoCertChangeType.AnnotateSignatureRemove:
       case AutoCertChangeType.AnnotateSignatureInvite:
       case AutoCertChangeType.AnnotateSignatureApprove:
-        // Because there can be multiple annotations with the same type, we need to use the id as part of the key to ensure uniqueness.
+      case AutoCertChangeType.AnnotateSignatureReject:
         return `${change.type}-${change.data.id}`;
       case AutoCertChangeType.SettingsUpdate:
       case AutoCertChangeType.TableUpdate:
       default:
         return change.type;
     }
+  };
+
+  /**
+   * Returns a unique key for the change based on change version.
+   * Uses the logical key plus version for uniqueness.
+   */
+  const getChangeKey = (
+    change: AutoCertChangeEvent,
+    version: number,
+  ): string => {
+    return `${getLogicalKey(change)}-${version}`;
   };
 
   const debouncedPushChanges = debounce(async () => {
@@ -182,29 +227,36 @@ export const createAutoCertChangeSlice: StateCreator<
     get().setIsUserInteracting(false);
   }, INTERACTION_SETTLE_TIME);
 
-  const debouncedCheckAndInvalidateQueries = debounce(async () => {
-    await get().checkAndInvalidateQueries();
+  const debouncedInvalidateQueries = debounce(async () => {
+    // Only invalidate if user is no longer interacting and no changes are pending
+    if (!get().isUserInteracting && get().changeMap.size === 0) {
+      await get().invalidateQueries();
+    }
   }, INTERACTION_SETTLE_TIME);
 
   return {
     lastSync: null,
     changes: [],
     isPushingChanges: false,
-    changeMap: new Map<string, AutoCertChangeEvent>(),
+    changeMap: new Map<
+      string,
+      { change: AutoCertChangeEvent; timestamp: Date; uniqueKey: string }
+    >(),
     isUserInteracting: false,
-    pendingInvalidation: false,
-    pushVersion: 0,
+    changeVersion: 0,
 
     initChange: () => {
       get().cancelInvalidateQueries();
       set((state) => {
         state.lastSync = null;
         state.changes = [];
-        state.changeMap = new Map<string, AutoCertChangeEvent>();
+        state.changeMap = new Map<
+          string,
+          { change: AutoCertChangeEvent; timestamp: Date; uniqueKey: string }
+        >();
         state.isPushingChanges = false;
         state.isUserInteracting = false;
-        state.pendingInvalidation = false;
-        state.pushVersion = 0;
+        state.changeVersion = 0;
       });
     },
 
@@ -214,25 +266,72 @@ export const createAutoCertChangeSlice: StateCreator<
       });
 
       if (isUserInteracting) {
-        get().cancelInvalidateQueries();
+        // Cancel any pending debounced actions when user starts interacting
+        debouncedSetUserInteractionEnd.cancel();
+        debouncedInvalidateQueries.cancel();
       } else {
-        if (get().pendingInvalidation) {
-          debouncedCheckAndInvalidateQueries();
-        }
+        // When user stops interacting, schedule a query invalidation
+        // This ensures UI is eventually consistent even if some syncs didn't trigger invalidation
+        debouncedInvalidateQueries();
       }
     },
 
+    /**
+     * Enqueues a change to be synced with the backend.
+     *
+     * CHANGE TRACKING LOGIC:
+     * We use a Map<logicalKey, change> to ensure only the latest change per logical entity is kept.
+     * This prevents duplicate/redundant changes from being sent to the backend.
+     *
+     * CONCURRENT CHANGE HANDLING:
+     * When changes are made during an ongoing sync, we need to ensure they don't get lost.
+     * We increment changeVersion for every change to detect concurrent modifications.
+     *
+     * EXAMPLE SCENARIO:
+     * 1. User changes column A value to "X"
+     * 2. Sync starts, pushing "X" to backend
+     * 3. While syncing, user changes column A to "Y"
+     * 4. The "Y" change overwrites "X" in changeMap (correct - we want latest)
+     * 5. But we track the unique key of "X" that was pushed
+     * 6. After sync completes, we only remove the specific "X" change
+     * 7. The "Y" change remains and triggers a new sync
+     *
+     * This ensures the latest change always gets synced, even during concurrent operations.
+     */
     enqueueChange: (change) => {
-      const key = getChangeKey(change);
-      get().changeMap.set(key, change);
+      const nextVersion = get().changeVersion + 1;
+      const logicalKey = getLogicalKey(change);
+      const uniqueKey = getChangeKey(change, nextVersion);
+      const timestamp = new Date();
+
+      // Always increment version to track this change
       set((state) => {
-        state.changes = Array.from(get().changeMap.values());
+        state.changeVersion = nextVersion;
+      });
+
+      // Store with logical key to ensure only latest change per logical entity
+      get().changeMap.set(logicalKey, {
+        change,
+        timestamp,
+        uniqueKey,
+      });
+
+      set((state) => {
+        state.changes = Array.from(get().changeMap.values()).map(
+          (item) => item.change,
+        );
       });
 
       get().setIsUserInteracting(true);
       debouncedSetUserInteractionEnd();
 
-      debouncedPushChanges();
+      // Cancel any pending invalidation since we have new changes
+      debouncedInvalidateQueries.cancel();
+
+      // Only trigger push if we're not already pushing
+      if (!get().isPushingChanges) {
+        debouncedPushChanges();
+      }
     },
 
     syncChangesWithBackend: pushBuilderChange,
@@ -244,6 +343,15 @@ export const createAutoCertChangeSlice: StateCreator<
       });
     },
 
+    /**
+     * Pushes pending changes to the backend.
+     *
+     * CONCURRENT SYNC PROTECTION:
+     * We capture the changeVersion at the start of the sync operation.
+     * If the version changes during sync, it means new changes were added.
+     * We only remove the specific changes that were successfully pushed,
+     * preserving any newer changes that came in during the sync.
+     */
     pushChanges: async () => {
       if (get().changeMap.size === 0) return;
 
@@ -252,18 +360,24 @@ export const createAutoCertChangeSlice: StateCreator<
         return;
       }
 
-      // Create snapshot of current changes and increment version
-      const changesToPush = Array.from(get().changeMap.values());
-      const currentVersion = get().pushVersion + 1;
+      // Create snapshot of current changes and their unique keys
+      const currentChangeEntries = Array.from(get().changeMap.entries());
+      const changesToPush = currentChangeEntries.map(
+        ([key, item]) => item.change,
+      );
+      // Used later to remove only the pushed changes that were successfully pushed
+      // This ensures we don't accidentally remove newer changes that came in during the sync
+      const pushedChangeUniqueKeys = new Set(
+        currentChangeEntries.map(([key, item]) => item.uniqueKey),
+      );
 
-      set((state) => {
-        state.pushVersion = currentVersion;
-      });
+      // Capture the version at the start of the push operation
+      const versionAtStart = get().changeVersion;
 
       get().setIsPushingChanges(true);
 
       logger.debug(
-        `Pushing changes (v${get().pushVersion}: ${changesToPush.length} changes)`,
+        `Pushing changes (v${versionAtStart}: ${changesToPush.length} changes)`,
       );
 
       try {
@@ -295,26 +409,43 @@ export const createAutoCertChangeSlice: StateCreator<
           return;
         }
 
-        // Only clear changes if this is still the current version
-        // (no new changes were added while we were pushing)
-        // Example:
-        // Time 0: Changes A,B,C → pushVersion=1 → Start push
-        // Time 1: Change D added → pushVersion=2
-        // Time 2: Push completes → Check version (1 ≠ 2) → Don't clear → Trigger new push
-        // Time 3: New push starts with A,B,C,D → pushVersion=3 → Start push
-        // Time 4: Push completes → Check version (3 = 3) → Clear all changes
-        if (get().pushVersion === currentVersion) {
+        // Check if new changes were added while we were pushing
+        // If version is still the same as when we started, no new changes were added
+        if (get().changeVersion === versionAtStart) {
           get().clearChanges();
-          await get().checkAndInvalidateQueries();
 
           set((state) => {
             state.lastSync = moment().toDate();
           });
+
+          // Trigger invalidation after successful sync
+          debouncedInvalidateQueries();
         } else {
           // New changes were added while pushing, trigger another push
           logger.debug(
-            `New changes detected, triggering another push (Current version: ${get().pushVersion}, Pushed version: ${currentVersion})`,
+            `New changes detected, triggering another push (Current version: ${get().changeVersion}, Started version: ${versionAtStart})`,
           );
+
+          // Clear only the changes that were just pushed successfully
+          const currentChanges = new Map(get().changeMap);
+
+          // Remove only the changes that were just pushed using their unique keys
+          for (const [logicalKey, item] of currentChanges.entries()) {
+            if (pushedChangeUniqueKeys.has(item.uniqueKey)) {
+              currentChanges.delete(logicalKey);
+            }
+          }
+
+          set((state) => {
+            state.changeMap = currentChanges;
+            state.changes = Array.from(currentChanges.values()).map(
+              (item) => item.change,
+            );
+            state.lastSync = moment().toDate();
+          });
+
+          // Trigger invalidation and schedule next push
+          debouncedInvalidateQueries();
           debouncedPushChanges();
         }
       } catch (error) {
@@ -336,43 +467,22 @@ export const createAutoCertChangeSlice: StateCreator<
       });
     },
 
-    checkAndInvalidateQueries: async () => {
-      if (!get().isUserInteracting) {
-        await get().invalidateQueries();
-        set((state) => {
-          state.pendingInvalidation = false;
-        });
-        return;
-      }
-
-      logger.debug(
-        "User is interacting in the builder, deferring query invalidation",
-      );
-      set((state) => {
-        state.pendingInvalidation = true;
-      });
-    },
-
     invalidateQueries: async () => {
       logger.info("Invalidating queries for project builder");
 
       await queryClient.invalidateQueries({
         queryKey: [QueryKey.ProjectBuilderById, get().project.id],
+        // fetch only if the query data is being mounted in component
+        refetchType: "active",
       });
     },
 
     cancelInvalidateQueries: async () => {
-      logger.info(
-        "Cancelling pending query invalidation and debounced actions",
-      );
+      logger.info("Cancelling pending debounced actions and queries");
 
       debouncedSetUserInteractionEnd.cancel();
-      debouncedCheckAndInvalidateQueries.cancel();
       debouncedPushChanges.cancel();
-
-      set((state) => {
-        state.pendingInvalidation = false;
-      });
+      debouncedInvalidateQueries.cancel();
 
       await queryClient.cancelQueries({
         queryKey: [QueryKey.ProjectBuilderById, get().project.id],

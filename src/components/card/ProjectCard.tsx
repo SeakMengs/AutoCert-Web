@@ -166,69 +166,86 @@ function ProjectCard({ project, projectRole }: ProjectCardProps) {
     <Card
       className="border rounded-sm hover:shadow-sm relative group w-full"
       cover={
-        <Link href={`/dashboard/projects/${project.id}/builder`}>
-          <div className="relative w-full h-64 sm:h-48 xs:h-36">
-            <PdfThumbnail
-              pdfUrl={project.templateUrl}
-              skeletonClassName="h-64 sm:h-48 xs:h-36"
-            />
-          </div>
-        </Link>
+      <Link href={`/dashboard/projects/${project.id}/builder`}>
+        <div className="relative w-full h-64 sm:h-48 xs:h-36">
+        <PdfThumbnail
+          pdfUrl={project.templateUrl}
+          skeletonClassName="h-64 sm:h-48 xs:h-36"
+        />
+        </div>
+      </Link>
       }
-    >
-      <div className="flex justify-between items-start gap-2">
-        <Tooltip
-          title={`Project title: ${project.title}`}
-          className="flex-1 min-w-0"
+      styles={{ body:{overflow: "hidden" }}}>
+      <div className="flex justify-between items-start gap-2 overflow-hidden">
+      <Tooltip
+        title={`Project title: ${project.title}`}
+        className="flex-1 min-w-0"
+      >
+        <Link href={`/dashboard/projects/${project.id}/builder`}>
+        <Title
+          level={5}
+          className="truncate hover:text-blue-600 transition-colors line-clamp-2"
         >
-          <Link href={`/dashboard/projects/${project.id}/builder`}>
-            <Title
-              level={5}
-              className="truncate hover:text-blue-600 transition-colors line-clamp-2"
-            >
-              {project.title}
-            </Title>
-          </Link>
-        </Tooltip>
+          {project.title}
+        </Title>
+        </Link>
+      </Tooltip>
 
-        <Dropdown
-          menu={{ items: getDropdownMenuItems() }}
-          trigger={["click"]}
-          open={menuOpen}
-          onOpenChange={(open) => setMenuOpen(open)}
-        >
-          <Button
-            size="small"
-            type="text"
-            variant="filled"
-            icon={<MoreOutlined />}
-            className="shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          />
-        </Dropdown>
+      <Dropdown
+        menu={{ items: getDropdownMenuItems() }}
+        trigger={["click"]}
+        open={menuOpen}
+        onOpenChange={(open) => setMenuOpen(open)}
+      >
+        <Button
+        size="small"
+        type="text"
+        variant="filled"
+        icon={<MoreOutlined />}
+        className="shrink-0"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        />
+      </Dropdown>
       </div>
 
-      <Flex gap={8} align="center" justify="space-between" className="mt-2">
-        <Tooltip title="Project status">
-          <Tag
-            color={StatusColorMap[project.status]}
-            icon={GetStatusIcon({ status: project.status })}
-          >
-            {ProjectStatusLabels[project.status]}
-          </Tag>
-        </Tooltip>
-        <Space
-          direction="vertical"
-          size={4}
-          style={{ marginBottom: 8, color: "rgba(0, 0, 0, 0.45)" }}
+      <Flex
+      gap={8}
+      align="center"
+      justify="space-between"
+      className="mt-2 overflow-hidden"
+      style={{ flexWrap: "wrap" }}
+      >
+      <Tooltip title="Project status">
+        <Tag
+        color={StatusColorMap[project.status]}
+        icon={GetStatusIcon({ status: project.status })}
+        style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
         >
-          <Flex align="center" gap={8}>
-            <CalendarOutlined />
-            <Text type="secondary">{moment(project.createdAt).fromNow()}</Text>
-          </Flex>
-        </Space>
+        {ProjectStatusLabels[project.status]}
+        </Tag>
+      </Tooltip>
+      <Space
+        direction="vertical"
+        size={4}
+        style={{ marginBottom: 8, color: "rgba(0, 0, 0, 0.45)", maxWidth: "120px", overflow: "hidden" }}
+      >
+        <Flex align="center" gap={8} style={{ overflow: "hidden" }}>
+        <CalendarOutlined />
+        <Tooltip
+          title={moment(project.createdAt).format("YYYY-MM-DD HH:mm:ss")}
+        >
+          <Text
+          type="secondary"
+          className="max-w-[80px] truncate block"
+          style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          >
+          {moment(project.createdAt).fromNow()}
+          </Text>
+        </Tooltip>
+        </Flex>
+      </Space>
       </Flex>
     </Card>
   );

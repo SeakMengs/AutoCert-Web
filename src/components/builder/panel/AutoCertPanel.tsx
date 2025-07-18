@@ -248,7 +248,7 @@ function AutoCertPanel({}: AutoCertPanelProps) {
               <Alert
                 message={
                   <Text className="text-green-700">
-                    This project has already generated certificates.{" "}
+                    This project is completed and certificates have been generated.{" "}
                     <Link
                       href={`/dashboard/projects/${project.id}/certificates`}
                       className="text-green-600 hover:text-green-700 transition underline"

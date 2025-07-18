@@ -45,7 +45,6 @@ export const createAutoCertSlice: StateCreator<
   [],
   AutoCertSlice
 > = (set, get) => {
-
   return {
     initCount: 0,
     project: {} as z.infer<typeof ProjectByIdSchema>,
@@ -61,18 +60,20 @@ export const createAutoCertSlice: StateCreator<
       csvUrl,
       pdfUrl,
     }) => {
-      logger.info("Initializing AutoCert store", {
-        project,
-        roles,
-        annotates,
-        settings,
-        csvUrl,
-        pdfUrl,
-      });
+      logger.info(
+        `Initializing AutoCert store for the ${get().initCount} time`,
+        {
+          project,
+          roles,
+          annotates,
+          settings,
+          csvUrl,
+          pdfUrl,
+        },
+      );
 
       if (get().isUserInteracting) {
-        logger.warn("User is interacting, skip initialize AutoCert store");
-        return
+        logger.warn("User is interacting, while initialize AutoCert store");
       }
 
       set((state) => {
@@ -86,7 +87,9 @@ export const createAutoCertSlice: StateCreator<
       if (get().initCount === 0) {
         get().initChange();
       } else {
-        logger.info("AutoCert store already initialized change, skipping change init");
+        logger.info(
+          "AutoCert store already initialized change, skipping change init",
+        );
       }
 
       // Only initialize pdf once since we only need to load it once

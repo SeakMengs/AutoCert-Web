@@ -2,7 +2,6 @@ import {
   AutoCertStoreProvider,
   AutoCertStoreProviderProps,
 } from "@/components/builder/providers/AutoCertStoreProvider";
-import { apiWithAuth } from "@/utils/axios";
 import { useMemo } from "react";
 import Builder, { ProjectBuilderProps } from "./builder";
 import { AuthUser } from "@/auth";
@@ -13,9 +12,7 @@ import {
   SignatureAnnotateState,
   ColumnAnnotateState,
 } from "@/components/builder/store/autocertAnnotate";
-import { AutoCertChangeType } from "@/components/builder/store/autocertChangeSlice";
 import { AutoCertSettings } from "@/components/builder/store/autocertSettingSlice";
-import { pushBuilderChange } from "@/components/builder/clientAction";
 
 interface ProjectBuilderWithProviderProps
   extends Omit<ProjectBuilderProps, "contextValue"> {
@@ -65,7 +62,7 @@ export default function ProjectBuilderWithProvider({
     } satisfies AutoCertSettings;
   }, [project.embedQr]);
 
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     user,
     project,
     annotates: annot,
@@ -73,7 +70,7 @@ export default function ProjectBuilderWithProvider({
     pdfUrl: project.templateUrl,
     roles: roles,
     settings: initialSettings,
-  } satisfies AutoCertStoreProviderProps["value"];
+  } satisfies AutoCertStoreProviderProps["value"]), [user, project, annot, roles, initialSettings]);
 
   return (
     <AutoCertStoreProvider value={contextValue}>
