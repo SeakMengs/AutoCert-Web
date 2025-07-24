@@ -26,7 +26,9 @@ export type GetOwnProjectsSuccessResponse = z.infer<
 
 export async function getOwnProjectsAction(
   data: GetOwnProjectsParams,
-): Promise<ResponseJson<GetOwnProjectsSuccessResponse, {}>> {
+): Promise<ResponseJson<GetOwnProjectsSuccessResponse, {
+  restricted?: string;
+}>> {
   try {
     logger.info("get own project action", data);
 

@@ -17,16 +17,37 @@ export type PushBuilderChangeParams = {
 
 export type PushBuilderChangeResponse = {};
 
+export const PushBuilderChangeErrorKey = {
+  // common
+  project: "project",
+  projectId: "projectId",
+  events: "events",
+
+  // builder event processor err key
+  InvalidPayload: "invalidPayload",
+  PermissionDenied: "permissionDenied",
+  DatabaseError: "databaseError",
+  FileRequired: "fileRequired",
+  InvalidFileType: "invalidFileType",
+  FileUploadFailed: "fileUploadFailed",
+  FileOperationFailed: "fileOperationFailed",
+  TableExceedLimit: "tableExceedLimit",
+  NotFound: "notFound",
+  InvalidStatus: "invalidStatus",
+  NotAssignedToUser: "notAssignedToUser",
+  MailServiceError: "mailServiceError",
+  LoggingError: "loggingError",
+} as const;
+
+export type PushBuilderChangeErrorKey = Partial<Record<keyof typeof PushBuilderChangeErrorKey, string>>;
+
 export async function pushBuilderChange({
   changes,
   projectId,
 }: PushBuilderChangeParams): Promise<
   ResponseJson<
     PushBuilderChangeResponse,
-    {
-      events: string;
-      project: string;
-    }
+    PushBuilderChangeErrorKey
   >
 > {
   try {

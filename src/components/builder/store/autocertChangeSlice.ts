@@ -45,7 +45,7 @@ import { AutoCertSettings } from "./autocertSettingSlice";
 import { App } from "antd";
 import { queryClient } from "@/app/react_query";
 import moment from "moment";
-import { pushBuilderChange } from "../clientAction";
+import { pushBuilderChange, PushBuilderChangeErrorKey } from "../clientAction";
 import { getTranslatedErrorMessage } from "@/utils/error";
 import { QueryKey } from "@/utils/react_query";
 
@@ -396,16 +396,23 @@ export const createAutoCertChangeSlice: StateCreator<
         if (!data.success) {
           const { errors } = data;
           const specificError = getTranslatedErrorMessage(errors, {
-            events: errors.events,
-            project: errors.project,
+            // similar to project: errors.project but auto based on object
+            ...Object.fromEntries(
+              Object.entries(PushBuilderChangeErrorKey).map(([key, value]) => [
+                value,
+                errors[value as keyof typeof errors],
+              ]),
+            ),
           });
 
-          if (specificError) {
-            message.error(`Failed to sync changes: ${specificError}`);
+            if (specificError) {
+            const s = changesToPush.length > 1 ? "s" : "";
+            message.error(`Failed to sync change${s}: ${specificError}`);
             return;
-          }
+            }
 
-          message.error("Failed to sync changes");
+            const s = changesToPush.length > 1 ? "s" : "";
+            message.error(`Failed to sync change${s}`);
           return;
         }
 

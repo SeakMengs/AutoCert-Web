@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   env: {
     API_BASE_URL: process.env.API_BASE_URL,
     DOMAIN: process.env.DOMAIN,
+    FULL_ACCESS_EMAIL_DOMAIN: process.env.FULL_ACCESS_EMAIL_DOMAIN,
   },
   images: {
     // temporary

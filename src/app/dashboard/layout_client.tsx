@@ -28,6 +28,7 @@ import { createScopedLogger } from "@/utils/logger";
 import { AuthUser } from "@/auth";
 import { logout } from "@/auth/server/action";
 import Link from "next/link";
+import { hasFullAccess } from "@/utils/restrict";
 
 const logger = createScopedLogger("app:dashboard:layout_client");
 const { Sider, Content } = Layout;
@@ -106,14 +107,18 @@ function LeftSideBar({
   const router = useRouter();
 
   const menuItems = [
+    ...(hasFullAccess(user.email)
+      ? [
+          {
+            key: "projects",
+            icon: <HomeOutlined />,
+            label: "Projects",
+            route: "/dashboard/projects",
+          },
+        ]
+      : []),
     {
-      key: "1",
-      icon: <HomeOutlined />,
-      label: "Projects",
-      route: "/dashboard/projects",
-    },
-    {
-      key: "2",
+      key: "signature-request",
       icon: <SignatureOutlined />,
       label: "Signature request",
       route: "/dashboard/signature-request",
