@@ -18,8 +18,8 @@ interface Logger {
 }
 
 // use line 21 in production
-// let currentLevel: DebugLevel = !IS_PRODUCTION ? "debug" : "info";
-let currentLevel: DebugLevel = !IS_PRODUCTION ? "debug" : "debug";
+let currentLevel: DebugLevel = !IS_PRODUCTION ? "debug" : "info";
+// let currentLevel: DebugLevel = !IS_PRODUCTION ? "debug" : "debug";
 
 export const logger: Logger = {
   trace: (...messages: any[]) => log("trace", undefined, messages),
@@ -55,9 +55,9 @@ function log(
   messages: any[],
 ): void {
   // TODO: uncomment this when everything is ready for production
-  // if (IS_PRODUCTION) {
-  //   return;
-  // }
+  if (IS_PRODUCTION) {
+    return;
+  }
 
   const levelOrder: DebugLevel[] = ["trace", "debug", "info", "warn", "error"];
 
