@@ -11,6 +11,7 @@ import { APP_NAME } from "@/utils";
 import Title from "antd/es/typography/Title";
 import Paragraph from "antd/es/typography/Paragraph";
 import LoginLink from "@/components/auth/LoginLink";
+import { Suspense } from "react";
 
 export default function AutoCertLanding() {
   const features = [
@@ -108,17 +109,19 @@ export default function AutoCertLanding() {
           <Paragraph className="text-blue-100 text-lg mb-8">
             Join {APP_NAME} to streamline your certification workflows.
           </Paragraph>
+          <Suspense>
             <LoginLink>
-            <Button
-              type="primary"
-              size="large"
-              icon={<GoogleOutlined />}
-              className="h-12 px-8 text-lg font-medium bg-white text-blue-600 border-none hover:bg-blue-50 hover:text-blue-700"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
-            >
-              Get started with Google
-            </Button>
+              <Button
+                type="primary"
+                size="large"
+                icon={<GoogleOutlined />}
+                className="h-12 px-8 text-lg font-medium bg-white text-blue-600 border-none hover:bg-blue-50 hover:text-blue-700"
+                style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+              >
+                Get started with Google
+              </Button>
             </LoginLink>
+          </Suspense>
         </div>
       </div>
     </>

@@ -2,7 +2,7 @@ import { APP_NAME } from "@/utils";
 import { Button, Divider, Space } from "antd";
 import Link from "next/link";
 import Image from "next/image";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, Suspense } from "react";
 import { validateAccessToken } from "@/auth/server/action";
 import { GoogleOutlined, DashboardOutlined } from "@ant-design/icons";
 import { MobileMenu } from "./mobile_menu";
@@ -43,11 +43,13 @@ export default async function LandingLayout({ children }: PropsWithChildren) {
             </Space>
           ) : (
             <Space>
-              <LoginLink>
-                <Button type="primary" icon={<GoogleOutlined />}>
-                  Login
-                </Button>
-              </LoginLink>
+              <Suspense>
+                <LoginLink>
+                  <Button type="primary" icon={<GoogleOutlined />}>
+                    Login
+                  </Button>
+                </LoginLink>
+              </Suspense>
             </Space>
           )}
         </div>
