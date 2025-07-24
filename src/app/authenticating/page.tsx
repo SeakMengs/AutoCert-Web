@@ -1,12 +1,13 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
-import { Spin, Alert, Button } from "antd";
+import { Spin, Alert, Button, Result } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchGoogleOAuthCallBack, GoogleOAuthCallBackData } from "./action";
 import { useAuth } from "@/hooks/useAuth";
 import FullScreenSpin from "@/components/loading/FullScreenSpin";
 import { validateAccessToken } from "@/auth/server/action";
 import { setRefreshAndAccessTokenToCookie } from "@/auth/server/cookie";
+import LoginLink from "@/components/auth/LoginLink";
 
 // https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
 export default function Authenticating() {
@@ -18,7 +19,6 @@ export default function Authenticating() {
 }
 
 function AuthenticationStatus() {
-  const { revalidate } = useAuth();
   const [token, setToken] = useState<GoogleOAuthCallBackData>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -47,6 +47,12 @@ function AuthenticationStatus() {
           return;
         }
 
+        const source = searchParams.get("source");
+        if (source) {
+          router.push(source);
+          return;
+        }
+
         router.push("/dashboard");
         return;
       }
@@ -72,19 +78,19 @@ function AuthenticationStatus() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen flex-col">
-        <Alert
-          message="Authentication Error"
-          description={error}
-          type="error"
-          showIcon
-          style={{ marginBottom: 16 }}
+        <Result
+          status="error"
+          title="Authentication Failed"
+          subTitle={error}
+          extra={[
+            <Button type="primary" key="home" onClick={() => router.push("/")}>
+              Return to Home
+            </Button>,
+            <LoginLink key="retry">
+              <Button>Retry</Button>
+            </LoginLink>,
+          ]}
         />
-        <Button type="primary" onClick={() => router.push("/")}>
-          Return to Home
-        </Button>
-        <Button type="primary" onClick={() => router.push("/api/oauth/google")}>
-          Retry
-        </Button>
       </div>
     );
   }

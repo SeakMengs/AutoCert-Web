@@ -8,6 +8,7 @@ import {
   MenuOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
+import LoginLink from "@/components/auth/LoginLink";
 
 interface MobileMenuProps {
   isAuthenticated: boolean;
@@ -49,7 +50,7 @@ export function MobileMenu({ isAuthenticated }: MobileMenuProps) {
                     key: "login",
                     icon: <GoogleOutlined />,
                     label: (
-                      <Link href="/api/oauth/google" prefetch={false}>Login with Google</Link>
+                      <LoginLink>Login with Google</LoginLink>
                     ),
                   },
                 ]

@@ -10,6 +10,7 @@ import Image from "next/image";
 import { APP_NAME } from "@/utils";
 import Title from "antd/es/typography/Title";
 import Paragraph from "antd/es/typography/Paragraph";
+import LoginLink from "@/components/auth/LoginLink";
 
 export default function AutoCertLanding() {
   const features = [
@@ -107,7 +108,7 @@ export default function AutoCertLanding() {
           <Paragraph className="text-blue-100 text-lg mb-8">
             Join {APP_NAME} to streamline your certification workflows.
           </Paragraph>
-            <Link href="/api/oauth/google">
+            <LoginLink>
             <Button
               type="primary"
               size="large"
@@ -117,7 +118,7 @@ export default function AutoCertLanding() {
             >
               Get started with Google
             </Button>
-            </Link>
+            </LoginLink>
         </div>
       </div>
     </>

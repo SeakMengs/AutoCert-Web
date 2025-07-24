@@ -3,6 +3,7 @@ import DashboardLayoutClient from "./layout_client";
 import { validateAccessToken } from "@/auth/server/action";
 import { redirect } from "next/navigation";
 import { createScopedLogger } from "@/utils/logger";
+import { getPathname } from "@/utils/server/host";
 
 const logger = createScopedLogger("app:dashboard:layout");
 
@@ -16,7 +17,9 @@ export default async function DashboardLayout({
   const result = await validateAccessToken();
   if (!result.isAuthenticated) {
     logger.warn("User is not authenticated, redirecting to '/' page");
-    redirect("/");
+
+    const pathname = await getPathname();
+    redirect(`/?source=${encodeURIComponent(pathname)}`);
   }
 
   return (

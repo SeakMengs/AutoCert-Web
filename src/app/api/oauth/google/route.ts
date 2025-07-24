@@ -2,11 +2,11 @@ import { getApiBaseUrl } from "@/utils";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const appRedirectUri = request.nextUrl.searchParams.get("app_redirect_uri");
-  let url = `${getApiBaseUrl()}/api/v1/oauth/google`;
+  const afterLoginUrl = request.nextUrl.searchParams.get("source");
+  const url = new URL("/api/v1/oauth/google", getApiBaseUrl());
 
-  if (appRedirectUri) {
-    url += `?app_redirect_uri=${appRedirectUri}`;
+  if (afterLoginUrl) {
+    url.searchParams.set("source", afterLoginUrl);
   }
 
   return Response.redirect(url);

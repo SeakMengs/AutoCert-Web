@@ -9,6 +9,7 @@ import { MobileMenu } from "./mobile_menu";
 import Layout, { Content, Footer, Header } from "antd/es/layout/layout";
 import Title from "antd/es/typography/Title";
 import Paragraph from "antd/es/typography/Paragraph";
+import LoginLink from "@/components/auth/LoginLink";
 
 export default async function LandingLayout({ children }: PropsWithChildren) {
   const { isAuthenticated } = await validateAccessToken();
@@ -42,11 +43,11 @@ export default async function LandingLayout({ children }: PropsWithChildren) {
             </Space>
           ) : (
             <Space>
-              <Link href={"/api/oauth/google"} prefetch={false}>
+              <LoginLink>
                 <Button type="primary" icon={<GoogleOutlined />}>
                   Login
                 </Button>
-              </Link>
+              </LoginLink>
             </Space>
           )}
         </div>
