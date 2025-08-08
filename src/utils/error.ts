@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createScopedLogger } from "./logger";
+import { IS_PRODUCTION } from "./env";
 
 const logger = createScopedLogger("app:utils:error");
 
@@ -64,8 +65,11 @@ export const autocertToFormattedZodError = (
     }
 
     let formattedError = {} as T_ZodErrorFormatted;
-    // TODO: remove
-    console.warn("errorddddddddddddddddd", error);
+
+    if (!IS_PRODUCTION) {
+      console.warn("error:", error);
+    }
+
     for (const issue of error) {
       const fieldKey = issue.field
         ? issue.field.charAt(0).toLowerCase() + issue.field.slice(1)

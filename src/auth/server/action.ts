@@ -166,9 +166,18 @@ export async function refreshAccessToken(): Promise<{
   };
 }
 
-// TODO: invalidate refresh token in backend
 export async function logout(): Promise<void> {
   logger.debug("Logging out user");
 
-  await clearRefreshAndAccessTokenCookie();
+  try {
+    const refreshToken = await getCookie(RefreshTokenCookie);
+    await api.delete<ResponseJson<{}>>("/api/v1/auth/logout", {
+      headers: {
+        Authorization: `Refresh ${refreshToken}`,
+      },
+    });
+    await clearRefreshAndAccessTokenCookie();
+  } catch (error) {
+    logger.error("Failed to logout");
+  }
 }
