@@ -41,13 +41,14 @@ function PageRenderer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const onPageRenderSuccess = (page: PageCallback) => {
-    // const viewport = page.getViewport({ scale: 1 });
+    // Pdf js will automatically apply rotation which increase the height that we don't want. add rotation = 0 to fix that
+    const viewport = page.getViewport({ scale: 1, rotation: 0 });
     logger.debug(
-      `Page original size ${page.originalWidth}x${page.originalHeight}, Pdf current size ${page.width}x${page.height}`,
+      `Pdf page: ${pageNumber}, original size ${viewport.width}x${viewport.height}, current size ${page.width}x${page.height}`,
     );
     setPdfViewPort({
-      width: page.originalWidth,
-      height: page.originalHeight,
+      width: viewport.width,
+      height: viewport.height,
     });
   };
 

@@ -63,14 +63,20 @@ export const createAutoCertPdfSlice: StateCreator<
 
       logger.debug(`Pdf loaded, total pages: ${pdf.numPages}`);
 
+      const pdfPage = 1;
+
       get().setTotalPdfPage(pdf.numPages);
-      get().setCurrentPdfPage(1);
+      get().setCurrentPdfPage(pdfPage);
 
       if (!IS_PRODUCTION) {
-        const page = await pdf.getPage(1);
+        const page = await pdf.getPage(pdfPage);
         const width = page.view[2];
         const height = page.view[3];
-        logger.debug(`Pdf width: ${width}, height: ${height}`);
+        // Pdf js will automatically apply rotation which increase the height that we don't want. add rotation = 0 to fix that
+        const viewport = page.getViewport({ scale: 1, rotation: 0 });
+        logger.debug(
+          `Pdf original size: ${viewport.width}x${viewport.height}, current size: ${width}x${height}`,
+        );
       }
     },
   };
