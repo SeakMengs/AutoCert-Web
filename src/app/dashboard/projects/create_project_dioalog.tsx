@@ -291,8 +291,8 @@ export default function CreateProjectDialog({}: CreateProjectDialogProps) {
               )}
             </>
           )}
-        </Form>
         {data && !data.success && <FormErrorMessages errors={data.errors} />}
+        </Form>
       </Modal>
     </>
   );
